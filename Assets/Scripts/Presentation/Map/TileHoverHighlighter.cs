@@ -87,6 +87,11 @@ namespace CivClone.Presentation.Map
                 }
             }
 
+            if (Input.GetMouseButtonDown(1))
+            {
+                hasSelection = false;
+            }
+
             if (hasSelection)
             {
                 Vector3 selectedCenter = GetTileCenter(tileSize, selectedX, selectedZ);
