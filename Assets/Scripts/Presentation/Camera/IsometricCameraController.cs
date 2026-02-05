@@ -1,3 +1,4 @@
+using CivClone.Presentation.Map;
 using UnityEngine;
 
 namespace CivClone.Presentation.Camera
@@ -20,6 +21,7 @@ namespace CivClone.Presentation.Camera
         [SerializeField] private float maxFov = 80f;
 
         [Header("Map Bounds")]
+        [SerializeField] private MapRenderer mapRenderer;
         [SerializeField] private MapSize mapSize = MapSize.Medium;
         [SerializeField] private float tileSize = 1f;
         [SerializeField] private Vector2Int smallSize = new Vector2Int(40, 25);
@@ -130,9 +132,11 @@ namespace CivClone.Presentation.Camera
 
         private void ClampToBounds()
         {
-            Vector2Int size = GetMapSize();
-            float maxX = size.x * tileSize;
-            float maxZ = size.y * tileSize;
+            Vector2Int size = mapRenderer != null ? mapRenderer.CurrentSize : GetMapSize();
+            float activeTileSize = mapRenderer != null ? mapRenderer.TileSize : tileSize;
+
+            float maxX = size.x * activeTileSize;
+            float maxZ = size.y * activeTileSize;
 
             Vector3 position = transform.position;
             position.x = Mathf.Clamp(position.x, 0f, maxX);

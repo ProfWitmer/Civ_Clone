@@ -26,6 +26,9 @@ namespace CivClone.Presentation.Map
         private Material lightMaterial;
         private Material darkMaterial;
 
+        public Vector2Int CurrentSize => GetMapSize();
+        public float TileSize => tileSize;
+
         private void Start()
         {
             if (generateOnStart)
@@ -103,7 +106,7 @@ namespace CivClone.Presentation.Map
             }
         }
 
-        private Vector2Int GetMapSize()
+        public Vector2Int GetMapSize()
         {
             return mapSize switch
             {
