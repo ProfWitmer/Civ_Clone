@@ -4,12 +4,29 @@ namespace CivClone.Presentation.Camera
 {
     public sealed class IsometricCameraController : MonoBehaviour
     {
+        public enum MapSize
+        {
+            Small,
+            Medium,
+            Large
+        }
+
+        [Header("Movement")]
         [SerializeField] private float zoomSpeed = 5f;
         [SerializeField] private float panSpeed = 10f;
         [SerializeField] private float minOrthoZoom = 5f;
         [SerializeField] private float maxOrthoZoom = 50f;
         [SerializeField] private float minFov = 20f;
         [SerializeField] private float maxFov = 80f;
+
+        [Header("Map Bounds")]
+        [SerializeField] private MapSize mapSize = MapSize.Medium;
+        [SerializeField] private float tileSize = 1f;
+        [SerializeField] private Vector2Int smallSize = new Vector2Int(40, 25);
+        [SerializeField] private Vector2Int mediumSize = new Vector2Int(60, 40);
+        [SerializeField] private Vector2Int largeSize = new Vector2Int(80, 60);
+
+        [Header("Debug")]
         [SerializeField] private bool showDebugOverlay = false;
 
         private UnityEngine.Camera cachedCamera;
@@ -28,6 +45,7 @@ namespace CivClone.Presentation.Camera
         {
             HandlePan();
             HandleZoom();
+            ClampToBounds();
 
             lastUpdateTime = Time.unscaledTime;
             lastPosition = transform.position;
@@ -41,7 +59,7 @@ namespace CivClone.Presentation.Camera
             }
 
             GUI.color = Color.white;
-            GUILayout.BeginArea(new Rect(10f, 10f, 460f, 160f), GUI.skin.box);
+            GUILayout.BeginArea(new Rect(10f, 10f, 460f, 180f), GUI.skin.box);
             GUILayout.Label("IsometricCameraController active");
             GUILayout.Label($"Last Update: {lastUpdateTime:F2}s");
             GUILayout.Label($"Pan Input H/V: {lastHorizontal:F2} / {lastVertical:F2}");
@@ -108,6 +126,29 @@ namespace CivClone.Presentation.Camera
                 float target = cachedCamera.fieldOfView - combinedScroll * zoomSpeed;
                 cachedCamera.fieldOfView = Mathf.Clamp(target, minFov, maxFov);
             }
+        }
+
+        private void ClampToBounds()
+        {
+            Vector2Int size = GetMapSize();
+            float maxX = size.x * tileSize;
+            float maxZ = size.y * tileSize;
+
+            Vector3 position = transform.position;
+            position.x = Mathf.Clamp(position.x, 0f, maxX);
+            position.z = Mathf.Clamp(position.z, 0f, maxZ);
+            transform.position = position;
+        }
+
+        private Vector2Int GetMapSize()
+        {
+            return mapSize switch
+            {
+                MapSize.Small => smallSize,
+                MapSize.Medium => mediumSize,
+                MapSize.Large => largeSize,
+                _ => mediumSize
+            };
         }
 
         private float GetAxisWithKeys(KeyCode negativePrimary, KeyCode positivePrimary, KeyCode negativeAlt, KeyCode positiveAlt, string axis)
