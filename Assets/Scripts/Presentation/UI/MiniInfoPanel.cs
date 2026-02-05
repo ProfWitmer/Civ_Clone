@@ -13,6 +13,11 @@ namespace CivClone.Presentation.UI
         [SerializeField] private int startTurn = 1;
         [SerializeField] private string startYear = "4000 BC";
 
+        [Header("Style")]
+        [SerializeField] private Color textColor = new Color(0.95f, 0.85f, 0.55f, 1f);
+        [SerializeField] private Color shadowColor = new Color(0f, 0f, 0f, 0.6f);
+        [SerializeField] private Vector2 shadowOffset = new Vector2(1.5f, -1.5f);
+
         private int currentTurn;
         private string currentYear;
 
@@ -20,6 +25,9 @@ namespace CivClone.Presentation.UI
         {
             currentTurn = startTurn;
             currentYear = startYear;
+            ApplyStyle(compassLabel);
+            ApplyStyle(turnLabel);
+            ApplyStyle(yearLabel);
             Refresh();
         }
 
@@ -56,6 +64,30 @@ namespace CivClone.Presentation.UI
             if (yearLabel != null)
             {
                 yearLabel.text = currentYear;
+            }
+        }
+
+        private void ApplyStyle(TMP_Text text)
+        {
+            if (text == null)
+            {
+                return;
+            }
+
+            text.color = textColor;
+            text.enableWordWrapping = false;
+
+            if (text.GetComponent<Shadow>() == null)
+            {
+                Shadow shadow = text.gameObject.AddComponent<Shadow>();
+                shadow.effectColor = shadowColor;
+                shadow.effectDistance = shadowOffset;
+            }
+            else
+            {
+                Shadow shadow = text.GetComponent<Shadow>();
+                shadow.effectColor = shadowColor;
+                shadow.effectDistance = shadowOffset;
             }
         }
     }

@@ -1,18 +1,18 @@
 namespace CivClone.Simulation.Core
 {
-    // Orchestrates turn progression and player sequencing.
     public sealed class TurnSystem
     {
-        private readonly GameState _gameState;
+        private int currentTurn = 1;
+        private int currentYear = -4000;
+        private int yearStep = 20;
 
-        public TurnSystem(GameState gameState)
-        {
-            _gameState = gameState;
-        }
+        public int CurrentTurn => currentTurn;
+        public string CurrentYearLabel => currentYear < 0 ? $"{-currentYear} BC" : $"{currentYear} AD";
 
-        public void EndTurn()
+        public void AdvanceTurn()
         {
-            _gameState.AdvanceTurn();
+            currentTurn++;
+            currentYear += yearStep;
         }
     }
 }
