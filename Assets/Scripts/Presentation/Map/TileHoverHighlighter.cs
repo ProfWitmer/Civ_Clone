@@ -1,3 +1,4 @@
+using CivClone.Presentation.UI;
 using UnityEngine;
 
 namespace CivClone.Presentation.Map
@@ -6,8 +7,11 @@ namespace CivClone.Presentation.Map
     {
         [SerializeField] private MapRenderer mapRenderer;
         [SerializeField] private UnityEngine.Camera targetCamera;
+        [SerializeField] private TileInfoPanel tileInfoPanel;
         [SerializeField] private Color fillColor = new Color(1f, 1f, 0f, 0.15f);
         [SerializeField] private Color outlineColor = new Color(1f, 0.95f, 0.5f, 0.9f);
+        [SerializeField] private Color selectedFillColor = new Color(0.25f, 0.8f, 1f, 0.2f);
+        [SerializeField] private Color selectedOutlineColor = new Color(0.4f, 0.9f, 1f, 0.95f);
         [SerializeField] private float highlightHeight = 0.02f;
         [SerializeField] private float pulseSpeed = 2f;
         [SerializeField] private float pulseIntensity = 0.35f;
@@ -18,12 +22,21 @@ namespace CivClone.Presentation.Map
         private Material fillMaterial;
         private Material outlineMaterial;
         private bool isVisible;
+        private bool hasSelection;
+        private int selectedX;
+        private int selectedZ;
+        private float lastPulseValue = 1f;
 
         private void Awake()
         {
             if (targetCamera == null)
             {
                 targetCamera = UnityEngine.Camera.main;
+            }
+
+            if (tileInfoPanel != null)
+            {
+                tileInfoPanel.Clear();
             }
 
             CreateHighlightObjects();
@@ -41,6 +54,10 @@ namespace CivClone.Presentation.Map
             if (!TryGetWorldPointOnGround(ray, out Vector3 hitPoint))
             {
                 SetHighlightVisible(false);
+                if (tileInfoPanel != null)
+                {
+                    tileInfoPanel.Clear();
+                }
                 return;
             }
 
@@ -53,15 +70,34 @@ namespace CivClone.Presentation.Map
             if (x < 0 || z < 0 || x >= mapSize.x || z >= mapSize.y)
             {
                 SetHighlightVisible(false);
+                if (tileInfoPanel != null)
+                {
+                    tileInfoPanel.Clear();
+                }
                 return;
             }
+
+            if (Input.GetMouseButtonDown(0))
+            {
+                hasSelection = true;
+                selectedX = x;
+                selectedZ = z;
+            }
+
+            bool isSelected = hasSelection && selectedX == x && selectedZ == z;
 
             Vector3 center = new Vector3(x * tileSize + tileSize * 0.5f, highlightHeight, z * tileSize + tileSize * 0.5f);
             fillTile.transform.position = center;
             fillTile.transform.localScale = new Vector3(tileSize, tileSize, 1f);
 
             UpdateOutline(tileSize, center);
-            UpdatePulse();
+            UpdatePulse(isSelected);
+            ApplyColors(isSelected, lastPulseValue);
+
+            if (tileInfoPanel != null)
+            {
+                tileInfoPanel.SetCoordinates(x, z);
+            }
 
             SetHighlightVisible(true);
         }
@@ -116,16 +152,26 @@ namespace CivClone.Presentation.Map
             outlineRenderer.SetPosition(3, p3);
         }
 
-        private void UpdatePulse()
+        private void UpdatePulse(bool isSelected)
         {
-            float pulse = 1f + Mathf.Sin(Time.time * pulseSpeed) * pulseIntensity;
+            if (isSelected)
+            {
+                lastPulseValue = 1f;
+                return;
+            }
 
-            Color fill = fillColor;
-            fill.a = Mathf.Clamp01(fillColor.a * pulse);
+            lastPulseValue = 1f + Mathf.Sin(Time.time * pulseSpeed) * pulseIntensity;
+        }
+
+        private void ApplyColors(bool isSelected, float pulse)
+        {
+            Color fill = isSelected ? selectedFillColor : fillColor;
+            Color outline = isSelected ? selectedOutlineColor : outlineColor;
+
+            fill.a = Mathf.Clamp01(fill.a * pulse);
+            outline.a = Mathf.Clamp01(outline.a * pulse);
+
             fillMaterial.color = fill;
-
-            Color outline = outlineColor;
-            outline.a = Mathf.Clamp01(outlineColor.a * pulse);
             outlineMaterial.color = outline;
         }
 
