@@ -6,11 +6,18 @@ namespace CivClone.Presentation.Map
     {
         [SerializeField] private MapRenderer mapRenderer;
         [SerializeField] private UnityEngine.Camera targetCamera;
-        [SerializeField] private Color highlightColor = new Color(1f, 1f, 0f, 0.35f);
+        [SerializeField] private Color fillColor = new Color(1f, 1f, 0f, 0.15f);
+        [SerializeField] private Color outlineColor = new Color(1f, 0.95f, 0.5f, 0.9f);
         [SerializeField] private float highlightHeight = 0.02f;
+        [SerializeField] private float pulseSpeed = 2f;
+        [SerializeField] private float pulseIntensity = 0.35f;
 
-        private GameObject highlightTile;
-        private MeshRenderer highlightRenderer;
+        private GameObject fillTile;
+        private MeshRenderer fillRenderer;
+        private LineRenderer outlineRenderer;
+        private Material fillMaterial;
+        private Material outlineMaterial;
+        private bool isVisible;
 
         private void Awake()
         {
@@ -19,13 +26,14 @@ namespace CivClone.Presentation.Map
                 targetCamera = UnityEngine.Camera.main;
             }
 
-            CreateHighlightTile();
+            CreateHighlightObjects();
         }
 
         private void Update()
         {
             if (mapRenderer == null || targetCamera == null)
             {
+                SetHighlightVisible(false);
                 return;
             }
 
@@ -49,42 +57,87 @@ namespace CivClone.Presentation.Map
             }
 
             Vector3 center = new Vector3(x * tileSize + tileSize * 0.5f, highlightHeight, z * tileSize + tileSize * 0.5f);
-            highlightTile.transform.position = center;
-            highlightTile.transform.localScale = new Vector3(tileSize, tileSize, 1f);
+            fillTile.transform.position = center;
+            fillTile.transform.localScale = new Vector3(tileSize, tileSize, 1f);
+
+            UpdateOutline(tileSize, center);
+            UpdatePulse();
+
             SetHighlightVisible(true);
         }
 
-        private void CreateHighlightTile()
+        private void CreateHighlightObjects()
         {
-            highlightTile = GameObject.CreatePrimitive(PrimitiveType.Quad);
-            highlightTile.name = "HoverHighlight";
-            highlightTile.transform.SetParent(transform, false);
-            highlightTile.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+            fillTile = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            fillTile.name = "HoverHighlightFill";
+            fillTile.transform.SetParent(transform, false);
+            fillTile.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
 
-            Collider collider = highlightTile.GetComponent<Collider>();
+            Collider collider = fillTile.GetComponent<Collider>();
             if (collider != null)
             {
                 Destroy(collider);
             }
 
-            highlightRenderer = highlightTile.GetComponent<MeshRenderer>();
-            Material material = new Material(Shader.Find("Unlit/Color"));
-            material.color = highlightColor;
-            highlightRenderer.sharedMaterial = material;
+            fillRenderer = fillTile.GetComponent<MeshRenderer>();
+            fillMaterial = new Material(Shader.Find("Unlit/Color"));
+            fillMaterial.color = fillColor;
+            fillRenderer.sharedMaterial = fillMaterial;
+
+            outlineRenderer = fillTile.AddComponent<LineRenderer>();
+            outlineRenderer.useWorldSpace = true;
+            outlineRenderer.loop = true;
+            outlineRenderer.positionCount = 4;
+            outlineRenderer.widthMultiplier = 0.03f;
+            outlineRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            outlineRenderer.receiveShadows = false;
+            outlineRenderer.alignment = LineAlignment.View;
+
+            outlineMaterial = new Material(Shader.Find("Unlit/Color"));
+            outlineMaterial.color = outlineColor;
+            outlineRenderer.sharedMaterial = outlineMaterial;
 
             SetHighlightVisible(false);
         }
 
+        private void UpdateOutline(float tileSize, Vector3 center)
+        {
+            float half = tileSize * 0.5f;
+            float y = highlightHeight + 0.001f;
+
+            Vector3 p0 = new Vector3(center.x - half, y, center.z - half);
+            Vector3 p1 = new Vector3(center.x + half, y, center.z - half);
+            Vector3 p2 = new Vector3(center.x + half, y, center.z + half);
+            Vector3 p3 = new Vector3(center.x - half, y, center.z + half);
+
+            outlineRenderer.SetPosition(0, p0);
+            outlineRenderer.SetPosition(1, p1);
+            outlineRenderer.SetPosition(2, p2);
+            outlineRenderer.SetPosition(3, p3);
+        }
+
+        private void UpdatePulse()
+        {
+            float pulse = 1f + Mathf.Sin(Time.time * pulseSpeed) * pulseIntensity;
+
+            Color fill = fillColor;
+            fill.a = Mathf.Clamp01(fillColor.a * pulse);
+            fillMaterial.color = fill;
+
+            Color outline = outlineColor;
+            outline.a = Mathf.Clamp01(outlineColor.a * pulse);
+            outlineMaterial.color = outline;
+        }
+
         private bool TryGetWorldPointOnGround(Ray ray, out Vector3 hitPoint)
         {
-            float distance = 0f;
             if (Mathf.Abs(ray.direction.y) < 0.0001f)
             {
                 hitPoint = Vector3.zero;
                 return false;
             }
 
-            distance = -ray.origin.y / ray.direction.y;
+            float distance = -ray.origin.y / ray.direction.y;
             if (distance <= 0f)
             {
                 hitPoint = Vector3.zero;
@@ -97,10 +150,14 @@ namespace CivClone.Presentation.Map
 
         private void SetHighlightVisible(bool visible)
         {
-            if (highlightRenderer != null)
+            if (isVisible == visible)
             {
-                highlightRenderer.enabled = visible;
+                return;
             }
+
+            isVisible = visible;
+            fillRenderer.enabled = visible;
+            outlineRenderer.enabled = visible;
         }
     }
 }
