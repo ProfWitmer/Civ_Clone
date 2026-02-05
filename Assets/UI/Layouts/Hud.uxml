@@ -1,0 +1,8 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements">
+    <ui:Style src="Assets/UI/Styles/Hud.uss" />
+    <ui:VisualElement class="hud-root">
+        <ui:Label name="turn-label" text="Turn 1 - Player 1" class="hud-title" />
+        <ui:Label name="selection-label" text="Selection: None" class="hud-sub" />
+        <ui:Button name="endturn-button" text="End Turn" class="hud-button" />
+    </ui:VisualElement>
+</ui:UXML>

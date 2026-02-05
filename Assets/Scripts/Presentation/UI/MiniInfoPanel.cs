@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace CivClone.Presentation.UI
 {
@@ -75,7 +76,7 @@ namespace CivClone.Presentation.UI
             }
 
             text.color = textColor;
-            text.enableWordWrapping = false;
+            text.textWrappingMode = TextWrappingModes.NoWrap;
 
             if (text.GetComponent<Shadow>() == null)
             {

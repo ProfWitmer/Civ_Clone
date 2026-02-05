@@ -1,0 +1,89 @@
+using System.Collections.Generic;
+using CivClone.Simulation;
+using UnityEngine;
+
+namespace CivClone.Presentation
+{
+    public sealed class UnitPresenter : MonoBehaviour
+    {
+        [SerializeField] private Color unitColor = new Color(0.2f, 0.6f, 0.95f);
+        [SerializeField] private float unitScale = 0.6f;
+
+        private readonly Dictionary<Unit, UnitView> unitViews = new Dictionary<Unit, UnitView>();
+        private Sprite unitSprite;
+        private MapPresenter mapPresenter;
+
+        public void RenderUnits(GameState state, MapPresenter presenter)
+        {
+            mapPresenter = presenter;
+            ClearUnits();
+
+            if (state == null || state.Players == null || mapPresenter == null)
+            {
+                return;
+            }
+
+            if (unitSprite == null)
+            {
+                unitSprite = BuildSprite();
+            }
+
+            foreach (var player in state.Players)
+            {
+                foreach (var unit in player.Units)
+                {
+                    var unitObject = new GameObject($"Unit {unit.UnitTypeId}");
+                    unitObject.transform.SetParent(transform, false);
+                    unitObject.transform.localPosition = mapPresenter.GridToWorld(unit.Position) + new Vector3(0f, 0f, -0.1f);
+                    unitObject.transform.localScale = new Vector3(unitScale, unitScale, 1f);
+
+                    var renderer = unitObject.AddComponent<SpriteRenderer>();
+                    renderer.sprite = unitSprite;
+                    renderer.color = unitColor;
+
+                    var collider = unitObject.AddComponent<BoxCollider2D>();
+                    collider.size = new Vector2(1f, 1f);
+
+                    var view = unitObject.AddComponent<UnitView>();
+                    view.Bind(unit);
+
+                    unitViews[unit] = view;
+                }
+            }
+        }
+
+        public void UpdateUnitPosition(Unit unit)
+        {
+            if (unit == null || mapPresenter == null)
+            {
+                return;
+            }
+
+            if (unitViews.TryGetValue(unit, out var view))
+            {
+                view.transform.localPosition = mapPresenter.GridToWorld(unit.Position) + new Vector3(0f, 0f, -0.1f);
+            }
+        }
+
+        private void ClearUnits()
+        {
+            foreach (var view in unitViews.Values)
+            {
+                if (view != null)
+                {
+                    DestroyImmediate(view.gameObject);
+                }
+            }
+
+            unitViews.Clear();
+        }
+
+        private Sprite BuildSprite()
+        {
+            var texture = new Texture2D(1, 1, TextureFormat.RGBA32, false);
+            texture.SetPixel(0, 0, Color.white);
+            texture.Apply();
+            return Sprite.Create(texture, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f), 1f);
+        }
+    }
+}
