@@ -48,6 +48,18 @@ namespace CivClone.Presentation.Map
                 return;
             }
 
+            if (Input.GetMouseButtonDown(1))
+            {
+                hasSelection = false;
+                hoverHighlight.SetVisible(false);
+                selectedHighlight.SetVisible(false);
+                if (tileInfoPanel != null)
+                {
+                    tileInfoPanel.Clear();
+                }
+                return;
+            }
+
             Vector2Int mapSize = mapRenderer.CurrentSize;
             float tileSize = mapRenderer.TileSize;
 
@@ -85,11 +97,6 @@ namespace CivClone.Presentation.Map
                         tileInfoPanel.Clear();
                     }
                 }
-            }
-
-            if (Input.GetMouseButtonDown(1))
-            {
-                hasSelection = false;
             }
 
             if (hasSelection)
