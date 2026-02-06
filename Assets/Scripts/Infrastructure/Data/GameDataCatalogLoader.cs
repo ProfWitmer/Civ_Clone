@@ -123,7 +123,8 @@ namespace CivClone.Infrastructure.Data
                     MovementPoints = GetIntValue(header, row, "MovementPoints", 1),
                     Attack = GetIntValue(header, row, "Attack", 1),
                     Defense = GetIntValue(header, row, "Defense", 1),
-                    ProductionCost = GetIntValue(header, row, "ProductionCost", 10)
+                    ProductionCost = GetIntValue(header, row, "ProductionCost", 10),
+                    WorkCost = GetIntValue(header, row, "WorkCost", 2)
                 };
 
                 definitions.Add(definition);

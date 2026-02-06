@@ -11,5 +11,6 @@ namespace CivClone.Infrastructure.Data.Definitions
         public int Attack;
         public int Defense;
         public int ProductionCost;
+        public int WorkCost;
     }
 }

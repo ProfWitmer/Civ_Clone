@@ -55,7 +55,8 @@ namespace CivClone.Infrastructure
                         X = unit.Position.X,
                         Y = unit.Position.Y,
                         MovementPoints = unit.MovementPoints,
-                        MovementRemaining = unit.MovementRemaining
+                        MovementRemaining = unit.MovementRemaining,
+                        WorkRemaining = unit.WorkRemaining
                     });
                 }
 
@@ -126,6 +127,7 @@ namespace CivClone.Infrastructure
                 {
                     var newUnit = new Unit(unit.UnitTypeId, new GridPosition(unit.X, unit.Y), unit.MovementPoints, player.Id);
                     newUnit.MovementRemaining = unit.MovementRemaining;
+                    newUnit.WorkRemaining = unit.WorkRemaining;
                     player.Units.Add(newUnit);
                 }
 
@@ -184,6 +186,7 @@ namespace CivClone.Infrastructure
             public int Y;
             public int MovementPoints;
             public int MovementRemaining;
+            public int WorkRemaining;
         }
 
         [Serializable]

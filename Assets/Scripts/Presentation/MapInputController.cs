@@ -167,7 +167,22 @@ namespace CivClone.Presentation
             ApplyFog();
         }
 
-        private int GetMoveCost(GridPosition position)
+                private int GetWorkCost(Unit unit)
+        {
+            if (unit == null)
+            {
+                return 2;
+            }
+
+            if (dataCatalog != null && dataCatalog.TryGetUnitType(unit.UnitTypeId, out var unitType))
+            {
+                return Mathf.Max(1, unitType.WorkCost);
+            }
+
+            return 2;
+        }
+
+private int GetMoveCost(GridPosition position)
         {
             if (state?.Map == null)
             {
@@ -473,6 +488,10 @@ private void UpdateHudSelection(string warning = null)
             }
 
             var movementLabel = $"MP {selectedUnit.MovementRemaining}/{selectedUnit.MovementPoints}";
+            if (selectedUnit.UnitTypeId == "worker")
+            {
+                movementLabel = $"{movementLabel} Work {selectedUnit.WorkRemaining}";
+            }
             if (!string.IsNullOrWhiteSpace(warning))
             {
                 movementLabel = $"{movementLabel} - {warning}";

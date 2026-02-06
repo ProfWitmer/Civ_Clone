@@ -6,7 +6,8 @@
       "MovementPoints": 2,
       "Attack": 1,
       "Defense": 1,
-      "ProductionCost": 10
+      "ProductionCost": 10,
+      "WorkCost": 2
     },
     {
       "Id": "settler",
@@ -14,7 +15,8 @@
       "MovementPoints": 2,
       "Attack": 0,
       "Defense": 1,
-      "ProductionCost": 30
+      "ProductionCost": 30,
+      "WorkCost": 4
     },
     {
       "Id": "worker",
@@ -22,7 +24,8 @@
       "MovementPoints": 2,
       "Attack": 0,
       "Defense": 1,
-      "ProductionCost": 20
+      "ProductionCost": 20,
+      "WorkCost": 3
     }
   ]
 }
