@@ -5,14 +5,24 @@
       "DisplayName": "Scout",
       "MovementPoints": 2,
       "Attack": 1,
-      "Defense": 1
+      "Defense": 1,
+      "ProductionCost": 10
     },
     {
       "Id": "settler",
       "DisplayName": "Settler",
       "MovementPoints": 2,
       "Attack": 0,
-      "Defense": 1
+      "Defense": 1,
+      "ProductionCost": 30
+    },
+    {
+      "Id": "worker",
+      "DisplayName": "Worker",
+      "MovementPoints": 2,
+      "Attack": 0,
+      "Defense": 1,
+      "ProductionCost": 20
     }
   ]
 }

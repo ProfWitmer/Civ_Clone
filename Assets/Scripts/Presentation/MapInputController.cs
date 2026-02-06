@@ -10,6 +10,7 @@ namespace CivClone.Presentation
         [SerializeField] private UnityEngine.Camera sceneCamera;
         [SerializeField] private KeyCode endTurnKey = KeyCode.Return;
         [SerializeField] private KeyCode foundCityKey = KeyCode.F;
+        [SerializeField] private KeyCode cycleProductionKey = KeyCode.P;
         [SerializeField] private int humanPlayerId = 0;
 
         private GameState state;
@@ -23,6 +24,8 @@ namespace CivClone.Presentation
         private Map.IsometricTileHighlighter tileHighlighter;
         private Unit selectedUnit;
         private City selectedCity;
+
+        private readonly string[] productionOptions = { "scout", "worker", "settler" };
 
         public void Bind(GameState gameState, TurnSystem turnSystemRef, FogOfWarSystem fogOfWarRef, GameDataCatalog dataCatalogRef, MapPresenter mapPresenterRef, UnitPresenter unitPresenterRef, CityPresenter cityPresenterRef, HudController hudControllerRef, UnityEngine.Camera cameraRef)
         {
@@ -57,6 +60,11 @@ namespace CivClone.Presentation
             if (Input.GetKeyDown(foundCityKey))
             {
                 TryFoundCity();
+            }
+
+            if (Input.GetKeyDown(cycleProductionKey))
+            {
+                CycleCityProduction();
             }
 
             if (Input.GetKeyDown(endTurnKey))
@@ -190,6 +198,8 @@ namespace CivClone.Presentation
                 if (unit.UnitTypeId == "settler" && !CityExistsAt(unit.Position))
                 {
                     var city = new City($"City {aiPlayer.Cities.Count + 1}", unit.Position, aiPlayer.Id, 1);
+                    city.ProductionTargetId = productionOptions[0];
+                    city.ProductionCost = GetProductionCost(city.ProductionTargetId);
                     aiPlayer.Cities.Add(city);
                     aiPlayer.Units.Remove(unit);
                     continue;
@@ -404,7 +414,7 @@ namespace CivClone.Presentation
                 return;
             }
 
-            hudController.SetCityInfo($"City: {selectedCity.Name} (Pop {selectedCity.Population}) Food {selectedCity.FoodStored}/{5 + selectedCity.Population * 2} Prod {selectedCity.ProductionStored}/{selectedCity.ProductionCost} ({selectedCity.ProductionTargetId})");
+            hudController.SetCityInfo($"City: {selectedCity.Name} (Pop {selectedCity.Population}) Food {selectedCity.FoodStored}/{5 + selectedCity.Population * 2} Prod {selectedCity.ProductionStored}/{selectedCity.ProductionCost} ({selectedCity.ProductionTargetId}) [P] Cycle");
         }
 
         private void UpdateHudSelection(string warning = null)
@@ -444,6 +454,8 @@ namespace CivClone.Presentation
 
             string cityName = $"City {activePlayer.Cities.Count + 1}";
             var city = new City(cityName, selectedUnit.Position, activePlayer.Id, 1);
+            city.ProductionTargetId = productionOptions[0];
+            city.ProductionCost = GetProductionCost(city.ProductionTargetId);
             activePlayer.Cities.Add(city);
 
             activePlayer.Units.Remove(selectedUnit);

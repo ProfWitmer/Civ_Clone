@@ -10,5 +10,6 @@ namespace CivClone.Infrastructure.Data.Definitions
         public int MovementPoints;
         public int Attack;
         public int Defense;
+        public int ProductionCost;
     }
 }

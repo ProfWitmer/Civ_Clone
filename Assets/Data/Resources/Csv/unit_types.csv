@@ -1,3 +1,4 @@
-Id,DisplayName,MovementPoints,Attack,Defense
-scout,Scout,2,1,1
-settler,Settler,2,0,1
+Id,DisplayName,MovementPoints,Attack,Defense,ProductionCost
+scout,Scout,2,1,1,10
+settler,Settler,2,0,1,30
+worker,Worker,2,0,1,20
