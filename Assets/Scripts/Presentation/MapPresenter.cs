@@ -33,6 +33,7 @@ namespace CivClone.Presentation
         private readonly System.Collections.Generic.Dictionary<string, Sprite> tileSprites = new System.Collections.Generic.Dictionary<string, Sprite>();
         private readonly System.Collections.Generic.Dictionary<string, Material> tileMaterials = new System.Collections.Generic.Dictionary<string, Material>();
         private readonly System.Collections.Generic.Dictionary<GridPosition, TileView> tileViews = new System.Collections.Generic.Dictionary<GridPosition, TileView>();
+        private Sprite improvementSprite;
         private int mapWidth;
         private int mapHeight;
 
@@ -86,6 +87,11 @@ public void Render(CivClone.Simulation.WorldMap map, GameDataCatalog dataCatalog
                 tileSprites[string.Empty] = baseSprite;
             }
 
+            if (improvementSprite == null)
+            {
+                improvementSprite = BuildTileSprite(new Color(1f, 1f, 1f, 0.7f), new Color(1f, 1f, 1f, 0.3f), TilePattern.Flat);
+            }
+
             for (int i = 0; i < map.Tiles.Count; i++)
             {
                 Tile tile = map.Tiles[i];
@@ -102,9 +108,11 @@ public void Render(CivClone.Simulation.WorldMap map, GameDataCatalog dataCatalog
                 collider.size = new Vector2(tileWidth, tileHeight);
 
                 var view = tileObject.AddComponent<TileView>();
-                view.Bind(tile.Position, renderer);
+                view.Bind(tile.Position, renderer, improvementSprite);
                 tileViews[tile.Position] = view;
                 view.SetVisibility(tile.Visible, tile.Explored);
+                    UpdateImprovementVisual(tile, view, dataCatalog);
+                UpdateImprovementVisual(tile, view, dataCatalog);
 
                 if (tile.TerrainId == "hills")
                 {
@@ -125,6 +133,7 @@ public void Render(CivClone.Simulation.WorldMap map, GameDataCatalog dataCatalog
                 if (tileViews.TryGetValue(tile.Position, out var view))
                 {
                     view.SetVisibility(tile.Visible, tile.Explored);
+                    UpdateImprovementVisual(tile, view, dataCatalog);
                 }
             }
         }

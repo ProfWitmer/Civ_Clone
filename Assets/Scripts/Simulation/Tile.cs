@@ -7,6 +7,7 @@ namespace CivClone.Simulation
     {
         public GridPosition Position;
         public string TerrainId;
+        public string ImprovementId;
         public bool Explored;
         public bool Visible;
 
@@ -14,6 +15,7 @@ namespace CivClone.Simulation
         {
             Position = position;
             TerrainId = terrainId;
+            ImprovementId = string.Empty;
             Explored = false;
             Visible = false;
         }

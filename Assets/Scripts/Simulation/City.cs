@@ -11,6 +11,8 @@ namespace CivClone.Simulation
         public int Population;
         public int FoodStored;
         public int ProductionStored;
+        public int BaseFoodPerTurn = 1;
+        public int BaseProductionPerTurn = 1;
         public int FoodPerTurn = 1;
         public int ProductionPerTurn = 1;
         public string ProductionTargetId = "scout";
@@ -24,6 +26,8 @@ namespace CivClone.Simulation
             Population = population;
             FoodStored = 0;
             ProductionStored = 0;
+            FoodPerTurn = BaseFoodPerTurn;
+            ProductionPerTurn = BaseProductionPerTurn;
         }
     }
 }

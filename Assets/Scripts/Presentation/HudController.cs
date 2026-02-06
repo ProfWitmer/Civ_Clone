@@ -11,58 +11,69 @@ namespace CivClone.Presentation
         private const string SelectionLabelName = "selection-label";
         private const string EndTurnButtonName = "endturn-button";
         private const string CityLabelName = "city-label";
+        private const string ResearchLabelName = "research-label";
 
-        private GameState _state;
-        private TurnSystem _turnSystem;
+        private GameState state;
+        private TurnSystem turnSystem;
 
-        private Label _turnLabel;
-        private Label _selectionLabel;
-        private Label _cityLabel;
-        private Button _endTurnButton;
+        private Label turnLabel;
+        private Label selectionLabel;
+        private Label cityLabel;
+        private Label researchLabel;
+        private Button endTurnButton;
 
-        private System.Action _onEndTurn;
+        private System.Action onEndTurn;
 
         private void Awake()
         {
             var document = GetComponent<UIDocument>();
             VisualElement root = document.rootVisualElement;
 
-            _turnLabel = root.Q<Label>(TurnLabelName);
-            _selectionLabel = root.Q<Label>(SelectionLabelName);
-            _cityLabel = root.Q<Label>(CityLabelName);
-            _endTurnButton = root.Q<Button>(EndTurnButtonName);
+            turnLabel = root.Q<Label>(TurnLabelName);
+            selectionLabel = root.Q<Label>(SelectionLabelName);
+            cityLabel = root.Q<Label>(CityLabelName);
+            researchLabel = root.Q<Label>(ResearchLabelName);
+            endTurnButton = root.Q<Button>(EndTurnButtonName);
 
-            if (_endTurnButton != null)
+            if (endTurnButton != null)
             {
-                _endTurnButton.clicked += HandleEndTurn;
+                endTurnButton.clicked += HandleEndTurn;
             }
         }
 
-        public void Bind(GameState state, TurnSystem turnSystem)
+        public void Bind(GameState stateRef, TurnSystem turnSystemRef)
         {
-            _state = state;
-            _turnSystem = turnSystem;
+            state = stateRef;
+            turnSystem = turnSystemRef;
             Refresh();
         }
 
         public void SetEndTurnHandler(System.Action handler)
         {
-            _onEndTurn = handler;
+            onEndTurn = handler;
         }
 
         public void SetSelection(string selection)
         {
-            if (_selectionLabel != null)
+            if (selectionLabel != null)
             {
-                _selectionLabel.text = selection;
+                selectionLabel.text = selection;
             }
         }
 
         public void SetCityInfo(string cityInfo)
         {
-            if (_cityLabel != null)
+            if (cityLabel != null)
             {
-                _cityLabel.text = cityInfo;
+                cityLabel.text = cityInfo;
+            }
+        }
+
+        public void SetResearchInfo(string researchInfo)
+        {
+            if (researchLabel != null)
+            {
+                researchLabel.text = researchInfo;
             }
         }
 
@@ -70,45 +81,50 @@ namespace CivClone.Presentation
         {
             UpdateTurnLabel();
 
-            if (_selectionLabel != null && string.IsNullOrEmpty(_selectionLabel.text))
+            if (selectionLabel != null && string.IsNullOrEmpty(selectionLabel.text))
             {
-                _selectionLabel.text = "Selection: None";
+                selectionLabel.text = "Selection: None";
             }
 
-            if (_cityLabel != null && string.IsNullOrEmpty(_cityLabel.text))
+            if (cityLabel != null && string.IsNullOrEmpty(cityLabel.text))
             {
-                _cityLabel.text = "City: None";
+                cityLabel.text = "City: None";
+            }
+
+            if (researchLabel != null && string.IsNullOrEmpty(researchLabel.text))
+            {
+                researchLabel.text = "Research: None";
             }
         }
 
         private void UpdateTurnLabel()
         {
-            if (_state == null)
+            if (state == null)
             {
                 return;
             }
 
-            if (_turnLabel != null)
+            if (turnLabel != null)
             {
-                string playerName = _state.ActivePlayer != null ? _state.ActivePlayer.Name : "-";
-                _turnLabel.text = $"Turn {_state.CurrentTurn} - {playerName}";
+                string playerName = state.ActivePlayer != null ? state.ActivePlayer.Name : "-";
+                turnLabel.text = $"Turn {state.CurrentTurn} - {playerName}";
             }
         }
 
         private void HandleEndTurn()
         {
-            if (_onEndTurn != null)
+            if (onEndTurn != null)
             {
-                _onEndTurn.Invoke();
+                onEndTurn.Invoke();
                 return;
             }
 
-            if (_turnSystem == null)
+            if (turnSystem == null)
             {
                 return;
             }
 
-            _turnSystem.EndTurn();
+            turnSystem.EndTurn();
             Refresh();
         }
     }

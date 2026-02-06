@@ -4,33 +4,38 @@ namespace CivClone.Simulation
 {
     public class TurnSystem
     {
-        private readonly GameState _state;
+        private readonly GameState state;
+        private readonly ResearchSystem researchSystem;
+        private readonly Infrastructure.GameDataCatalog catalog;
 
-        public TurnSystem(GameState state)
+        public TurnSystem(GameState stateRef, Infrastructure.GameDataCatalog catalogRef = null)
         {
-            _state = state ?? throw new ArgumentNullException(nameof(state));
+            state = stateRef ?? throw new ArgumentNullException(nameof(stateRef));
+            catalog = catalogRef;
+            researchSystem = new ResearchSystem(catalogRef);
         }
 
         public void EndTurn()
         {
-            if (_state.Players.Count == 0)
+            if (state.Players.Count == 0)
             {
                 return;
             }
 
-            var currentPlayer = _state.ActivePlayer;
+            var currentPlayer = state.ActivePlayer;
             if (currentPlayer != null)
             {
-                AdvanceCities(_state, currentPlayer);
+                AdvanceCities(currentPlayer);
+                researchSystem?.Advance(currentPlayer);
             }
 
-            _state.ActivePlayerIndex = (_state.ActivePlayerIndex + 1) % _state.Players.Count;
-            if (_state.ActivePlayerIndex == 0)
+            state.ActivePlayerIndex = (state.ActivePlayerIndex + 1) % state.Players.Count;
+            if (state.ActivePlayerIndex == 0)
             {
-                _state.CurrentTurn += 1;
+                state.CurrentTurn += 1;
             }
 
-            var nextPlayer = _state.ActivePlayer;
+            var nextPlayer = state.ActivePlayer;
             if (nextPlayer == null)
             {
                 return;
@@ -42,14 +47,14 @@ namespace CivClone.Simulation
             }
         }
 
-        private static void AdvanceCities(GameState state, Player player)
+        private void AdvanceCities(Player player)
         {
             foreach (var city in player.Cities)
             {
                 city.FoodStored += city.FoodPerTurn;
                 city.ProductionStored += city.ProductionPerTurn;
 
-                TrySpawnUnit(state, player, city);
+                TrySpawnUnit(player, city);
 
                 int foodNeeded = 5 + (city.Population * 2);
                 if (city.FoodStored >= foodNeeded)
@@ -60,9 +65,9 @@ namespace CivClone.Simulation
             }
         }
 
-        private static void TrySpawnUnit(GameState state, Player player, City city)
+        private void TrySpawnUnit(Player player, City city)
         {
-            if (state == null || player == null || city == null)
+            if (player == null || city == null)
             {
                 return;
             }
@@ -80,8 +85,14 @@ namespace CivClone.Simulation
                 }
             }
 
+            int movement = 2;
+            if (catalog != null && catalog.TryGetUnitType(city.ProductionTargetId, out var unitType))
+            {
+                movement = unitType.MovementPoints;
+            }
+
             city.ProductionStored -= city.ProductionCost;
-            var newUnit = new Unit(city.ProductionTargetId, city.Position, 2, player.Id);
+            var newUnit = new Unit(city.ProductionTargetId, city.Position, movement, player.Id);
             player.Units.Add(newUnit);
         }
     }

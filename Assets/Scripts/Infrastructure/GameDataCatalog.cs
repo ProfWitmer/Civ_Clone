@@ -9,14 +9,18 @@ namespace CivClone.Infrastructure
     {
         public TerrainType[] TerrainTypes;
         public UnitType[] UnitTypes;
+        public ImprovementType[] ImprovementTypes;
+        public TechType[] TechTypes;
 
-        private Dictionary<string, TerrainType> _terrainLookup;
-        private Dictionary<string, UnitType> _unitLookup;
+        private Dictionary<string, TerrainType> terrainLookup;
+        private Dictionary<string, UnitType> unitLookup;
+        private Dictionary<string, ImprovementType> improvementLookup;
+        private Dictionary<string, TechType> techLookup;
 
-                public bool TryGetTerrainType(string id, out TerrainType terrainType)
+        public bool TryGetTerrainType(string id, out TerrainType terrainType)
         {
             EnsureTerrainLookup();
-            if (_terrainLookup != null && _terrainLookup.TryGetValue(id, out terrainType))
+            if (terrainLookup != null && terrainLookup.TryGetValue(id, out terrainType))
             {
                 return true;
             }
@@ -25,10 +29,9 @@ namespace CivClone.Infrastructure
             return false;
         }
 
-public bool TryGetTerrainColor(string id, out Color color)
+        public bool TryGetTerrainColor(string id, out Color color)
         {
-            EnsureTerrainLookup();
-            if (_terrainLookup != null && _terrainLookup.TryGetValue(id, out var terrain))
+            if (TryGetTerrainType(id, out var terrain))
             {
                 color = terrain.Color;
                 return true;
@@ -41,7 +44,7 @@ public bool TryGetTerrainColor(string id, out Color color)
         public bool TryGetUnitType(string id, out UnitType unitType)
         {
             EnsureUnitLookup();
-            if (_unitLookup != null && _unitLookup.TryGetValue(id, out unitType))
+            if (unitLookup != null && unitLookup.TryGetValue(id, out unitType))
             {
                 return true;
             }
@@ -50,7 +53,46 @@ public bool TryGetTerrainColor(string id, out Color color)
             return false;
         }
 
-        public void LoadFromDefinitions(IEnumerable<TerrainTypeDefinition> terrainDefinitions, IEnumerable<UnitTypeDefinition> unitDefinitions)
+        public bool TryGetImprovementType(string id, out ImprovementType improvementType)
+        {
+            EnsureImprovementLookup();
+            if (improvementLookup != null && improvementLookup.TryGetValue(id, out improvementType))
+            {
+                return true;
+            }
+
+            improvementType = null;
+            return false;
+        }
+
+        public bool TryGetImprovementColor(string id, out Color color)
+        {
+            if (TryGetImprovementType(id, out var improvement))
+            {
+                color = improvement.Color;
+                return true;
+            }
+
+            color = default;
+            return false;
+        }
+
+        public bool TryGetTechType(string id, out TechType techType)
+        {
+            EnsureTechLookup();
+            if (techLookup != null && techLookup.TryGetValue(id, out techType))
+            {
+                return true;
+            }
+
+            techType = null;
+            return false;
+        }
+
+        public void LoadFromDefinitions(IEnumerable<TerrainTypeDefinition> terrainDefinitions,
+            IEnumerable<UnitTypeDefinition> unitDefinitions,
+            IEnumerable<ImprovementTypeDefinition> improvementDefinitions,
+            IEnumerable<TechTypeDefinition> techDefinitions)
         {
             var terrainList = new List<TerrainType>();
             if (terrainDefinitions != null)
@@ -87,7 +129,46 @@ public bool TryGetTerrainColor(string id, out Color color)
                     unit.MovementPoints = definition.MovementPoints;
                     unit.Attack = definition.Attack;
                     unit.Defense = definition.Defense;
+                    unit.ProductionCost = definition.ProductionCost;
                     unitList.Add(unit);
+                }
+            }
+
+            var improvementList = new List<ImprovementType>();
+            if (improvementDefinitions != null)
+            {
+                foreach (var definition in improvementDefinitions)
+                {
+                    if (definition == null || string.IsNullOrWhiteSpace(definition.Id))
+                    {
+                        continue;
+                    }
+
+                    var improvement = ScriptableObject.CreateInstance<ImprovementType>();
+                    improvement.Id = definition.Id;
+                    improvement.DisplayName = definition.DisplayName;
+                    improvement.Color = definition.Color;
+                    improvement.FoodBonus = definition.FoodBonus;
+                    improvement.ProductionBonus = definition.ProductionBonus;
+                    improvementList.Add(improvement);
+                }
+            }
+
+            var techList = new List<TechType>();
+            if (techDefinitions != null)
+            {
+                foreach (var definition in techDefinitions)
+                {
+                    if (definition == null || string.IsNullOrWhiteSpace(definition.Id))
+                    {
+                        continue;
+                    }
+
+                    var tech = ScriptableObject.CreateInstance<TechType>();
+                    tech.Id = definition.Id;
+                    tech.DisplayName = definition.DisplayName;
+                    tech.Cost = definition.Cost;
+                    techList.Add(tech);
                 }
             }
 
@@ -101,18 +182,30 @@ public bool TryGetTerrainColor(string id, out Color color)
                 UnitTypes = unitList.ToArray();
             }
 
-            _terrainLookup = null;
-            _unitLookup = null;
+            if (improvementList.Count > 0)
+            {
+                ImprovementTypes = improvementList.ToArray();
+            }
+
+            if (techList.Count > 0)
+            {
+                TechTypes = techList.ToArray();
+            }
+
+            terrainLookup = null;
+            unitLookup = null;
+            improvementLookup = null;
+            techLookup = null;
         }
 
         private void EnsureTerrainLookup()
         {
-            if (_terrainLookup != null)
+            if (terrainLookup != null)
             {
                 return;
             }
 
-            _terrainLookup = new Dictionary<string, TerrainType>();
+            terrainLookup = new Dictionary<string, TerrainType>();
             if (TerrainTypes == null)
             {
                 return;
@@ -122,19 +215,19 @@ public bool TryGetTerrainColor(string id, out Color color)
             {
                 if (terrain != null && !string.IsNullOrEmpty(terrain.Id))
                 {
-                    _terrainLookup[terrain.Id] = terrain;
+                    terrainLookup[terrain.Id] = terrain;
                 }
             }
         }
 
         private void EnsureUnitLookup()
         {
-            if (_unitLookup != null)
+            if (unitLookup != null)
             {
                 return;
             }
 
-            _unitLookup = new Dictionary<string, UnitType>();
+            unitLookup = new Dictionary<string, UnitType>();
             if (UnitTypes == null)
             {
                 return;
@@ -144,7 +237,51 @@ public bool TryGetTerrainColor(string id, out Color color)
             {
                 if (unit != null && !string.IsNullOrEmpty(unit.Id))
                 {
-                    _unitLookup[unit.Id] = unit;
+                    unitLookup[unit.Id] = unit;
+                }
+            }
+        }
+
+        private void EnsureImprovementLookup()
+        {
+            if (improvementLookup != null)
+            {
+                return;
+            }
+
+            improvementLookup = new Dictionary<string, ImprovementType>();
+            if (ImprovementTypes == null)
+            {
+                return;
+            }
+
+            foreach (var improvement in ImprovementTypes)
+            {
+                if (improvement != null && !string.IsNullOrEmpty(improvement.Id))
+                {
+                    improvementLookup[improvement.Id] = improvement;
+                }
+            }
+        }
+
+        private void EnsureTechLookup()
+        {
+            if (techLookup != null)
+            {
+                return;
+            }
+
+            techLookup = new Dictionary<string, TechType>();
+            if (TechTypes == null)
+            {
+                return;
+            }
+
+            foreach (var tech in TechTypes)
+            {
+                if (tech != null && !string.IsNullOrEmpty(tech.Id))
+                {
+                    techLookup[tech.Id] = tech;
                 }
             }
         }

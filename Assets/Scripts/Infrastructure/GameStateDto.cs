@@ -31,6 +31,7 @@ namespace CivClone.Infrastructure
                     X = tile.Position.X,
                     Y = tile.Position.Y,
                     TerrainId = tile.TerrainId,
+                    ImprovementId = tile.ImprovementId,
                     Explored = tile.Explored,
                     Visible = tile.Visible
                 });
@@ -41,7 +42,9 @@ namespace CivClone.Infrastructure
                 var playerDto = new PlayerDto
                 {
                     Id = player.Id,
-                    Name = player.Name
+                    Name = player.Name,
+                    CurrentTechId = player.CurrentTechId,
+                    ResearchProgress = player.ResearchProgress
                 };
 
                 foreach (var unit in player.Units)
@@ -56,6 +59,11 @@ namespace CivClone.Infrastructure
                     });
                 }
 
+                foreach (var tech in player.KnownTechs)
+                {
+                    playerDto.KnownTechs.Add(tech);
+                }
+
                 foreach (var city in player.Cities)
                 {
                     playerDto.Cities.Add(new CityDto
@@ -66,8 +74,12 @@ namespace CivClone.Infrastructure
                         Population = city.Population,
                         FoodStored = city.FoodStored,
                         ProductionStored = city.ProductionStored,
+                        BaseFoodPerTurn = city.BaseFoodPerTurn,
+                        BaseProductionPerTurn = city.BaseProductionPerTurn,
                         FoodPerTurn = city.FoodPerTurn,
                         ProductionPerTurn = city.ProductionPerTurn,
+                        BaseFoodPerTurn = city.BaseFoodPerTurn,
+                        BaseProductionPerTurn = city.BaseProductionPerTurn,
                         ProductionTargetId = city.ProductionTargetId,
                         ProductionCost = city.ProductionCost
                     });
@@ -86,6 +98,7 @@ namespace CivClone.Infrastructure
             {
                 var newTile = new Tile(new GridPosition(tile.X, tile.Y), tile.TerrainId)
             {
+                ImprovementId = tile.ImprovementId,
                 Explored = tile.Explored,
                 Visible = tile.Visible
             };
@@ -102,6 +115,12 @@ namespace CivClone.Infrastructure
             foreach (var playerDto in Players)
             {
                 var player = new Player(playerDto.Id, playerDto.Name);
+                player.CurrentTechId = playerDto.CurrentTechId;
+                player.ResearchProgress = playerDto.ResearchProgress;
+                if (playerDto.KnownTechs != null)
+                {
+                    player.KnownTechs.AddRange(playerDto.KnownTechs);
+                }
 
                 foreach (var unit in playerDto.Units)
                 {
@@ -116,8 +135,12 @@ namespace CivClone.Infrastructure
                     {
                         FoodStored = city.FoodStored,
                         ProductionStored = city.ProductionStored,
+                        BaseFoodPerTurn = city.BaseFoodPerTurn,
+                        BaseProductionPerTurn = city.BaseProductionPerTurn,
                         FoodPerTurn = city.FoodPerTurn,
                         ProductionPerTurn = city.ProductionPerTurn,
+                        BaseFoodPerTurn = city.BaseFoodPerTurn,
+                        BaseProductionPerTurn = city.BaseProductionPerTurn,
                         ProductionTargetId = city.ProductionTargetId,
                         ProductionCost = city.ProductionCost
                     };
@@ -136,6 +159,7 @@ namespace CivClone.Infrastructure
             public int X;
             public int Y;
             public string TerrainId;
+            public string ImprovementId;
             public bool Explored;
             public bool Visible;
         }
@@ -147,6 +171,9 @@ namespace CivClone.Infrastructure
             public string Name;
             public List<UnitDto> Units = new List<UnitDto>();
             public List<CityDto> Cities = new List<CityDto>();
+            public List<string> KnownTechs = new List<string>();
+            public string CurrentTechId;
+            public int ResearchProgress;
         }
 
         [Serializable]
@@ -168,6 +195,8 @@ namespace CivClone.Infrastructure
             public int Population;
             public int FoodStored;
             public int ProductionStored;
+            public int BaseFoodPerTurn;
+            public int BaseProductionPerTurn;
             public int FoodPerTurn;
             public int ProductionPerTurn;
             public string ProductionTargetId;

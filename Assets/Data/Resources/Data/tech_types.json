@@ -1,0 +1,14 @@
+{
+  "Items": [
+    {
+      "Id": "agriculture",
+      "DisplayName": "Agriculture",
+      "Cost": 20
+    },
+    {
+      "Id": "mining",
+      "DisplayName": "Mining",
+      "Cost": 25
+    }
+  ]
+}

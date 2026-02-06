@@ -13,4 +13,16 @@ namespace CivClone.Infrastructure.Data.Definitions
     {
         public UnitTypeDefinition[] Items;
     }
+
+    [Serializable]
+    public class ImprovementTypeDefinitionList
+    {
+        public ImprovementTypeDefinition[] Items;
+    }
+
+    [Serializable]
+    public class TechTypeDefinitionList
+    {
+        public TechTypeDefinition[] Items;
+    }
 }

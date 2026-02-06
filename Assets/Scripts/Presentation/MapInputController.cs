@@ -11,6 +11,8 @@ namespace CivClone.Presentation
         [SerializeField] private KeyCode endTurnKey = KeyCode.Return;
         [SerializeField] private KeyCode foundCityKey = KeyCode.F;
         [SerializeField] private KeyCode cycleProductionKey = KeyCode.P;
+        [SerializeField] private KeyCode buildImprovementKey = KeyCode.B;
+        [SerializeField] private KeyCode cycleResearchKey = KeyCode.R;
         [SerializeField] private int humanPlayerId = 0;
 
         private GameState state;
@@ -26,6 +28,12 @@ namespace CivClone.Presentation
         private City selectedCity;
 
         private readonly string[] productionOptions = { "scout", "worker", "settler" };
+        private readonly string[] improvementOptions = { "farm", "mine" };
+        private readonly System.Collections.Generic.Dictionary<string, string> improvementRequirements = new System.Collections.Generic.Dictionary<string, string>
+        {
+            { "farm", "agriculture" },
+            { "mine", "mining" }
+        };
 
         public void Bind(GameState gameState, TurnSystem turnSystemRef, FogOfWarSystem fogOfWarRef, GameDataCatalog dataCatalogRef, MapPresenter mapPresenterRef, UnitPresenter unitPresenterRef, CityPresenter cityPresenterRef, HudController hudControllerRef, UnityEngine.Camera cameraRef)
         {
@@ -65,6 +73,16 @@ namespace CivClone.Presentation
             if (Input.GetKeyDown(cycleProductionKey))
             {
                 CycleCityProduction();
+            }
+
+            if (Input.GetKeyDown(buildImprovementKey))
+            {
+                TryBuildImprovement();
+            }
+
+            if (Input.GetKeyDown(cycleResearchKey))
+            {
+                CycleResearch();
             }
 
             if (Input.GetKeyDown(endTurnKey))
@@ -417,7 +435,30 @@ namespace CivClone.Presentation
             hudController.SetCityInfo($"City: {selectedCity.Name} (Pop {selectedCity.Population}) Food {selectedCity.FoodStored}/{5 + selectedCity.Population * 2} Prod {selectedCity.ProductionStored}/{selectedCity.ProductionCost} ({selectedCity.ProductionTargetId}) [P] Cycle");
         }
 
-        private void UpdateHudSelection(string warning = null)
+                private void UpdateResearchInfo()
+        {
+            if (hudController == null || state?.ActivePlayer == null)
+            {
+                return;
+            }
+
+            var player = state.ActivePlayer;
+            if (string.IsNullOrWhiteSpace(player.CurrentTechId))
+            {
+                hudController.SetResearchInfo("Research: None");
+                return;
+            }
+
+            int cost = 0;
+            if (dataCatalog != null && dataCatalog.TryGetTechType(player.CurrentTechId, out var tech))
+            {
+                cost = tech.Cost;
+            }
+
+            hudController.SetResearchInfo($"Research: {techName} {player.ResearchProgress}/{cost} [R] Cycle");
+        }
+
+private void UpdateHudSelection(string warning = null)
         {
             if (hudController == null)
             {
@@ -503,6 +544,7 @@ namespace CivClone.Presentation
             UpdateHudSelection();
             UpdateCityInfo();
             hudController?.Refresh();
+            UpdateResearchInfo();
         }
 
         private void ApplyFog()
@@ -514,11 +556,13 @@ namespace CivClone.Presentation
 
             fogOfWar.Apply(state);
             mapPresenter.UpdateFog(state.Map);
+            mapPresenter.UpdateImprovements(state.Map, dataCatalog);
             var minimap = GetComponent<UI.MiniMapPresenter>();
             if (minimap != null)
             {
                 minimap.Redraw();
             }
+            UpdateResearchInfo();
         }
     }
 }

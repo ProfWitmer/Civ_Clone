@@ -9,8 +9,13 @@ namespace CivClone.Infrastructure.Data
     {
         private const string TerrainResourcePath = "Data/terrain_types";
         private const string UnitResourcePath = "Data/unit_types";
+        private const string ImprovementResourcePath = "Data/improvement_types";
+        private const string TechResourcePath = "Data/tech_types";
+
         private const string TerrainCsvResourcePath = "Csv/terrain_types";
         private const string UnitCsvResourcePath = "Csv/unit_types";
+        private const string ImprovementCsvResourcePath = "Csv/improvement_types";
+        private const string TechCsvResourcePath = "Csv/tech_types";
 
         public bool TryLoadFromResources(GameDataCatalog catalog)
         {
@@ -22,13 +27,15 @@ namespace CivClone.Infrastructure.Data
             var dataLoader = new DataLoader();
             var terrainDefinitions = LoadTerrainDefinitions(dataLoader);
             var unitDefinitions = LoadUnitDefinitions(dataLoader);
+            var improvementDefinitions = LoadImprovementDefinitions(dataLoader);
+            var techDefinitions = LoadTechDefinitions(dataLoader);
 
-            if (terrainDefinitions.Count == 0 && unitDefinitions.Count == 0)
+            if (terrainDefinitions.Count == 0 && unitDefinitions.Count == 0 && improvementDefinitions.Count == 0 && techDefinitions.Count == 0)
             {
                 return false;
             }
 
-            catalog.LoadFromDefinitions(terrainDefinitions, unitDefinitions);
+            catalog.LoadFromDefinitions(terrainDefinitions, unitDefinitions, improvementDefinitions, techDefinitions);
             return true;
         }
 
@@ -116,6 +123,96 @@ namespace CivClone.Infrastructure.Data
                     Attack = GetIntValue(header, row, "Attack", 1),
                     Defense = GetIntValue(header, row, "Defense", 1),
                     ProductionCost = GetIntValue(header, row, "ProductionCost", 10)
+                };
+
+                definitions.Add(definition);
+            }
+
+            return definitions;
+        }
+
+        private static List<ImprovementTypeDefinition> LoadImprovementDefinitions(DataLoader loader)
+        {
+            var definitions = new List<ImprovementTypeDefinition>();
+            var json = loader.LoadResourceText(ImprovementResourcePath);
+            if (!string.IsNullOrWhiteSpace(json))
+            {
+                var list = JsonUtility.FromJson<ImprovementTypeDefinitionList>(json);
+                if (list?.Items != null)
+                {
+                    definitions.AddRange(list.Items);
+                }
+
+                return definitions;
+            }
+
+            var csv = loader.LoadResourceText(ImprovementCsvResourcePath);
+            if (string.IsNullOrWhiteSpace(csv))
+            {
+                return definitions;
+            }
+
+            var rows = SimpleCsv.Parse(csv);
+            if (rows.Count == 0)
+            {
+                return definitions;
+            }
+
+            var header = rows[0];
+            for (var i = 1; i < rows.Count; i++)
+            {
+                var row = rows[i];
+                var definition = new ImprovementTypeDefinition
+                {
+                    Id = GetValue(header, row, "Id"),
+                    DisplayName = GetValue(header, row, "DisplayName"),
+                    FoodBonus = GetIntValue(header, row, "FoodBonus", 0),
+                    ProductionBonus = GetIntValue(header, row, "ProductionBonus", 0),
+                    Color = ParseColor(GetValue(header, row, "ColorHex"))
+                };
+
+                definitions.Add(definition);
+            }
+
+            return definitions;
+        }
+
+        private static List<TechTypeDefinition> LoadTechDefinitions(DataLoader loader)
+        {
+            var definitions = new List<TechTypeDefinition>();
+            var json = loader.LoadResourceText(TechResourcePath);
+            if (!string.IsNullOrWhiteSpace(json))
+            {
+                var list = JsonUtility.FromJson<TechTypeDefinitionList>(json);
+                if (list?.Items != null)
+                {
+                    definitions.AddRange(list.Items);
+                }
+
+                return definitions;
+            }
+
+            var csv = loader.LoadResourceText(TechCsvResourcePath);
+            if (string.IsNullOrWhiteSpace(csv))
+            {
+                return definitions;
+            }
+
+            var rows = SimpleCsv.Parse(csv);
+            if (rows.Count == 0)
+            {
+                return definitions;
+            }
+
+            var header = rows[0];
+            for (var i = 1; i < rows.Count; i++)
+            {
+                var row = rows[i];
+                var definition = new TechTypeDefinition
+                {
+                    Id = GetValue(header, row, "Id"),
+                    DisplayName = GetValue(header, row, "DisplayName"),
+                    Cost = GetIntValue(header, row, "Cost", 20)
                 };
 
                 definitions.Add(definition);
