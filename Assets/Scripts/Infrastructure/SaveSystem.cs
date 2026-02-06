@@ -36,7 +36,13 @@ namespace CivClone.Infrastructure
         {
             string safeSlot = string.IsNullOrEmpty(slotName) ? "autosave" : slotName;
             string fileName = $"{safeSlot}.json";
-            return Path.Combine(Application.streamingAssetsPath, "Saves", fileName);
+            string dir = Path.Combine(Application.persistentDataPath, "Saves");
+            if (!Directory.Exists(dir))
+            {
+                Directory.CreateDirectory(dir);
+            }
+
+            return Path.Combine(dir, fileName);
         }
     }
 }

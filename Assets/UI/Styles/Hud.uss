@@ -21,7 +21,7 @@
 .hud-title {
     font-size: 16px;
     color: var(--hud-text);
-    unity-font-style: bold;
+    -unity-font-style: bold;
     margin-bottom: 6px;
 }
 
@@ -35,5 +35,27 @@
     background-color: var(--hud-accent);
     color: black;
     border-radius: 6px;
-    unity-font-style: bold;
+    -unity-font-style: bold;
+}
+
+
+.hud-minimap {
+    margin-top: 8px;
+    padding: 6px;
+    background-color: rgba(10, 14, 10, 0.6);
+    border-radius: 8px;
+    border: 1px solid rgba(110, 160, 90, 0.35);
+}
+
+.hud-minimap-title {
+    font-size: 12px;
+    color: var(--hud-text);
+    margin-bottom: 4px;
+}
+
+.hud-minimap-image {
+    width: 200px;
+    height: 120px;
+    background-color: rgba(0, 0, 0, 0.35);
+    border-radius: 4px;
 }

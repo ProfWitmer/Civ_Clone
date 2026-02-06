@@ -10,13 +10,17 @@ namespace CivClone.Presentation
         private const string TurnLabelName = "turn-label";
         private const string SelectionLabelName = "selection-label";
         private const string EndTurnButtonName = "endturn-button";
+        private const string CityLabelName = "city-label";
 
         private GameState _state;
         private TurnSystem _turnSystem;
 
         private Label _turnLabel;
         private Label _selectionLabel;
+        private Label _cityLabel;
         private Button _endTurnButton;
+
+        private System.Action _onEndTurn;
 
         private void Awake()
         {
@@ -25,6 +29,7 @@ namespace CivClone.Presentation
 
             _turnLabel = root.Q<Label>(TurnLabelName);
             _selectionLabel = root.Q<Label>(SelectionLabelName);
+            _cityLabel = root.Q<Label>(CityLabelName);
             _endTurnButton = root.Q<Button>(EndTurnButtonName);
 
             if (_endTurnButton != null)
@@ -40,6 +45,11 @@ namespace CivClone.Presentation
             Refresh();
         }
 
+        public void SetEndTurnHandler(System.Action handler)
+        {
+            _onEndTurn = handler;
+        }
+
         public void SetSelection(string selection)
         {
             if (_selectionLabel != null)
@@ -48,18 +58,30 @@ namespace CivClone.Presentation
             }
         }
 
-        private void HandleEndTurn()
+        public void SetCityInfo(string cityInfo)
         {
-            if (_turnSystem == null)
+            if (_cityLabel != null)
             {
-                return;
+                _cityLabel.text = cityInfo;
             }
-
-            _turnSystem.EndTurn();
-            Refresh();
         }
 
-        private void Refresh()
+        public void Refresh()
+        {
+            UpdateTurnLabel();
+
+            if (_selectionLabel != null && string.IsNullOrEmpty(_selectionLabel.text))
+            {
+                _selectionLabel.text = "Selection: None";
+            }
+
+            if (_cityLabel != null && string.IsNullOrEmpty(_cityLabel.text))
+            {
+                _cityLabel.text = "City: None";
+            }
+        }
+
+        private void UpdateTurnLabel()
         {
             if (_state == null)
             {
@@ -71,11 +93,23 @@ namespace CivClone.Presentation
                 string playerName = _state.ActivePlayer != null ? _state.ActivePlayer.Name : "-";
                 _turnLabel.text = $"Turn {_state.CurrentTurn} - {playerName}";
             }
+        }
 
-            if (_selectionLabel != null && string.IsNullOrEmpty(_selectionLabel.text))
+        private void HandleEndTurn()
+        {
+            if (_onEndTurn != null)
             {
-                _selectionLabel.text = "Selection: None";
+                _onEndTurn.Invoke();
+                return;
             }
+
+            if (_turnSystem == null)
+            {
+                return;
+            }
+
+            _turnSystem.EndTurn();
+            Refresh();
         }
     }
 }

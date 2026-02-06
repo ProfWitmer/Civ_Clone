@@ -8,6 +8,7 @@ namespace CivClone.Simulation
         public string UnitTypeId;
         public GridPosition Position;
         public int MovementPoints;
+        public int MovementRemaining;
         public int OwnerId;
 
         public Unit(string unitTypeId, GridPosition position, int movementPoints, int ownerId)
@@ -15,7 +16,13 @@ namespace CivClone.Simulation
             UnitTypeId = unitTypeId;
             Position = position;
             MovementPoints = movementPoints;
+            MovementRemaining = movementPoints;
             OwnerId = ownerId;
+        }
+
+        public void ResetMovement()
+        {
+            MovementRemaining = MovementPoints;
         }
     }
 }

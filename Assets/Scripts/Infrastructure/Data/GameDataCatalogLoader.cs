@@ -1,0 +1,183 @@
+using System;
+using System.Collections.Generic;
+using CivClone.Infrastructure.Data.Definitions;
+using UnityEngine;
+
+namespace CivClone.Infrastructure.Data
+{
+    public sealed class GameDataCatalogLoader
+    {
+        private const string TerrainResourcePath = "Data/terrain_types";
+        private const string UnitResourcePath = "Data/unit_types";
+        private const string TerrainCsvResourcePath = "Csv/terrain_types";
+        private const string UnitCsvResourcePath = "Csv/unit_types";
+
+        public bool TryLoadFromResources(GameDataCatalog catalog)
+        {
+            if (catalog == null)
+            {
+                return false;
+            }
+
+            var dataLoader = new DataLoader();
+            var terrainDefinitions = LoadTerrainDefinitions(dataLoader);
+            var unitDefinitions = LoadUnitDefinitions(dataLoader);
+
+            if (terrainDefinitions.Count == 0 && unitDefinitions.Count == 0)
+            {
+                return false;
+            }
+
+            catalog.LoadFromDefinitions(terrainDefinitions, unitDefinitions);
+            return true;
+        }
+
+        private static List<TerrainTypeDefinition> LoadTerrainDefinitions(DataLoader loader)
+        {
+            var definitions = new List<TerrainTypeDefinition>();
+            var json = loader.LoadResourceText(TerrainResourcePath);
+            if (!string.IsNullOrWhiteSpace(json))
+            {
+                var list = JsonUtility.FromJson<TerrainTypeDefinitionList>(json);
+                if (list?.Items != null)
+                {
+                    definitions.AddRange(list.Items);
+                }
+
+                return definitions;
+            }
+
+            var csv = loader.LoadResourceText(TerrainCsvResourcePath);
+            if (string.IsNullOrWhiteSpace(csv))
+            {
+                return definitions;
+            }
+
+            var rows = SimpleCsv.Parse(csv);
+            if (rows.Count == 0)
+            {
+                return definitions;
+            }
+
+            var header = rows[0];
+            for (var i = 1; i < rows.Count; i++)
+            {
+                var row = rows[i];
+                var definition = new TerrainTypeDefinition
+                {
+                    Id = GetValue(header, row, "Id"),
+                    DisplayName = GetValue(header, row, "DisplayName"),
+                    MovementCost = GetIntValue(header, row, "MovementCost", 1),
+                    Color = ParseColor(GetValue(header, row, "ColorHex"))
+                };
+
+                definitions.Add(definition);
+            }
+
+            return definitions;
+        }
+
+        private static List<UnitTypeDefinition> LoadUnitDefinitions(DataLoader loader)
+        {
+            var definitions = new List<UnitTypeDefinition>();
+            var json = loader.LoadResourceText(UnitResourcePath);
+            if (!string.IsNullOrWhiteSpace(json))
+            {
+                var list = JsonUtility.FromJson<UnitTypeDefinitionList>(json);
+                if (list?.Items != null)
+                {
+                    definitions.AddRange(list.Items);
+                }
+
+                return definitions;
+            }
+
+            var csv = loader.LoadResourceText(UnitCsvResourcePath);
+            if (string.IsNullOrWhiteSpace(csv))
+            {
+                return definitions;
+            }
+
+            var rows = SimpleCsv.Parse(csv);
+            if (rows.Count == 0)
+            {
+                return definitions;
+            }
+
+            var header = rows[0];
+            for (var i = 1; i < rows.Count; i++)
+            {
+                var row = rows[i];
+                var definition = new UnitTypeDefinition
+                {
+                    Id = GetValue(header, row, "Id"),
+                    DisplayName = GetValue(header, row, "DisplayName"),
+                    MovementPoints = GetIntValue(header, row, "MovementPoints", 1),
+                    Attack = GetIntValue(header, row, "Attack", 1),
+                    Defense = GetIntValue(header, row, "Defense", 1)
+                };
+
+                definitions.Add(definition);
+            }
+
+            return definitions;
+        }
+
+        private static string GetValue(string[] header, string[] row, string column)
+        {
+            var index = Array.FindIndex(header, cell => cell.Trim() == column);
+            if (index < 0 || index >= row.Length)
+            {
+                return string.Empty;
+            }
+
+            return row[index].Trim();
+        }
+
+        private static int GetIntValue(string[] header, string[] row, string column, int fallback)
+        {
+            var raw = GetValue(header, row, column);
+            return int.TryParse(raw, out var value) ? value : fallback;
+        }
+
+        private static Color ParseColor(string hex)
+        {
+            if (string.IsNullOrWhiteSpace(hex))
+            {
+                return Color.white;
+            }
+
+            var value = hex.Trim().TrimStart('#');
+            if (value.Length != 6 && value.Length != 8)
+            {
+                return Color.white;
+            }
+
+            if (!uint.TryParse(value, System.Globalization.NumberStyles.HexNumber, null, out var packed))
+            {
+                return Color.white;
+            }
+
+            byte r;
+            byte g;
+            byte b;
+            byte a;
+            if (value.Length == 6)
+            {
+                r = (byte)((packed >> 16) & 0xFF);
+                g = (byte)((packed >> 8) & 0xFF);
+                b = (byte)(packed & 0xFF);
+                a = 255;
+            }
+            else
+            {
+                r = (byte)((packed >> 24) & 0xFF);
+                g = (byte)((packed >> 16) & 0xFF);
+                b = (byte)((packed >> 8) & 0xFF);
+                a = (byte)(packed & 0xFF);
+            }
+
+            return new Color(r / 255f, g / 255f, b / 255f, a / 255f);
+        }
+    }
+}

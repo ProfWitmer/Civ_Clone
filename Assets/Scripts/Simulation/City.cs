@@ -9,6 +9,12 @@ namespace CivClone.Simulation
         public GridPosition Position;
         public int OwnerId;
         public int Population;
+        public int FoodStored;
+        public int ProductionStored;
+        public int FoodPerTurn = 1;
+        public int ProductionPerTurn = 1;
+        public string ProductionTargetId = "scout";
+        public int ProductionCost = 10;
 
         public City(string name, GridPosition position, int ownerId, int population)
         {
@@ -16,6 +22,8 @@ namespace CivClone.Simulation
             Position = position;
             OwnerId = ownerId;
             Population = population;
+            FoodStored = 0;
+            ProductionStored = 0;
         }
     }
 }

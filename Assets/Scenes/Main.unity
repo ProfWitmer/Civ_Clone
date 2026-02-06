@@ -119,7 +119,7 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &1547682170
+--- !u!1 &200060575
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -127,9 +127,9 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1547682173}
-  - component: {fileID: 1547682172}
-  - component: {fileID: 1547682171}
+  - component: {fileID: 200060578}
+  - component: {fileID: 200060577}
+  - component: {fileID: 200060576}
   m_Layer: 0
   m_Name: HUD
   m_TagString: Untagged
@@ -137,25 +137,25 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1547682171
+--- !u!114 &200060576
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1547682170}
+  m_GameObject: {fileID: 200060575}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: bba9d55d60c9b426bab8ce2f0a1b875c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CivClone.Presentation.HudController
---- !u!114 &1547682172
+--- !u!114 &200060577
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1547682170}
+  m_GameObject: {fileID: 200060575}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 19102, guid: 0000000000000000e000000000000000, type: 0}
@@ -172,13 +172,13 @@ MonoBehaviour:
   m_PivotReferenceSize: 0
   m_Pivot: 0
   m_WorldSpaceCollider: {fileID: 0}
---- !u!4 &1547682173
+--- !u!4 &200060578
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1547682170}
+  m_GameObject: {fileID: 200060575}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -187,7 +187,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1802014794
+--- !u!1 &707916715
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -195,22 +195,22 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1802014796}
-  - component: {fileID: 1802014795}
+  - component: {fileID: 707916717}
+  - component: {fileID: 707916716}
   m_Layer: 0
   m_Name: Main Camera
-  m_TagString: Untagged
+  m_TagString: MainCamera
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!20 &1802014795
+--- !u!20 &707916716
 Camera:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1802014794}
+  m_GameObject: {fileID: 707916715}
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 2
@@ -255,13 +255,13 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
---- !u!4 &1802014796
+--- !u!4 &707916717
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1802014794}
+  m_GameObject: {fileID: 707916715}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 10, y: 6, z: -10}
@@ -270,7 +270,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1812215938
+--- !u!1 &1625911645
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -278,9 +278,11 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1812215941}
-  - component: {fileID: 1812215940}
-  - component: {fileID: 1812215939}
+  - component: {fileID: 1625911650}
+  - component: {fileID: 1625911649}
+  - component: {fileID: 1625911648}
+  - component: {fileID: 1625911647}
+  - component: {fileID: 1625911646}
   m_Layer: 0
   m_Name: Game
   m_TagString: Untagged
@@ -288,13 +290,13 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1812215939
+--- !u!114 &1625911646
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1812215938}
+  m_GameObject: {fileID: 1625911645}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b5ecabb43e5244b57ab3c0d82ffd4718, type: 3}
@@ -306,15 +308,44 @@ MonoBehaviour:
     Seed: 12345
     DefaultTerrainId: plains
   dataCatalog: {fileID: 11400000, guid: 972a00ff63a844b418083e02893c0c20, type: 2}
-  mapPresenter: {fileID: 1812215940}
-  hudController: {fileID: 1547682171}
---- !u!114 &1812215940
+  mapPresenter: {fileID: 1625911649}
+  unitPresenter: {fileID: 1625911648}
+  inputController: {fileID: 1625911647}
+  hudController: {fileID: 200060576}
+--- !u!114 &1625911647
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1812215938}
+  m_GameObject: {fileID: 1625911645}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 438272e9e611a40d0a584ac060448a65, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CivClone.Presentation.MapInputController
+  sceneCamera: {fileID: 0}
+--- !u!114 &1625911648
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1625911645}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 350be410800ef4471a5fec946e5144db, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CivClone.Presentation.UnitPresenter
+  unitColor: {r: 0.2, g: 0.6, b: 0.95, a: 1}
+  unitScale: 0.6
+--- !u!114 &1625911649
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1625911645}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 24a06b88dde2f45118e52aff3b06d75a, type: 3}
@@ -324,13 +355,13 @@ MonoBehaviour:
   tileRoot: {fileID: 0}
   defaultColor: {r: 0.23, g: 0.56, b: 0.27, a: 1}
   hillsColor: {r: 0.4, g: 0.5, b: 0.25, a: 1}
---- !u!4 &1812215941
+--- !u!4 &1625911650
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1812215938}
+  m_GameObject: {fileID: 1625911645}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -343,6 +374,6 @@ Transform:
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
-  - {fileID: 1812215941}
-  - {fileID: 1547682173}
-  - {fileID: 1802014796}
+  - {fileID: 1625911650}
+  - {fileID: 200060578}
+  - {fileID: 707916717}

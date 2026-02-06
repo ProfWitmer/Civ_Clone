@@ -40,6 +40,7 @@ namespace CivClone.Presentation
                     var renderer = unitObject.AddComponent<SpriteRenderer>();
                     renderer.sprite = unitSprite;
                     renderer.color = unitColor;
+                    renderer.sortingOrder = mapPresenter.GetSortingOrder(unit.Position) + 1;
 
                     var collider = unitObject.AddComponent<BoxCollider2D>();
                     collider.size = new Vector2(1f, 1f);
@@ -62,6 +63,11 @@ namespace CivClone.Presentation
             if (unitViews.TryGetValue(unit, out var view))
             {
                 view.transform.localPosition = mapPresenter.GridToWorld(unit.Position) + new Vector3(0f, 0f, -0.1f);
+                var renderer = view.GetComponent<SpriteRenderer>();
+                if (renderer != null)
+                {
+                    renderer.sortingOrder = mapPresenter.GetSortingOrder(unit.Position) + 1;
+                }
             }
         }
 
@@ -71,7 +77,14 @@ namespace CivClone.Presentation
             {
                 if (view != null)
                 {
+                    if (Application.isPlaying)
+                {
+                    Destroy(view.gameObject);
+                }
+                else
+                {
                     DestroyImmediate(view.gameObject);
+                }
                 }
             }
 

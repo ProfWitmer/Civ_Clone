@@ -20,7 +20,19 @@ namespace CivClone.Simulation
             {
                 for (int x = 0; x < _config.Width; x++)
                 {
-                    string terrainId = random.NextDouble() > 0.8 ? "hills" : _config.DefaultTerrainId;
+                    string terrainId = _config.DefaultTerrainId;
+                    double roll = random.NextDouble();
+                    if (roll > 0.9)
+                    {
+                        terrainId = "hills";
+                    }
+
+                    bool edgeWater = x == 0 || y == 0 || x == _config.Width - 1 || y == _config.Height - 1;
+                    if (edgeWater || roll < 0.08)
+                    {
+                        terrainId = "water";
+                    }
+
                     map.Tiles.Add(new Tile(new GridPosition(x, y), terrainId));
                 }
             }

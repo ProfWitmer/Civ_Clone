@@ -1,4 +1,8 @@
 using CivClone.Infrastructure;
+using CivClone.Infrastructure.Data;
+using CivClone.Presentation.Camera;
+using CivClone.Presentation.Map;
+using CivClone.Presentation.UI;
 using CivClone.Simulation;
 using UnityEngine;
 
@@ -13,16 +17,58 @@ namespace CivClone.Presentation
         [Header("Scene References")]
         [SerializeField] private MapPresenter mapPresenter;
         [SerializeField] private UnitPresenter unitPresenter;
+        [SerializeField] private CityPresenter cityPresenter;
         [SerializeField] private MapInputController inputController;
+        [SerializeField] private SaveLoadController saveLoadController;
+        [SerializeField] private MiniMapPresenter miniMapPresenter;
         [SerializeField] private HudController hudController;
 
         private GameState _state;
         private TurnSystem _turnSystem;
+        private FogOfWarSystem _fogOfWar;
+
+        public GameState State => _state;
 
         private void Awake()
         {
-            _state = BuildInitialState();
+            if (dataCatalog != null)
+            {
+                var catalogLoader = new GameDataCatalogLoader();
+                catalogLoader.TryLoadFromResources(dataCatalog);
+            }
+
+            var initialState = BuildInitialState();
+            ApplyState(initialState);
+
+            if (saveLoadController == null)
+            {
+                saveLoadController = GetComponent<SaveLoadController>();
+                if (saveLoadController == null)
+                {
+                    saveLoadController = gameObject.AddComponent<SaveLoadController>();
+                }
+            }
+
+            if (saveLoadController != null)
+            {
+                saveLoadController.Bind(this);
+            }
+
+            EnsureCameraController();
+            EnsureTileHighlighter();
+        }
+
+        public void ApplyState(GameState state)
+        {
+            if (state == null)
+            {
+                return;
+            }
+
+            _state = state;
             _turnSystem = new TurnSystem(_state);
+            _fogOfWar = new FogOfWarSystem();
+            _fogOfWar.Apply(_state);
 
             if (mapPresenter != null)
             {
@@ -34,6 +80,20 @@ namespace CivClone.Presentation
                 unitPresenter.RenderUnits(_state, mapPresenter);
             }
 
+            if (cityPresenter == null)
+            {
+                cityPresenter = GetComponent<CityPresenter>();
+                if (cityPresenter == null)
+                {
+                    cityPresenter = gameObject.AddComponent<CityPresenter>();
+                }
+            }
+
+            if (cityPresenter != null && mapPresenter != null)
+            {
+                cityPresenter.RenderCities(_state, mapPresenter);
+            }
+
             if (hudController != null)
             {
                 hudController.Bind(_state, _turnSystem);
@@ -41,8 +101,63 @@ namespace CivClone.Presentation
 
             if (inputController != null)
             {
-                inputController.Bind(_state, _turnSystem, mapPresenter, unitPresenter, hudController, Camera.main);
+                inputController.Bind(_state, _turnSystem, _fogOfWar, dataCatalog, mapPresenter, unitPresenter, cityPresenter, hudController, UnityEngine.Camera.main);
             }
+
+            if (hudController != null && inputController != null)
+            {
+                hudController.SetEndTurnHandler(inputController.RequestEndTurn);
+            }
+
+            if (miniMapPresenter == null)
+            {
+                miniMapPresenter = GetComponent<MiniMapPresenter>();
+                if (miniMapPresenter == null)
+                {
+                    miniMapPresenter = gameObject.AddComponent<MiniMapPresenter>();
+                }
+            }
+
+            if (miniMapPresenter != null)
+            {
+                miniMapPresenter.Bind(_state, dataCatalog);
+            }
+
+            if (mapPresenter != null)
+            {
+                mapPresenter.UpdateFog(_state.Map);
+            }
+        }
+
+        private void EnsureCameraController()
+        {
+            var mainCamera = UnityEngine.Camera.main;
+            if (mainCamera == null)
+            {
+                return;
+            }
+
+            if (!mainCamera.TryGetComponent(out IsometricOrthoCameraController controller))
+            {
+                controller = mainCamera.gameObject.AddComponent<IsometricOrthoCameraController>();
+            }
+
+            controller.Bind(mapPresenter);
+        }
+
+        private void EnsureTileHighlighter()
+        {
+            if (mapPresenter == null)
+            {
+                return;
+            }
+
+            if (!mapPresenter.TryGetComponent(out IsometricTileHighlighter highlighter))
+            {
+                highlighter = mapPresenter.gameObject.AddComponent<IsometricTileHighlighter>();
+            }
+
+            highlighter.Bind(mapPresenter, UnityEngine.Camera.main);
         }
 
         private GameState BuildInitialState()
@@ -57,7 +172,12 @@ namespace CivClone.Presentation
 
             var player = new Player(0, "Player 1");
             player.Units.Add(new Unit("scout", new GridPosition(2, 2), 2, player.Id));
+            player.Units.Add(new Unit("settler", new GridPosition(3, 2), 2, player.Id));
             state.Players.Add(player);
+
+            var rival = new Player(1, "Rival");
+            rival.Units.Add(new Unit("scout", new GridPosition(6, 2), 2, rival.Id));
+            state.Players.Add(rival);
 
             return state;
         }

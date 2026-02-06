@@ -30,7 +30,9 @@ namespace CivClone.Infrastructure
                 {
                     X = tile.Position.X,
                     Y = tile.Position.Y,
-                    TerrainId = tile.TerrainId
+                    TerrainId = tile.TerrainId,
+                    Explored = tile.Explored,
+                    Visible = tile.Visible
                 });
             }
 
@@ -49,7 +51,8 @@ namespace CivClone.Infrastructure
                         UnitTypeId = unit.UnitTypeId,
                         X = unit.Position.X,
                         Y = unit.Position.Y,
-                        MovementPoints = unit.MovementPoints
+                        MovementPoints = unit.MovementPoints,
+                        MovementRemaining = unit.MovementRemaining
                     });
                 }
 
@@ -60,7 +63,13 @@ namespace CivClone.Infrastructure
                         Name = city.Name,
                         X = city.Position.X,
                         Y = city.Position.Y,
-                        Population = city.Population
+                        Population = city.Population,
+                        FoodStored = city.FoodStored,
+                        ProductionStored = city.ProductionStored,
+                        FoodPerTurn = city.FoodPerTurn,
+                        ProductionPerTurn = city.ProductionPerTurn,
+                        ProductionTargetId = city.ProductionTargetId,
+                        ProductionCost = city.ProductionCost
                     });
                 }
 
@@ -75,7 +84,12 @@ namespace CivClone.Infrastructure
             var map = new WorldMap(MapWidth, MapHeight);
             foreach (var tile in Tiles)
             {
-                map.Tiles.Add(new Tile(new GridPosition(tile.X, tile.Y), tile.TerrainId));
+                var newTile = new Tile(new GridPosition(tile.X, tile.Y), tile.TerrainId)
+            {
+                Explored = tile.Explored,
+                Visible = tile.Visible
+            };
+            map.Tiles.Add(newTile);
             }
 
             var state = new GameState
@@ -91,12 +105,23 @@ namespace CivClone.Infrastructure
 
                 foreach (var unit in playerDto.Units)
                 {
-                    player.Units.Add(new Unit(unit.UnitTypeId, new GridPosition(unit.X, unit.Y), unit.MovementPoints, player.Id));
+                    var newUnit = new Unit(unit.UnitTypeId, new GridPosition(unit.X, unit.Y), unit.MovementPoints, player.Id);
+                    newUnit.MovementRemaining = unit.MovementRemaining;
+                    player.Units.Add(newUnit);
                 }
 
                 foreach (var city in playerDto.Cities)
                 {
-                    player.Cities.Add(new City(city.Name, new GridPosition(city.X, city.Y), player.Id, city.Population));
+                    var newCity = new City(city.Name, new GridPosition(city.X, city.Y), player.Id, city.Population)
+                    {
+                        FoodStored = city.FoodStored,
+                        ProductionStored = city.ProductionStored,
+                        FoodPerTurn = city.FoodPerTurn,
+                        ProductionPerTurn = city.ProductionPerTurn,
+                        ProductionTargetId = city.ProductionTargetId,
+                        ProductionCost = city.ProductionCost
+                    };
+                    player.Cities.Add(newCity);
                 }
 
                 state.Players.Add(player);
@@ -111,6 +136,8 @@ namespace CivClone.Infrastructure
             public int X;
             public int Y;
             public string TerrainId;
+            public bool Explored;
+            public bool Visible;
         }
 
         [Serializable]
@@ -129,6 +156,7 @@ namespace CivClone.Infrastructure
             public int X;
             public int Y;
             public int MovementPoints;
+            public int MovementRemaining;
         }
 
         [Serializable]
@@ -138,6 +166,12 @@ namespace CivClone.Infrastructure
             public int X;
             public int Y;
             public int Population;
+            public int FoodStored;
+            public int ProductionStored;
+            public int FoodPerTurn;
+            public int ProductionPerTurn;
+            public string ProductionTargetId;
+            public int ProductionCost;
         }
     }
 }
