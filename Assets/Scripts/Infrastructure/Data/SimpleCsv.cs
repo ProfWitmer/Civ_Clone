@@ -12,8 +12,7 @@ namespace CivClone.Infrastructure.Data
                 return rows;
             }
 
-            var lines = csvText.Replace("", string.Empty).Split('
-');
+            var lines = csvText.Replace("\r", string.Empty).Split('\n');
             foreach (var rawLine in lines)
             {
                 var line = rawLine.Trim();
