@@ -4,18 +4,21 @@
       "Id": "plains",
       "DisplayName": "Plains",
       "MovementCost": 1,
+      "DefenseBonus": 0,
       "Color": { "r": 0.23, "g": 0.56, "b": 0.27, "a": 1.0 }
     },
     {
       "Id": "hills",
       "DisplayName": "Hills",
       "MovementCost": 2,
+      "DefenseBonus": 1,
       "Color": { "r": 0.4, "g": 0.5, "b": 0.25, "a": 1.0 }
     },
     {
       "Id": "water",
       "DisplayName": "Water",
       "MovementCost": 999,
+      "DefenseBonus": 0,
       "Color": { "r": 0.2, "g": 0.4, "b": 0.7, "a": 1.0 }
     }
   ]

@@ -321,6 +321,7 @@ namespace CivClone.Presentation
 
             int attack = GetAttack(attacker);
             int defense = GetDefense(defender);
+            defense += GetDefenseBonus(defender.Position);
 
             int attackRoll = attack + Random.Range(0, 6);
             int defenseRoll = defense + Random.Range(0, 6);
@@ -432,7 +433,7 @@ namespace CivClone.Presentation
                 return;
             }
 
-            hudController.SetCityInfo($"City: {selectedCity.Name} (Pop {selectedCity.Population}) Food {selectedCity.FoodStored}/{5 + selectedCity.Population * 2} Prod {selectedCity.ProductionStored}/{selectedCity.ProductionCost} ({selectedCity.ProductionTargetId}) [P] Cycle");
+            hudController.SetCityInfo($"City: {selectedCity.Name} (Pop {selectedCity.Population}) Food {selectedCity.FoodStored}/{5 + selectedCity.Population * 2} (+{selectedCity.FoodPerTurn}) Prod {selectedCity.ProductionStored}/{selectedCity.ProductionCost} (+{selectedCity.ProductionPerTurn}) ({selectedCity.ProductionTargetId}) [P] Cycle");
         }
 
                 private void UpdateResearchInfo()

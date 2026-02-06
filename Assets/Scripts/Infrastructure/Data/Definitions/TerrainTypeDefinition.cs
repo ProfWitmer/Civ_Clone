@@ -9,6 +9,7 @@ namespace CivClone.Infrastructure.Data.Definitions
         public string Id;
         public string DisplayName;
         public int MovementCost;
+        public int DefenseBonus;
         public Color Color;
     }
 }

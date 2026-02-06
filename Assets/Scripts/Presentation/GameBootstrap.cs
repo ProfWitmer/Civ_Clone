@@ -66,7 +66,7 @@ namespace CivClone.Presentation
             }
 
             _state = state;
-            _turnSystem = new TurnSystem(_state);
+            _turnSystem = new TurnSystem(_state, dataCatalog);
             _fogOfWar = new FogOfWarSystem();
             _fogOfWar.Apply(_state);
 
@@ -126,6 +126,7 @@ namespace CivClone.Presentation
             if (mapPresenter != null)
             {
                 mapPresenter.UpdateFog(_state.Map);
+                mapPresenter.UpdateImprovements(_state.Map, dataCatalog);
             }
         }
 

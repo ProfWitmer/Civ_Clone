@@ -1,4 +1,4 @@
-Id,DisplayName,MovementCost,ColorHex
-plains,Plains,1,#3B8F45
-hills,Hills,2,#667F40
-water,Water,999,#3366B3
+Id,DisplayName,MovementCost,ColorHex,DefenseBonus
+plains,Plains,1,#3B8F45,0
+hills,Hills,2,#667F40,1
+water,Water,999,#3366B3,0

@@ -15,7 +15,18 @@ namespace CivClone.Simulation
             researchSystem = new ResearchSystem(catalogRef);
         }
 
-        public void EndTurn()
+                public void RecalculateCityYields()
+        {
+            var player = state.ActivePlayer;
+            if (player == null)
+            {
+                return;
+            }
+
+            RecalculateCityYields(player);
+        }
+
+public void EndTurn()
         {
             if (state.Players.Count == 0)
             {
@@ -47,8 +58,45 @@ namespace CivClone.Simulation
             }
         }
 
-        private void AdvanceCities(Player player)
+                private void RecalculateCityYields(Player player)
         {
+            if (state?.Map == null || player == null)
+            {
+                return;
+            }
+
+            foreach (var city in player.Cities)
+            {
+                int food = city.BaseFoodPerTurn;
+                int prod = city.BaseProductionPerTurn;
+
+                for (int y = city.Position.Y - 1; y <= city.Position.Y + 1; y++)
+                {
+                    for (int x = city.Position.X - 1; x <= city.Position.X + 1; x++)
+                    {
+                        var tile = state.Map.GetTile(x, y);
+                        if (tile == null || string.IsNullOrWhiteSpace(tile.ImprovementId))
+                        {
+                            continue;
+                        }
+
+                        if (catalog != null && catalog.TryGetImprovementType(tile.ImprovementId, out var improvement))
+                        {
+                            food += improvement.FoodBonus;
+                            prod += improvement.ProductionBonus;
+                        }
+                    }
+                }
+
+                city.FoodPerTurn = Math.Max(1, food);
+                city.ProductionPerTurn = Math.Max(1, prod);
+            }
+        }
+
+private void AdvanceCities(Player player)
+        {
+            RecalculateCityYields(player);
+
             foreach (var city in player.Cities)
             {
                 city.FoodStored += city.FoodPerTurn;

@@ -75,6 +75,7 @@ namespace CivClone.Infrastructure.Data
                     Id = GetValue(header, row, "Id"),
                     DisplayName = GetValue(header, row, "DisplayName"),
                     MovementCost = GetIntValue(header, row, "MovementCost", 1),
+                    DefenseBonus = GetIntValue(header, row, "DefenseBonus", 0),
                     Color = ParseColor(GetValue(header, row, "ColorHex"))
                 };
 

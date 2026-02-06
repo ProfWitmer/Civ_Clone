@@ -108,6 +108,7 @@ namespace CivClone.Infrastructure
                     terrain.Id = definition.Id;
                     terrain.DisplayName = definition.DisplayName;
                     terrain.MovementCost = definition.MovementCost;
+                    terrain.DefenseBonus = definition.DefenseBonus;
                     terrain.Color = definition.Color;
                     terrainList.Add(terrain);
                 }
