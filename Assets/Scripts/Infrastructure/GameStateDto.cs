@@ -56,7 +56,12 @@ namespace CivClone.Infrastructure
                         Y = unit.Position.Y,
                         MovementPoints = unit.MovementPoints,
                         MovementRemaining = unit.MovementRemaining,
-                        WorkRemaining = unit.WorkRemaining
+                        WorkRemaining = unit.WorkRemaining,
+                        Health = unit.Health,
+                        MaxHealth = unit.MaxHealth,
+                        WorkTargetImprovementId = unit.WorkTargetImprovementId,
+                        WorkTargetX = unit.WorkTargetPosition.X,
+                        WorkTargetY = unit.WorkTargetPosition.Y
                     });
                 }
 
@@ -126,6 +131,10 @@ namespace CivClone.Infrastructure
                     var newUnit = new Unit(unit.UnitTypeId, new GridPosition(unit.X, unit.Y), unit.MovementPoints, player.Id);
                     newUnit.MovementRemaining = unit.MovementRemaining;
                     newUnit.WorkRemaining = unit.WorkRemaining;
+                    newUnit.Health = unit.Health;
+                    newUnit.MaxHealth = unit.MaxHealth;
+                    newUnit.WorkTargetImprovementId = unit.WorkTargetImprovementId;
+                    newUnit.WorkTargetPosition = new GridPosition(unit.WorkTargetX, unit.WorkTargetY);
                     player.Units.Add(newUnit);
                 }
 
@@ -183,6 +192,11 @@ namespace CivClone.Infrastructure
             public int MovementPoints;
             public int MovementRemaining;
             public int WorkRemaining;
+            public int Health;
+            public int MaxHealth;
+            public string WorkTargetImprovementId;
+            public int WorkTargetX;
+            public int WorkTargetY;
         }
 
         [Serializable]

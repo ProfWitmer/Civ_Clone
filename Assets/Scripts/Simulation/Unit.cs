@@ -11,6 +11,10 @@ namespace CivClone.Simulation
         public int MovementRemaining;
         public int WorkRemaining;
         public int OwnerId;
+        public int MaxHealth = 10;
+        public int Health = 10;
+        public string WorkTargetImprovementId;
+        public GridPosition WorkTargetPosition;
 
         public Unit(string unitTypeId, GridPosition position, int movementPoints, int ownerId)
         {
@@ -20,6 +24,9 @@ namespace CivClone.Simulation
             MovementRemaining = movementPoints;
             WorkRemaining = 0;
             OwnerId = ownerId;
+            Health = MaxHealth;
+            WorkTargetImprovementId = string.Empty;
+            WorkTargetPosition = position;
         }
 
         public void ResetMovement()
@@ -29,6 +36,13 @@ namespace CivClone.Simulation
 
         public void ResetWork(int workCost)
         {
+            WorkRemaining = workCost;
+        }
+
+        public void StartWork(GridPosition position, string improvementId, int workCost)
+        {
+            WorkTargetPosition = position;
+            WorkTargetImprovementId = improvementId ?? string.Empty;
             WorkRemaining = workCost;
         }
     }

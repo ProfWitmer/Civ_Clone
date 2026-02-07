@@ -36,6 +36,7 @@ public void EndTurn()
             var currentPlayer = state.ActivePlayer;
             if (currentPlayer != null)
             {
+                AdvanceWorkerImprovements(currentPlayer);
                 AdvanceCities(currentPlayer);
                 researchSystem?.Advance(currentPlayer);
             }
@@ -113,6 +114,42 @@ private void AdvanceCities(Player player)
             }
         }
 
+        private void AdvanceWorkerImprovements(Player player)
+        {
+            if (player == null || state?.Map == null)
+            {
+                return;
+            }
+
+            foreach (var unit in player.Units)
+            {
+                if (unit.WorkRemaining <= 0 || string.IsNullOrWhiteSpace(unit.WorkTargetImprovementId))
+                {
+                    continue;
+                }
+
+                if (unit.Position.X != unit.WorkTargetPosition.X || unit.Position.Y != unit.WorkTargetPosition.Y)
+                {
+                    continue;
+                }
+
+                unit.WorkRemaining = Math.Max(0, unit.WorkRemaining - 1);
+                if (unit.WorkRemaining > 0)
+                {
+                    continue;
+                }
+
+                var tile = state.Map.GetTile(unit.WorkTargetPosition.X, unit.WorkTargetPosition.Y);
+                if (tile == null)
+                {
+                    continue;
+                }
+
+                tile.ImprovementId = unit.WorkTargetImprovementId;
+                unit.WorkTargetImprovementId = string.Empty;
+            }
+        }
+
         private void TrySpawnUnit(Player player, City city)
         {
             if (player == null || city == null)
@@ -141,6 +178,7 @@ private void AdvanceCities(Player player)
 
             city.ProductionStored -= city.ProductionCost;
             var newUnit = new Unit(city.ProductionTargetId, city.Position, movement, player.Id);
+            newUnit.Health = newUnit.MaxHealth;
             player.Units.Add(newUnit);
         }
     }

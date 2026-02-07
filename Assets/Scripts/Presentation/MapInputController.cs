@@ -341,21 +341,32 @@ private int GetMoveCost(GridPosition position)
             int attackRoll = attack + Random.Range(0, 6);
             int defenseRoll = defense + Random.Range(0, 6);
 
+            int damage = Mathf.Clamp(attackRoll - defenseRoll + 1, 1, 6);
             if (attackRoll >= defenseRoll)
             {
-                RemoveUnit(defender);
-                attacker.Position = defender.Position;
-                attacker.MovementRemaining = Mathf.Max(0, attacker.MovementRemaining - moveCost);
-                unitPresenter.RenderUnits(state, mapPresenter);
-                SelectUnit(attacker);
-                UpdateHudSelection("Won combat");
+                defender.Health = Mathf.Max(0, defender.Health - damage);
+                UpdateHudSelection($"Hit for {damage}");
+                if (defender.Health <= 0)
+                {
+                    RemoveUnit(defender);
+                    attacker.Position = defender.Position;
+                    attacker.MovementRemaining = Mathf.Max(0, attacker.MovementRemaining - moveCost);
+                    unitPresenter.RenderUnits(state, mapPresenter);
+                    SelectUnit(attacker);
+                    UpdateHudSelection("Won combat");
+                }
             }
             else
             {
-                RemoveUnit(attacker);
-                selectedUnit = null;
-                unitPresenter.RenderUnits(state, mapPresenter);
-                UpdateHudSelection("Lost combat");
+                attacker.Health = Mathf.Max(0, attacker.Health - damage);
+                UpdateHudSelection($"Took {damage}");
+                if (attacker.Health <= 0)
+                {
+                    RemoveUnit(attacker);
+                    selectedUnit = null;
+                    unitPresenter.RenderUnits(state, mapPresenter);
+                    UpdateHudSelection("Lost combat");
+                }
             }
         }
 
@@ -530,13 +541,10 @@ private int GetMoveCost(GridPosition position)
                 return;
             }
 
-            tile.ImprovementId = improvementId;
+            int workCost = GetWorkCost(selectedUnit);
+            selectedUnit.StartWork(selectedUnit.Position, improvementId, workCost);
             selectedUnit.MovementRemaining = 0;
-            selectedUnit.ResetWork(GetWorkCost(selectedUnit));
-            turnSystem?.RecalculateCityYields();
-            mapPresenter?.UpdateImprovements(state.Map, dataCatalog);
-            UpdateHudSelection($"Built {improvementId}");
-            UpdateCityInfo();
+            UpdateHudSelection($"Working on {improvementId} ({workCost} turns)");
         }
 
         private void CycleResearch()
@@ -651,7 +659,7 @@ private void UpdateHudSelection(string warning = null)
                 return;
             }
 
-            var movementLabel = $"MP {selectedUnit.MovementRemaining}/{selectedUnit.MovementPoints}";
+            var movementLabel = $"MP {selectedUnit.MovementRemaining}/{selectedUnit.MovementPoints} HP {selectedUnit.Health}/{selectedUnit.MaxHealth}";
             if (selectedUnit.UnitTypeId == "worker")
             {
                 movementLabel = $"{movementLabel} Work {selectedUnit.WorkRemaining}";
