@@ -14,6 +14,7 @@ namespace CivClone.Presentation
         [SerializeField] private KeyCode[] productionOptionKeys = { KeyCode.Alpha1, KeyCode.Alpha2, KeyCode.Alpha3 };
         [SerializeField] private KeyCode buildImprovementKey = KeyCode.B;
         [SerializeField] private KeyCode cycleResearchKey = KeyCode.R;
+        [SerializeField] private KeyCode promotionKey = KeyCode.U;
         [SerializeField] private int humanPlayerId = 0;
 
         private GameState state;
@@ -86,6 +87,11 @@ namespace CivClone.Presentation
             if (Input.GetKeyDown(cycleResearchKey))
             {
                 CycleResearch();
+            }
+
+            if (Input.GetKeyDown(promotionKey))
+            {
+                GrantTestPromotion();
             }
 
             if (Input.GetKeyDown(endTurnKey))
@@ -735,6 +741,8 @@ private void UpdateHudSelection(string warning = null)
             {
                 movementLabel = $"{movementLabel} Promos {selectedUnit.Promotions.Count}";
             }
+
+            movementLabel = $"{movementLabel} [U] Promote";
             if (!string.IsNullOrWhiteSpace(warning))
             {
                 movementLabel = $"{movementLabel} - {warning}";
