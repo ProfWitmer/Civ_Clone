@@ -544,6 +544,7 @@ private int GetMoveCost(GridPosition position)
             selectedUnit = unit;
             selectedCity = null;
             UpdateHudSelection();
+            UpdatePromotionInfo();
             UpdateCityInfo();
 
             if (tileHighlighter != null)
@@ -798,6 +799,7 @@ private void UpdateHudSelection(string warning = null)
             if (selectedUnit == null)
             {
                 hudController.SetSelection("Selection: None");
+                hudController.SetPromotionInfo("Promotions: None");
                 return;
             }
 
@@ -863,6 +865,7 @@ private void UpdateHudSelection(string warning = null)
 
             ApplyFog();
             UpdateHudSelection();
+            UpdatePromotionInfo();
             UpdateCityInfo();
         }
 
@@ -890,6 +893,7 @@ private void UpdateHudSelection(string warning = null)
             ApplyFog();
             mapPresenter?.UpdateImprovements(state.Map, dataCatalog);
             UpdateHudSelection();
+            UpdatePromotionInfo();
             UpdateCityInfo();
             hudController?.Refresh();
             UpdateResearchInfo();

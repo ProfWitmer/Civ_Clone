@@ -6,6 +6,7 @@
         <ui:Label name="event-label" text="" class="hud-sub hud-event" />
         <ui:Label name="city-label" text="City: None" class="hud-sub" />
         <ui:Label name="production-label" text="Production: None" class="hud-sub" />
+        <ui:Label name="promotion-label" text="Promotions: None" class="hud-sub" />
         <ui:Label name="research-label" text="Research: None" class="hud-sub" />
         <ui:VisualElement class="hud-minimap">
             <ui:Label text="Minimap" class="hud-minimap-title" />
