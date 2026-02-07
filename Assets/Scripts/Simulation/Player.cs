@@ -14,6 +14,7 @@ namespace CivClone.Simulation
         public List<CivicSelection> Civics = new List<CivicSelection>();
         public List<string> AvailableResources = new List<string>();
         public List<TradeRoute> TradeRoutes = new List<TradeRoute>();
+        public List<DiplomacyStatus> Diplomacy = new List<DiplomacyStatus>();
         public string CurrentTechId;
         public int ResearchProgress;
 

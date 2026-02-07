@@ -316,6 +316,10 @@ namespace CivClone.Presentation
                 return;
             }
 
+            EnsureDiplomacyState(aiPlayer);
+            ChooseResearch(aiPlayer);
+            EnsureCityProduction(aiPlayer);
+
             foreach (var unit in new List<Unit>(aiPlayer.Units))
             {
                 if (unit.UnitTypeId == "settler" && !CityExistsAt(unit.Position))
@@ -326,6 +330,14 @@ namespace CivClone.Presentation
                     aiPlayer.Cities.Add(city);
                     aiPlayer.Units.Remove(unit);
                     continue;
+                }
+
+                if (unit.UnitTypeId == "worker")
+                {
+                    if (TryAiBuildImprovementOrRoad(aiPlayer, unit))
+                    {
+                        continue;
+                    }
                 }
 
                 TryMoveUnitRandomly(unit);
@@ -417,11 +429,262 @@ namespace CivClone.Presentation
             return null;
         }
 
+        private Player GetPlayerById(int playerId)
+        {
+            if (state?.Players == null)
+            {
+                return null;
+            }
+
+            foreach (var player in state.Players)
+            {
+                if (player != null && player.Id == playerId)
+                {
+                    return player;
+                }
+            }
+
+            return null;
+        }
+
+        private void EnsureDiplomacyState(Player player)
+        {
+            if (player == null || state?.Players == null)
+            {
+                return;
+            }
+
+            if (player.Diplomacy == null)
+            {
+                player.Diplomacy = new List<DiplomacyStatus>();
+            }
+
+            foreach (var other in state.Players)
+            {
+                if (other == null || other.Id == player.Id)
+                {
+                    continue;
+                }
+
+                bool exists = false;
+                foreach (var status in player.Diplomacy)
+                {
+                    if (status != null && status.OtherPlayerId == other.Id)
+                    {
+                        exists = true;
+                        break;
+                    }
+                }
+
+                if (!exists)
+                {
+                    player.Diplomacy.Add(new DiplomacyStatus
+                    {
+                        OtherPlayerId = other.Id,
+                        AtWar = false
+                    });
+                }
+            }
+        }
+
+        private bool IsAtWar(Player player, int otherPlayerId)
+        {
+            if (player?.Diplomacy == null)
+            {
+                return false;
+            }
+
+            foreach (var status in player.Diplomacy)
+            {
+                if (status != null && status.OtherPlayerId == otherPlayerId)
+                {
+                    return status.AtWar;
+                }
+            }
+
+            return false;
+        }
+
+        private void SetWarStatus(Player player, int otherPlayerId, bool atWar)
+        {
+            if (player == null)
+            {
+                return;
+            }
+
+            EnsureDiplomacyState(player);
+            foreach (var status in player.Diplomacy)
+            {
+                if (status != null && status.OtherPlayerId == otherPlayerId)
+                {
+                    status.AtWar = atWar;
+                    return;
+                }
+            }
+        }
+
+        private void ChooseResearch(Player player)
+        {
+            if (player == null || dataCatalog?.TechTypes == null)
+            {
+                return;
+            }
+
+            if (!string.IsNullOrWhiteSpace(player.CurrentTechId) && dataCatalog.TryGetTechType(player.CurrentTechId, out var existingTech))
+            {
+                if (AreTechPrereqsMet(player, existingTech.Prerequisites))
+                {
+                    return;
+                }
+            }
+
+            foreach (var tech in dataCatalog.TechTypes)
+            {
+                if (tech == null || string.IsNullOrWhiteSpace(tech.Id))
+                {
+                    continue;
+                }
+
+                if (player.KnownTechs.Contains(tech.Id))
+                {
+                    continue;
+                }
+
+                if (!AreTechPrereqsMet(player, tech.Prerequisites))
+                {
+                    continue;
+                }
+
+                player.CurrentTechId = tech.Id;
+                player.ResearchProgress = 0;
+                return;
+            }
+        }
+
+        private void EnsureCityProduction(Player player)
+        {
+            if (player == null)
+            {
+                return;
+            }
+
+            foreach (var city in player.Cities)
+            {
+                if (city == null)
+                {
+                    continue;
+                }
+
+                if (!string.IsNullOrWhiteSpace(city.ProductionTargetId))
+                {
+                    continue;
+                }
+
+                string chosen = ChooseBestProductionId(player);
+                if (!string.IsNullOrWhiteSpace(chosen))
+                {
+                    city.ProductionTargetId = chosen;
+                    city.ProductionCost = GetProductionCost(chosen);
+                }
+            }
+        }
+
+        private string ChooseBestProductionId(Player player)
+        {
+            if (player == null || dataCatalog?.UnitTypes == null)
+            {
+                return productionOptions.Length > 0 ? productionOptions[0] : string.Empty;
+            }
+
+            foreach (var option in productionOptions)
+            {
+                if (dataCatalog.TryGetUnitType(option, out var unit) && unit != null)
+                {
+                    if (!HasRequiredResource(player, unit.RequiresResource))
+                    {
+                        continue;
+                    }
+                    if (!HasRequiredTech(player, unit.RequiresTech))
+                    {
+                        continue;
+                    }
+                    return option;
+                }
+            }
+
+            return productionOptions.Length > 0 ? productionOptions[0] : string.Empty;
+        }
+
+        private bool TryAiBuildImprovementOrRoad(Player player, Unit unit)
+        {
+            if (unit == null || player == null || state?.Map == null)
+            {
+                return false;
+            }
+
+            if (unit.WorkRemaining > 0)
+            {
+                return false;
+            }
+
+            var tile = state.Map.GetTile(unit.Position.X, unit.Position.Y);
+            if (tile == null)
+            {
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(tile.ImprovementId))
+            {
+                string improvementId = null;
+                for (int i = 0; i < improvementOptions.Length; i++)
+                {
+                    var candidate = improvementOptions[i];
+                    if (improvementRequirements.TryGetValue(candidate, out var techReq) && !string.IsNullOrWhiteSpace(techReq))
+                    {
+                        if (!player.KnownTechs.Contains(techReq))
+                        {
+                            continue;
+                        }
+                    }
+
+                    improvementId = candidate;
+                    break;
+                }
+
+                if (!string.IsNullOrWhiteSpace(improvementId))
+                {
+                    int workCost = GetWorkCost(unit);
+                    unit.StartWork(unit.Position, improvementId, workCost);
+                    unit.MovementRemaining = 0;
+                    return true;
+                }
+            }
+
+            if (!tile.HasRoad)
+            {
+                int workCost = GetWorkCost(unit);
+                unit.StartRoadWork(unit.Position, workCost);
+                unit.MovementRemaining = 0;
+                return true;
+            }
+
+            return false;
+        }
+
         private void ResolveCombat(Unit attacker, Unit defender, int moveCost)
         {
             if (attacker == null || defender == null || state == null)
             {
                 return;
+            }
+
+            var attackerPlayer = GetPlayerById(attacker.OwnerId);
+            var defenderPlayer = GetPlayerById(defender.OwnerId);
+            if (attackerPlayer != null && defenderPlayer != null && !IsAtWar(attackerPlayer, defenderPlayer.Id))
+            {
+                SetWarStatus(attackerPlayer, defenderPlayer.Id, true);
+                SetWarStatus(defenderPlayer, attackerPlayer.Id, true);
+                hudController?.LogCombat($"War declared between {attackerPlayer.Name} and {defenderPlayer.Name}");
             }
 
             bool isRangedAttack = GetUnitRange(attacker) > 1 && (Mathf.Abs(attacker.Position.X - defender.Position.X) + Mathf.Abs(attacker.Position.Y - defender.Position.Y)) <= GetUnitRange(attacker);
@@ -674,6 +937,7 @@ namespace CivClone.Presentation
                 resourceHint = " " + resourceHint;
             }
             hudController.SetProductionInfo($"Production: {targetName} {selectedCity.ProductionStored}/{selectedCity.ProductionCost} (+{selectedCity.ProductionPerTurn}) {turns}t [P] Cycle {optionsHint}{queueInfo}{resourceHint}");
+            hudController.SetProductionTooltip(BuildProductionTooltip(state?.ActivePlayer));
         }
 
         private void EnqueueProduction(string unitTypeId)
@@ -1064,6 +1328,7 @@ namespace CivClone.Presentation
             }
 
             hudController.ShowTechTree(BuildTechTreeText());
+            hudController.SetTechTreeTooltip("Tech Tree: columns are tiers by prerequisites. [K]=Known [R]=Researching [A]=Available [L]=Locked.");
         }
 
         private string BuildTechTreeText()
@@ -1075,7 +1340,7 @@ namespace CivClone.Presentation
 
             var player = state.ActivePlayer;
             var lines = new List<string>();
-            lines.Add("Legend: [Known] [Researching] [Available] [Locked]");
+            lines.Add("Legend: [K] Known [R] Researching [A] Available [L] Locked");
             if (!string.IsNullOrWhiteSpace(player.CurrentTechId) && dataCatalog.TryGetTechType(player.CurrentTechId, out var currentTech))
             {
                 string currentName = string.IsNullOrWhiteSpace(currentTech.DisplayName) ? currentTech.Id : currentTech.DisplayName;
@@ -1858,6 +2123,7 @@ namespace CivClone.Presentation
 
             var resourceUnits = BuildResourceUnitList(player);
             hudController.SetResourceUnitInfo(string.IsNullOrWhiteSpace(resourceUnits) ? "Resource Units: None" : "Resource Units: " + resourceUnits);
+            hudController.SetResourceUnitTooltip(BuildResourceUnitTooltip(player));
 
             if (player.TradeRoutes == null || player.TradeRoutes.Count == 0)
             {
@@ -1936,6 +2202,31 @@ namespace CivClone.Presentation
             return "Unlocked: " + string.Join(", ", unlocked) + " | Locked: " + string.Join(", ", locked);
         }
 
+        private string BuildResourceUnitTooltip(Player player)
+        {
+            if (player == null || dataCatalog?.UnitTypes == null)
+            {
+                return string.Empty;
+            }
+
+            var lines = new List<string> { "Units with resource requirements:" };
+            foreach (var unit in dataCatalog.UnitTypes)
+            {
+                if (unit == null || string.IsNullOrWhiteSpace(unit.RequiresResource))
+                {
+                    continue;
+                }
+
+                string name = string.IsNullOrWhiteSpace(unit.DisplayName) ? unit.Id : unit.DisplayName;
+                bool hasResource = HasRequiredResource(player, unit.RequiresResource);
+                bool hasTech = HasRequiredTech(player, unit.RequiresTech);
+                string status = (hasResource && hasTech) ? "Unlocked" : "Locked";
+                lines.Add($"{name} - {status} (Res: {unit.RequiresResource}, Tech: {unit.RequiresTech})");
+            }
+
+            return string.Join("\n", lines);
+        }
+
         private string BuildProductionResourceHint(Player player)
         {
             if (player == null || dataCatalog?.UnitTypes == null)
@@ -1990,6 +2281,36 @@ namespace CivClone.Presentation
             }
 
             return "Units: +" + string.Join(", ", unlocked) + " / -" + string.Join(", ", locked);
+        }
+
+        private string BuildProductionTooltip(Player player)
+        {
+            if (player == null || dataCatalog?.UnitTypes == null)
+            {
+                return string.Empty;
+            }
+
+            var lines = new List<string> { "Production options:" };
+            foreach (var unitId in productionOptions)
+            {
+                if (dataCatalog == null || !dataCatalog.TryGetUnitType(unitId, out var unitType) || unitType == null)
+                {
+                    continue;
+                }
+
+                bool hasResource = HasRequiredResource(player, unitType.RequiresResource);
+                bool hasTech = HasRequiredTech(player, unitType.RequiresTech);
+                string status = (hasResource && hasTech) ? "OK" : "Locked";
+                string name = string.IsNullOrWhiteSpace(unitType.DisplayName) ? unitType.Id : unitType.DisplayName;
+                string req = string.Empty;
+                if (!string.IsNullOrWhiteSpace(unitType.RequiresResource) || !string.IsNullOrWhiteSpace(unitType.RequiresTech))
+                {
+                    req = $" (Res: {unitType.RequiresResource}, Tech: {unitType.RequiresTech})";
+                }
+                lines.Add($"{name} - {status}{req}");
+            }
+
+            return string.Join("\n", lines);
         }
 
         private void UpdateHudSelection(string warning = null)

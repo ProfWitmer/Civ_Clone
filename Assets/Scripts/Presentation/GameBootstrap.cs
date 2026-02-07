@@ -180,7 +180,59 @@ namespace CivClone.Presentation
             rival.Units.Add(new Unit("scout", new GridPosition(6, 2), 2, rival.Id));
             state.Players.Add(rival);
 
+            InitializeDiplomacy(state);
+
             return state;
+        }
+
+        private void InitializeDiplomacy(GameState state)
+        {
+            if (state?.Players == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < state.Players.Count; i++)
+            {
+                var player = state.Players[i];
+                if (player == null)
+                {
+                    continue;
+                }
+
+                if (player.Diplomacy == null)
+                {
+                    player.Diplomacy = new System.Collections.Generic.List<DiplomacyStatus>();
+                }
+
+                for (int j = 0; j < state.Players.Count; j++)
+                {
+                    if (i == j)
+                    {
+                        continue;
+                    }
+
+                    int otherId = state.Players[j].Id;
+                    bool exists = false;
+                    foreach (var status in player.Diplomacy)
+                    {
+                        if (status != null && status.OtherPlayerId == otherId)
+                        {
+                            exists = true;
+                            break;
+                        }
+                    }
+
+                    if (!exists)
+                    {
+                        player.Diplomacy.Add(new DiplomacyStatus
+                        {
+                            OtherPlayerId = otherId,
+                            AtWar = false
+                        });
+                    }
+                }
+            }
         }
     }
 }

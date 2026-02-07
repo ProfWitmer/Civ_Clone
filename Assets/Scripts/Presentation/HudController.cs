@@ -186,6 +186,14 @@ namespace CivClone.Presentation
             }
         }
 
+        public void SetProductionTooltip(string tooltip)
+        {
+            if (productionLabel != null)
+            {
+                productionLabel.tooltip = tooltip ?? string.Empty;
+            }
+        }
+
         public void SetPromotionInfo(string promotionInfo)
         {
             if (promotionLabel != null)

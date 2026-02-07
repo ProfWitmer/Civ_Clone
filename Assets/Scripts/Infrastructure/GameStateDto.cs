@@ -113,6 +113,23 @@ namespace CivClone.Infrastructure
                     }
                 }
 
+                if (player.Diplomacy != null)
+                {
+                    foreach (var status in player.Diplomacy)
+                    {
+                        if (status == null)
+                        {
+                            continue;
+                        }
+
+                        playerDto.Diplomacy.Add(new DiplomacyStatusDto
+                        {
+                            OtherPlayerId = status.OtherPlayerId,
+                            AtWar = status.AtWar
+                        });
+                    }
+                }
+
                 foreach (var city in player.Cities)
                 {
                     playerDto.Cities.Add(new CityDto
@@ -201,6 +218,18 @@ namespace CivClone.Infrastructure
                     }
                 }
 
+                if (playerDto.Diplomacy != null)
+                {
+                    foreach (var status in playerDto.Diplomacy)
+                    {
+                        player.Diplomacy.Add(new DiplomacyStatus
+                        {
+                            OtherPlayerId = status.OtherPlayerId,
+                            AtWar = status.AtWar
+                        });
+                    }
+                }
+
                 foreach (var unit in playerDto.Units)
                 {
                     var newUnit = new Unit(unit.UnitTypeId, new GridPosition(unit.X, unit.Y), unit.MovementPoints, player.Id);
@@ -265,6 +294,7 @@ namespace CivClone.Infrastructure
             public List<CivicSelectionDto> Civics = new List<CivicSelectionDto>();
             public List<string> AvailableResources = new List<string>();
             public List<TradeRouteDto> TradeRoutes = new List<TradeRouteDto>();
+            public List<DiplomacyStatusDto> Diplomacy = new List<DiplomacyStatusDto>();
             public string CurrentTechId;
             public int ResearchProgress;
         }
@@ -317,6 +347,13 @@ namespace CivClone.Infrastructure
         {
             public string CityA;
             public string CityB;
+        }
+
+        [Serializable]
+        public class DiplomacyStatusDto
+        {
+            public int OtherPlayerId;
+            public bool AtWar;
         }
     }
 }
