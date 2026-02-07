@@ -703,7 +703,14 @@ private void UpdateHudSelection(string warning = null)
             var movementLabel = $"MP {selectedUnit.MovementRemaining}/{selectedUnit.MovementPoints} HP {selectedUnit.Health}/{selectedUnit.MaxHealth}";
             if (selectedUnit.UnitTypeId == "worker")
             {
-                movementLabel = $"{movementLabel} Work {selectedUnit.WorkRemaining}";
+                if (selectedUnit.WorkRemaining > 0 && !string.IsNullOrWhiteSpace(selectedUnit.WorkTargetImprovementId))
+                {
+                    movementLabel = $"{movementLabel} Work {selectedUnit.WorkRemaining} ({selectedUnit.WorkTargetImprovementId})";
+                }
+                else
+                {
+                    movementLabel = $"{movementLabel} Work {selectedUnit.WorkRemaining}";
+                }
             }
             if (!string.IsNullOrWhiteSpace(warning))
             {
@@ -774,6 +781,7 @@ private void UpdateHudSelection(string warning = null)
                 cityPresenter.RenderCities(state, mapPresenter);
             }
             ApplyFog();
+            mapPresenter?.UpdateImprovements(state.Map, dataCatalog);
             UpdateHudSelection();
             UpdateCityInfo();
             hudController?.Refresh();

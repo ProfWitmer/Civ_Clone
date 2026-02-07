@@ -57,6 +57,11 @@ public void EndTurn()
             {
                 unit.ResetMovement();
             }
+
+            if (improvementsCompleted)
+            {
+                RecalculateCityYields(player);
+            }
         }
 
                 private void RecalculateCityYields(Player player)
@@ -92,6 +97,11 @@ public void EndTurn()
                 city.FoodPerTurn = Math.Max(1, food);
                 city.ProductionPerTurn = Math.Max(1, prod);
             }
+
+            if (improvementsCompleted)
+            {
+                RecalculateCityYields(player);
+            }
         }
 
 private void AdvanceCities(Player player)
@@ -112,6 +122,11 @@ private void AdvanceCities(Player player)
                     city.Population += 1;
                 }
             }
+
+            if (improvementsCompleted)
+            {
+                RecalculateCityYields(player);
+            }
         }
 
         private void AdvanceWorkerImprovements(Player player)
@@ -121,6 +136,7 @@ private void AdvanceCities(Player player)
                 return;
             }
 
+            bool improvementsCompleted = false;
             foreach (var unit in player.Units)
             {
                 if (unit.WorkRemaining <= 0 || string.IsNullOrWhiteSpace(unit.WorkTargetImprovementId))
@@ -147,6 +163,12 @@ private void AdvanceCities(Player player)
 
                 tile.ImprovementId = unit.WorkTargetImprovementId;
                 unit.WorkTargetImprovementId = string.Empty;
+                improvementsCompleted = true;
+            }
+
+            if (improvementsCompleted)
+            {
+                RecalculateCityYields(player);
             }
         }
 
@@ -162,6 +184,7 @@ private void AdvanceCities(Player player)
                 return;
             }
 
+            bool improvementsCompleted = false;
             foreach (var unit in player.Units)
             {
                 if (unit.Position.X == city.Position.X && unit.Position.Y == city.Position.Y)
