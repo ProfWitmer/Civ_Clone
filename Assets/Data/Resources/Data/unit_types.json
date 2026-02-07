@@ -8,7 +8,8 @@
       "Defense": 1,
       "ProductionCost": 10,
       "WorkCost": 2,
-      "Range": 1
+      "Range": 1,
+      "RequiresResource": ""
     },
     {
       "Id": "settler",
@@ -17,7 +18,8 @@
       "Attack": 0,
       "Defense": 1,
       "ProductionCost": 30,
-      "WorkCost": 4
+      "WorkCost": 4,
+      "RequiresResource": ""
     },
     {
       "Id": "worker",
@@ -26,7 +28,19 @@
       "Attack": 0,
       "Defense": 1,
       "ProductionCost": 20,
-      "WorkCost": 3
+      "WorkCost": 3,
+      "RequiresResource": ""
+    },
+    {
+      "Id": "swordsman",
+      "DisplayName": "Swordsman",
+      "MovementPoints": 2,
+      "Attack": 3,
+      "Defense": 2,
+      "ProductionCost": 25,
+      "WorkCost": 0,
+      "Range": 1,
+      "RequiresResource": "iron"
     }
   ]
 }

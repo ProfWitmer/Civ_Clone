@@ -11,7 +11,7 @@ namespace CivClone.Presentation
         [SerializeField] private KeyCode endTurnKey = KeyCode.Return;
         [SerializeField] private KeyCode foundCityKey = KeyCode.F;
         [SerializeField] private KeyCode cycleProductionKey = KeyCode.P;
-        [SerializeField] private KeyCode[] productionOptionKeys = { KeyCode.Alpha1, KeyCode.Alpha2, KeyCode.Alpha3 };
+        [SerializeField] private KeyCode[] productionOptionKeys = { KeyCode.Alpha1, KeyCode.Alpha2, KeyCode.Alpha3, KeyCode.Alpha4 };
         [SerializeField] private KeyCode buildImprovementKey = KeyCode.B;
         [SerializeField] private KeyCode buildRoadKey = KeyCode.R;
         [SerializeField] private KeyCode cycleResearchKey = KeyCode.T;
@@ -45,7 +45,7 @@ namespace CivClone.Presentation
         private readonly List<string> availableCivics = new List<string>();
         private readonly List<string> civicCategories = new List<string>();
 
-        private readonly string[] productionOptions = { "scout", "worker", "settler" };
+        private readonly string[] productionOptions = { "scout", "worker", "settler", "swordsman" };
         private readonly string[] improvementOptions = { "farm", "mine" };
         private readonly Dictionary<string, string> improvementRequirements = new Dictionary<string, string>
         {
@@ -660,7 +660,7 @@ namespace CivClone.Presentation
             {
                 targetName = unitType.DisplayName;
             }
-            string optionsHint = productionOptions.Length >= 3 ? "[1-3] Select" : "";
+            string optionsHint = productionOptions.Length >= 4 ? "[1-4] Select" : (productionOptions.Length >= 3 ? "[1-3] Select" : "");
             string queueInfo = string.Empty;
             if (selectedCity.ProductionQueue != null && selectedCity.ProductionQueue.Count > 0)
             {
@@ -685,6 +685,16 @@ namespace CivClone.Presentation
             UpdateCityInfo();
         }
 
+        private bool HasRequiredResource(Player player, string resourceId)
+        {
+            if (player == null || string.IsNullOrWhiteSpace(resourceId))
+            {
+                return true;
+            }
+
+            return player.AvailableResources != null && player.AvailableResources.Contains(resourceId);
+        }
+
         private void SetCityProductionByIndex(int index)
         {
             if (selectedCity == null)
@@ -698,9 +708,15 @@ namespace CivClone.Presentation
             }
 
             string candidate = productionOptions[index];
-            if (dataCatalog != null && !dataCatalog.TryGetUnitType(candidate, out _))
+            UnitType unitType = null;
+            if (dataCatalog == null || !dataCatalog.TryGetUnitType(candidate, out unitType))
             {
                 UpdateHudSelection("Unit type missing");
+                return;
+            }
+            if (unitType != null && !HasRequiredResource(state?.ActivePlayer, unitType.RequiresResource))
+            {
+                UpdateHudSelection("Requires resource");
                 return;
             }
 
@@ -740,8 +756,19 @@ namespace CivClone.Presentation
             {
                 int idx = (currentIndex + offset + productionOptions.Length) % productionOptions.Length;
                 string candidate = productionOptions[idx];
-                if (dataCatalog == null || dataCatalog.TryGetUnitType(candidate, out _))
+                UnitType unitType = null;
+                if (dataCatalog == null || !dataCatalog.TryGetUnitType(candidate, out unitType))
                 {
+                    continue;
+                }
+
+                if (dataCatalog != null)
+                {
+                    if (unitType != null && !HasRequiredResource(state?.ActivePlayer, unitType.RequiresResource))
+                    {
+                        continue;
+                    }
+
                     if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
                     {
                         EnqueueProduction(candidate);

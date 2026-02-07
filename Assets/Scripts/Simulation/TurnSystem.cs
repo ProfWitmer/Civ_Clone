@@ -217,6 +217,10 @@ namespace CivClone.Simulation
             if (catalog != null && catalog.TryGetUnitType(targetId, out var unitType))
             {
                 city.ProductionCost = unitType.ProductionCost;
+                if (!HasRequiredResource(player, unitType.RequiresResource))
+                {
+                    return;
+                }
             }
 
             if (city.ProductionStored < city.ProductionCost)
@@ -314,6 +318,16 @@ namespace CivClone.Simulation
                     }
                 }
             }
+        }
+
+        private bool HasRequiredResource(Player player, string resourceId)
+        {
+            if (player == null || string.IsNullOrWhiteSpace(resourceId))
+            {
+                return true;
+            }
+
+            return player.AvailableResources != null && player.AvailableResources.Contains(resourceId);
         }
 
         private bool HasCivic(Player player, string civicId)

@@ -7,21 +7,21 @@ namespace CivClone.Infrastructure.Data
 {
     public sealed class GameDataCatalogLoader
     {
-        private const string TerrainResourcePath = Data/terrain_types;
-        private const string UnitResourcePath = Data/unit_types;
-        private const string ImprovementResourcePath = Data/improvement_types;
-        private const string TechResourcePath = Data/tech_types;
-        private const string PromotionResourcePath = Data/promotion_types;
-        private const string ResourceResourcePath = Data/resource_types;
-        private const string CivicResourcePath = Data/civic_types;
+        private const string TerrainResourcePath = "Data/terrain_types";
+        private const string UnitResourcePath = "Data/unit_types";
+        private const string ImprovementResourcePath = "Data/improvement_types";
+        private const string TechResourcePath = "Data/tech_types";
+        private const string PromotionResourcePath = "Data/promotion_types";
+        private const string ResourceResourcePath = "Data/resource_types";
+        private const string CivicResourcePath = "Data/civic_types";
 
-        private const string TerrainCsvResourcePath = Csv/terrain_types;
-        private const string UnitCsvResourcePath = Csv/unit_types;
-        private const string ImprovementCsvResourcePath = Csv/improvement_types;
-        private const string TechCsvResourcePath = Csv/tech_types;
-        private const string PromotionCsvResourcePath = Csv/promotion_types;
-        private const string ResourceCsvResourcePath = Csv/resource_types;
-        private const string CivicCsvResourcePath = Csv/civic_types;
+        private const string TerrainCsvResourcePath = "Csv/terrain_types";
+        private const string UnitCsvResourcePath = "Csv/unit_types";
+        private const string ImprovementCsvResourcePath = "Csv/improvement_types";
+        private const string TechCsvResourcePath = "Csv/tech_types";
+        private const string PromotionCsvResourcePath = "Csv/promotion_types";
+        private const string ResourceCsvResourcePath = "Csv/resource_types";
+        private const string CivicCsvResourcePath = "Csv/civic_types";
 
         public bool TryLoadFromResources(GameDataCatalog catalog)
         {
@@ -81,11 +81,11 @@ namespace CivClone.Infrastructure.Data
                 var row = rows[i];
                 var definition = new TerrainTypeDefinition
                 {
-                    Id = GetValue(header, row, Id),
-                    DisplayName = GetValue(header, row, DisplayName),
-                    MovementCost = GetIntValue(header, row, MovementCost, 1),
-                    DefenseBonus = GetIntValue(header, row, DefenseBonus, 0),
-                    Color = ParseColor(GetValue(header, row, ColorHex))
+                    Id = GetValue(header, row, "Id"),
+                    DisplayName = GetValue(header, row, "DisplayName"),
+                    MovementCost = GetIntValue(header, row, "MovementCost", 1),
+                    DefenseBonus = GetIntValue(header, row, "DefenseBonus", 0),
+                    Color = ParseColor(GetValue(header, row, "ColorHex"))
                 };
 
                 definitions.Add(definition);
@@ -127,14 +127,15 @@ namespace CivClone.Infrastructure.Data
                 var row = rows[i];
                 var definition = new UnitTypeDefinition
                 {
-                    Id = GetValue(header, row, Id),
-                    DisplayName = GetValue(header, row, DisplayName),
-                    MovementPoints = GetIntValue(header, row, MovementPoints, 1),
-                    Attack = GetIntValue(header, row, Attack, 1),
-                    Defense = GetIntValue(header, row, Defense, 1),
-                    ProductionCost = GetIntValue(header, row, ProductionCost, 10),
-                    WorkCost = GetIntValue(header, row, WorkCost, 2),
-                    Range = GetIntValue(header, row, Range, 1)
+                    Id = GetValue(header, row, "Id"),
+                    DisplayName = GetValue(header, row, "DisplayName"),
+                    MovementPoints = GetIntValue(header, row, "MovementPoints", 1),
+                    Attack = GetIntValue(header, row, "Attack", 1),
+                    Defense = GetIntValue(header, row, "Defense", 1),
+                    ProductionCost = GetIntValue(header, row, "ProductionCost", 10),
+                    WorkCost = GetIntValue(header, row, "WorkCost", 2),
+                    Range = GetIntValue(header, row, "Range", 1),
+                    RequiresResource = GetValue(header, row, "RequiresResource")
                 };
 
                 definitions.Add(definition);
@@ -176,11 +177,11 @@ namespace CivClone.Infrastructure.Data
                 var row = rows[i];
                 var definition = new ImprovementTypeDefinition
                 {
-                    Id = GetValue(header, row, Id),
-                    DisplayName = GetValue(header, row, DisplayName),
-                    FoodBonus = GetIntValue(header, row, FoodBonus, 0),
-                    ProductionBonus = GetIntValue(header, row, ProductionBonus, 0),
-                    Color = ParseColor(GetValue(header, row, ColorHex))
+                    Id = GetValue(header, row, "Id"),
+                    DisplayName = GetValue(header, row, "DisplayName"),
+                    FoodBonus = GetIntValue(header, row, "FoodBonus", 0),
+                    ProductionBonus = GetIntValue(header, row, "ProductionBonus", 0),
+                    Color = ParseColor(GetValue(header, row, "ColorHex"))
                 };
 
                 definitions.Add(definition);
@@ -222,10 +223,10 @@ namespace CivClone.Infrastructure.Data
                 var row = rows[i];
                 var definition = new TechTypeDefinition
                 {
-                    Id = GetValue(header, row, Id),
-                    DisplayName = GetValue(header, row, DisplayName),
-                    Cost = GetIntValue(header, row, Cost, 20),
-                    Prerequisites = GetValue(header, row, Prerequisites)
+                    Id = GetValue(header, row, "Id"),
+                    DisplayName = GetValue(header, row, "DisplayName"),
+                    Cost = GetIntValue(header, row, "Cost", 20),
+                    Prerequisites = GetValue(header, row, "Prerequisites")
                 };
 
                 definitions.Add(definition);
@@ -267,10 +268,10 @@ namespace CivClone.Infrastructure.Data
                 var row = rows[i];
                 var definition = new PromotionTypeDefinition
                 {
-                    Id = GetValue(header, row, Id),
-                    DisplayName = GetValue(header, row, DisplayName),
-                    Description = GetValue(header, row, Description),
-                    Requires = GetValue(header, row, Requires)
+                    Id = GetValue(header, row, "Id"),
+                    DisplayName = GetValue(header, row, "DisplayName"),
+                    Description = GetValue(header, row, "Description"),
+                    Requires = GetValue(header, row, "Requires")
                 };
 
                 definitions.Add(definition);
@@ -312,10 +313,13 @@ namespace CivClone.Infrastructure.Data
                 var row = rows[i];
                 var definition = new ResourceTypeDefinition
                 {
-                    Id = GetValue(header, row, Id),
-                    DisplayName = GetValue(header, row, DisplayName),
-                    Category = GetValue(header, row, Category),
-                    Color = ParseColor(GetValue(header, row, ColorHex))
+                    Id = GetValue(header, row, "Id"),
+                    DisplayName = GetValue(header, row, "DisplayName"),
+                    Category = GetValue(header, row, "Category"),
+                    FoodBonus = GetIntValue(header, row, "FoodBonus", 0),
+                    ProductionBonus = GetIntValue(header, row, "ProductionBonus", 0),
+                    ScienceBonus = GetIntValue(header, row, "ScienceBonus", 0),
+                    Color = ParseColor(GetValue(header, row, "ColorHex"))
                 };
 
                 definitions.Add(definition);
@@ -357,10 +361,10 @@ namespace CivClone.Infrastructure.Data
                 var row = rows[i];
                 var definition = new CivicTypeDefinition
                 {
-                    Id = GetValue(header, row, Id),
-                    DisplayName = GetValue(header, row, DisplayName),
-                    Category = GetValue(header, row, Category),
-                    Description = GetValue(header, row, Description)
+                    Id = GetValue(header, row, "Id"),
+                    DisplayName = GetValue(header, row, "DisplayName"),
+                    Category = GetValue(header, row, "Category"),
+                    Description = GetValue(header, row, "Description")
                 };
 
                 definitions.Add(definition);
@@ -393,7 +397,7 @@ namespace CivClone.Infrastructure.Data
                 return Color.white;
             }
 
-            var value = hex.Trim().TrimStart('#');
+            var value = hex.Trim().TrimStart(#);
             if (value.Length != 6 && value.Length != 8)
             {
                 return Color.white;
