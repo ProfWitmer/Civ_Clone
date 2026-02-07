@@ -456,10 +456,21 @@ private int GetMoveCost(GridPosition position)
             if (selectedCity == null)
             {
                 hudController.SetCityInfo("City: None");
+                hudController.SetProductionInfo("Production: None");
                 return;
             }
 
-            hudController.SetCityInfo($"City: {selectedCity.Name} (Pop {selectedCity.Population}) Food {selectedCity.FoodStored}/{5 + selectedCity.Population * 2} (+{selectedCity.FoodPerTurn}) Prod {selectedCity.ProductionStored}/{selectedCity.ProductionCost} (+{selectedCity.ProductionPerTurn}) ({selectedCity.ProductionTargetId}) [P] Cycle");
+            int foodNeeded = 5 + selectedCity.Population * 2;
+            hudController.SetCityInfo($"City: {selectedCity.Name} (Pop {selectedCity.Population}) Food {selectedCity.FoodStored}/{foodNeeded} (+{selectedCity.FoodPerTurn})");
+
+            int remaining = Mathf.Max(0, selectedCity.ProductionCost - selectedCity.ProductionStored);
+            int turns = selectedCity.ProductionPerTurn > 0 ? Mathf.CeilToInt(remaining / (float)selectedCity.ProductionPerTurn) : 0;
+            string targetName = selectedCity.ProductionTargetId;
+            if (dataCatalog != null && dataCatalog.TryGetUnitType(selectedCity.ProductionTargetId, out var unitType) && !string.IsNullOrWhiteSpace(unitType.DisplayName))
+            {
+                targetName = unitType.DisplayName;
+            }
+            hudController.SetProductionInfo($"Production: {targetName} {selectedCity.ProductionStored}/{selectedCity.ProductionCost} (+{selectedCity.ProductionPerTurn}) {turns}t [P] Cycle");
         }
 
         private void CycleCityProduction()

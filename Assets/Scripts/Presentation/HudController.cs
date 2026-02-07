@@ -11,6 +11,7 @@ namespace CivClone.Presentation
         private const string SelectionLabelName = "selection-label";
         private const string EndTurnButtonName = "endturn-button";
         private const string CityLabelName = "city-label";
+        private const string ProductionLabelName = "production-label";
         private const string ResearchLabelName = "research-label";
 
         private GameState state;
@@ -19,6 +20,7 @@ namespace CivClone.Presentation
         private Label turnLabel;
         private Label selectionLabel;
         private Label cityLabel;
+        private Label productionLabel;
         private Label researchLabel;
         private Button endTurnButton;
 
@@ -32,6 +34,7 @@ namespace CivClone.Presentation
             turnLabel = root.Q<Label>(TurnLabelName);
             selectionLabel = root.Q<Label>(SelectionLabelName);
             cityLabel = root.Q<Label>(CityLabelName);
+            productionLabel = root.Q<Label>(ProductionLabelName);
             researchLabel = root.Q<Label>(ResearchLabelName);
             endTurnButton = root.Q<Button>(EndTurnButtonName);
 
@@ -69,6 +72,14 @@ namespace CivClone.Presentation
             }
         }
 
+        public void SetProductionInfo(string productionInfo)
+        {
+            if (productionLabel != null)
+            {
+                productionLabel.text = productionInfo;
+            }
+        }
+
         public void SetResearchInfo(string researchInfo)
         {
             if (researchLabel != null)
@@ -89,6 +100,11 @@ namespace CivClone.Presentation
             if (cityLabel != null && string.IsNullOrEmpty(cityLabel.text))
             {
                 cityLabel.text = "City: None";
+            }
+
+            if (productionLabel != null && string.IsNullOrEmpty(productionLabel.text))
+            {
+                productionLabel.text = "Production: None";
             }
 
             if (researchLabel != null && string.IsNullOrEmpty(researchLabel.text))
