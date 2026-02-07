@@ -1083,10 +1083,14 @@ namespace CivClone.Presentation
             for (int row = 0; row < maxRows; row++)
             {
                 var rowLine = new System.Text.StringBuilder();
+                var connectorLine = new System.Text.StringBuilder();
+                bool rowHasCurrent = false;
+                bool rowHasConnector = false;
                 for (int col = 0; col < tiers.Count; col++)
                 {
                     var tier = tiers[col];
                     string cell = string.Empty;
+                    bool hasPrereq = false;
                     if (row < tier.Count)
                     {
                         var tech = tier[row];
@@ -1094,15 +1098,32 @@ namespace CivClone.Presentation
                         string prereq = string.IsNullOrWhiteSpace(tech.Prerequisites) ? "" : " <- " + tech.Prerequisites;
                         string status = GetTechStatusTag(player, tech);
                         cell = $"{status} {name}{prereq}";
+                        hasPrereq = !string.IsNullOrWhiteSpace(tech.Prerequisites);
+                        if (player.CurrentTechId == tech.Id)
+                        {
+                            rowHasCurrent = true;
+                        }
                     }
 
                     rowLine.Append(PadColumn(cell, columnWidths[col]));
+                    string connectorCell = hasPrereq ? "  ^" : string.Empty;
+                    connectorLine.Append(PadColumn(connectorCell, columnWidths[col]));
+                    if (hasPrereq)
+                    {
+                        rowHasConnector = true;
+                    }
                     if (col < tiers.Count - 1)
                     {
                         rowLine.Append("  ");
+                        connectorLine.Append("  ");
                     }
                 }
-                lines.Add(rowLine.ToString());
+                string rowPrefix = rowHasCurrent ? ">> " : "   ";
+                lines.Add(rowPrefix + rowLine);
+                if (rowHasConnector)
+                {
+                    lines.Add("   " + connectorLine);
+                }
             }
 
             return string.Join("\n", lines);
