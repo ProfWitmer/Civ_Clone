@@ -1061,39 +1061,48 @@ namespace CivClone.Presentation
                 lines.Add($"Current: {currentName} {player.ResearchProgress}/{currentTech.Cost}");
             }
             var tiers = BuildTechTiers();
+            if (tiers.Count == 0)
+            {
+                lines.Add("No tech tiers.");
+                return string.Join("\n", lines);
+            }
+
+            var columnWidths = BuildTechColumnWidths(tiers);
+            lines.Add(BuildTechHeaderRow(tiers.Count, columnWidths));
+            lines.Add(BuildTechDividerRow(tiers.Count, columnWidths));
+
+            int maxRows = 0;
             for (int i = 0; i < tiers.Count; i++)
             {
-                var tier = tiers[i];
-                if (tier.Count == 0)
+                if (tiers[i].Count > maxRows)
                 {
-                    continue;
+                    maxRows = tiers[i].Count;
                 }
+            }
 
-                lines.Add($"Tier {i}:");
-                foreach (var tech in tier)
+            for (int row = 0; row < maxRows; row++)
+            {
+                var rowLine = new System.Text.StringBuilder();
+                for (int col = 0; col < tiers.Count; col++)
                 {
-                    string name = !string.IsNullOrWhiteSpace(tech.DisplayName) ? tech.DisplayName : tech.Id;
-                    string prereq = string.IsNullOrWhiteSpace(tech.Prerequisites) ? "" : " (Requires: " + tech.Prerequisites + ")";
-                    string status;
-                    if (player.KnownTechs.Contains(tech.Id))
+                    var tier = tiers[col];
+                    string cell = string.Empty;
+                    if (row < tier.Count)
                     {
-                        status = "Known";
-                    }
-                    else if (player.CurrentTechId == tech.Id)
-                    {
-                        status = "Researching";
-                    }
-                    else if (AreTechPrereqsMet(player, tech.Prerequisites))
-                    {
-                        status = "Available";
-                    }
-                    else
-                    {
-                        status = "Locked";
+                        var tech = tier[row];
+                        string name = !string.IsNullOrWhiteSpace(tech.DisplayName) ? tech.DisplayName : tech.Id;
+                        string prereq = string.IsNullOrWhiteSpace(tech.Prerequisites) ? "" : " <- " + tech.Prerequisites;
+                        string status = GetTechStatusTag(player, tech);
+                        cell = $"{status} {name}{prereq}";
                     }
 
-                    lines.Add($"  [{status}] {name}{prereq}");
+                    rowLine.Append(PadColumn(cell, columnWidths[col]));
+                    if (col < tiers.Count - 1)
+                    {
+                        rowLine.Append("  ");
+                    }
                 }
+                lines.Add(rowLine.ToString());
             }
 
             return string.Join("\n", lines);
@@ -1135,6 +1144,88 @@ namespace CivClone.Presentation
             }
 
             return tiers;
+        }
+
+        private string GetTechStatusTag(Player player, TechType tech)
+        {
+            if (player.KnownTechs.Contains(tech.Id))
+            {
+                return "[K]";
+            }
+            if (player.CurrentTechId == tech.Id)
+            {
+                return "[R]";
+            }
+            if (AreTechPrereqsMet(player, tech.Prerequisites))
+            {
+                return "[A]";
+            }
+            return "[L]";
+        }
+
+        private int[] BuildTechColumnWidths(List<List<TechType>> tiers)
+        {
+            var widths = new int[tiers.Count];
+            for (int i = 0; i < tiers.Count; i++)
+            {
+                int max = $"Tier {i}".Length;
+                foreach (var tech in tiers[i])
+                {
+                    if (tech == null)
+                    {
+                        continue;
+                    }
+
+                    string name = !string.IsNullOrWhiteSpace(tech.DisplayName) ? tech.DisplayName : tech.Id;
+                    string prereq = string.IsNullOrWhiteSpace(tech.Prerequisites) ? "" : " <- " + tech.Prerequisites;
+                    int len = "[L] ".Length + name.Length + prereq.Length;
+                    if (len > max)
+                    {
+                        max = len;
+                    }
+                }
+                widths[i] = Mathf.Max(10, max);
+            }
+            return widths;
+        }
+
+        private string BuildTechHeaderRow(int columns, int[] widths)
+        {
+            var builder = new System.Text.StringBuilder();
+            for (int i = 0; i < columns; i++)
+            {
+                string title = $"Tier {i}";
+                builder.Append(PadColumn(title, widths[i]));
+                if (i < columns - 1)
+                {
+                    builder.Append("  ");
+                }
+            }
+            return builder.ToString();
+        }
+
+        private string BuildTechDividerRow(int columns, int[] widths)
+        {
+            var builder = new System.Text.StringBuilder();
+            for (int i = 0; i < columns; i++)
+            {
+                builder.Append(new string('-', widths[i]));
+                if (i < columns - 1)
+                {
+                    builder.Append("  ");
+                }
+            }
+            return builder.ToString();
+        }
+
+        private string PadColumn(string value, int width)
+        {
+            value = value ?? string.Empty;
+            if (value.Length >= width)
+            {
+                return value;
+            }
+            return value.PadRight(width);
         }
 
         private int GetTechTier(string techId, Dictionary<string, TechType> lookup, Dictionary<string, int> memo)
