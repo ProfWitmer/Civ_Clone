@@ -13,6 +13,7 @@ namespace CivClone.Simulation
         public int OwnerId;
         public int MaxHealth = 10;
         public int Health = 10;
+        public System.Collections.Generic.List<string> Promotions = new System.Collections.Generic.List<string>();
         public string WorkTargetImprovementId;
         public GridPosition WorkTargetPosition;
 

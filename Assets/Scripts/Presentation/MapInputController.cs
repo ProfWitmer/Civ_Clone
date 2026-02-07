@@ -731,6 +731,10 @@ private void UpdateHudSelection(string warning = null)
                     movementLabel = $"{movementLabel} Work {selectedUnit.WorkRemaining}";
                 }
             }
+            if (selectedUnit.Promotions != null && selectedUnit.Promotions.Count > 0)
+            {
+                movementLabel = $"{movementLabel} Promos {selectedUnit.Promotions.Count}";
+            }
             if (!string.IsNullOrWhiteSpace(warning))
             {
                 movementLabel = $"{movementLabel} - {warning}";

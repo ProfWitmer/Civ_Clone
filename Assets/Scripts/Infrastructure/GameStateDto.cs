@@ -61,7 +61,8 @@ namespace CivClone.Infrastructure
                         MaxHealth = unit.MaxHealth,
                         WorkTargetImprovementId = unit.WorkTargetImprovementId,
                         WorkTargetX = unit.WorkTargetPosition.X,
-                        WorkTargetY = unit.WorkTargetPosition.Y
+                        WorkTargetY = unit.WorkTargetPosition.Y,
+                        Promotions = new System.Collections.Generic.List<string>(unit.Promotions)
                     });
                 }
 
@@ -135,6 +136,10 @@ namespace CivClone.Infrastructure
                     newUnit.MaxHealth = unit.MaxHealth;
                     newUnit.WorkTargetImprovementId = unit.WorkTargetImprovementId;
                     newUnit.WorkTargetPosition = new GridPosition(unit.WorkTargetX, unit.WorkTargetY);
+                    if (unit.Promotions != null)
+                    {
+                        newUnit.Promotions.AddRange(unit.Promotions);
+                    }
                     player.Units.Add(newUnit);
                 }
 
@@ -197,6 +202,7 @@ namespace CivClone.Infrastructure
             public string WorkTargetImprovementId;
             public int WorkTargetX;
             public int WorkTargetY;
+            public System.Collections.Generic.List<string> Promotions = new System.Collections.Generic.List<string>();
         }
 
         [Serializable]

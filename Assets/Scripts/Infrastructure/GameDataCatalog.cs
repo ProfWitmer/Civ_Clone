@@ -11,11 +11,13 @@ namespace CivClone.Infrastructure
         public UnitType[] UnitTypes;
         public ImprovementType[] ImprovementTypes;
         public TechType[] TechTypes;
+        public PromotionType[] PromotionTypes;
 
         private Dictionary<string, TerrainType> terrainLookup;
         private Dictionary<string, UnitType> unitLookup;
         private Dictionary<string, ImprovementType> improvementLookup;
         private Dictionary<string, TechType> techLookup;
+        private Dictionary<string, PromotionType> promotionLookup;
 
         public bool TryGetTerrainType(string id, out TerrainType terrainType)
         {
@@ -88,6 +90,18 @@ namespace CivClone.Infrastructure
             techType = null;
             return false;
         }
+        public bool TryGetPromotionType(string id, out PromotionType promotionType)
+        {
+            EnsurePromotionLookup();
+            if (promotionLookup != null && promotionLookup.TryGetValue(id, out promotionType))
+            {
+                return true;
+            }
+
+            promotionType = null;
+            return false;
+        }
+
 
         public void LoadFromDefinitions(IEnumerable<TerrainTypeDefinition> terrainDefinitions,
             IEnumerable<UnitTypeDefinition> unitDefinitions,
@@ -197,6 +211,7 @@ namespace CivClone.Infrastructure
             unitLookup = null;
             improvementLookup = null;
             techLookup = null;
+            promotionLookup = null;
         }
 
         private void EnsureTerrainLookup()
