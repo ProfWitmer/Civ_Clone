@@ -55,3 +55,5 @@
 - 2026-02-05: Added camera drag, isometric tile hover/selection highlight, and terrain pattern swatches.
 - 2026-02-05: Added right-mouse camera drag, unit-tile highlight hook, and outline shader for tiles.
 - 2026-02-05: Tuned tile outline settings and made selected tile highlight override hover.
+
+- 2026-02-07: Phase 2 complete (units, cities, improvements, combat, promotions, roads, tech selection).
