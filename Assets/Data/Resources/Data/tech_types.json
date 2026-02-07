@@ -1,16 +1,13 @@
 {
   "Items": [
-    {
-      "Id": "agriculture",
-      "DisplayName": "Agriculture",
-      "Cost": 20,
-      "Prerequisites": ""
-    },
-    {
-      "Id": "mining",
-      "DisplayName": "Mining",
-      "Cost": 25,
-      "Prerequisites": "agriculture"
-    }
+    { "Id": "agriculture", "DisplayName": "Agriculture", "Cost": 20, "Prerequisites": "" },
+    { "Id": "mining", "DisplayName": "Mining", "Cost": 25, "Prerequisites": "agriculture" },
+    { "Id": "animal_husbandry", "DisplayName": "Animal Husbandry", "Cost": 30, "Prerequisites": "agriculture" },
+    { "Id": "bronze_working", "DisplayName": "Bronze Working", "Cost": 35, "Prerequisites": "mining" },
+    { "Id": "wheel", "DisplayName": "The Wheel", "Cost": 30, "Prerequisites": "animal_husbandry" },
+    { "Id": "masonry", "DisplayName": "Masonry", "Cost": 30, "Prerequisites": "mining" },
+    { "Id": "archery", "DisplayName": "Archery", "Cost": 25, "Prerequisites": "agriculture" },
+    { "Id": "writing", "DisplayName": "Writing", "Cost": 35, "Prerequisites": "agriculture" },
+    { "Id": "iron_working", "DisplayName": "Iron Working", "Cost": 45, "Prerequisites": "bronze_working" }
   ]
 }

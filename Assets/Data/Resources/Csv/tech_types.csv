@@ -1,3 +1,10 @@
 Id,DisplayName,Cost,Prerequisites
 agriculture,Agriculture,20,
 mining,Mining,25,agriculture
+animal_husbandry,Animal Husbandry,30,agriculture
+bronze_working,Bronze Working,35,mining
+wheel,The Wheel,30,animal_husbandry
+masonry,Masonry,30,mining
+archery,Archery,25,agriculture
+writing,Writing,35,agriculture
+iron_working,Iron Working,45,bronze_working

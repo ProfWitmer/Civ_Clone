@@ -1,5 +1,7 @@
-Id,DisplayName,MovementPoints,Attack,Defense,ProductionCost,WorkCost,Range,RequiresResource
-scout,Scout,2,1,1,10,2,1,
-settler,Settler,2,0,1,30,4,1,
-worker,Worker,2,0,1,20,3,1,
-swordsman,Swordsman,2,3,2,25,0,1,iron
+Id,DisplayName,MovementPoints,Attack,Defense,ProductionCost,WorkCost,Range,RequiresResource,RequiresTech
+scout,Scout,2,1,1,10,2,1,,
+settler,Settler,2,0,1,30,4,1,,
+worker,Worker,2,0,1,20,3,1,,
+swordsman,Swordsman,2,3,2,25,0,1,iron,iron_working
+chariot,Chariot,3,2,1,22,0,1,horses,wheel
+axeman,Axeman,2,3,2,24,0,1,copper,bronze_working

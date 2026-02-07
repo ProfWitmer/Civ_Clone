@@ -45,12 +45,14 @@ namespace CivClone.Presentation
         private readonly List<string> availableCivics = new List<string>();
         private readonly List<string> civicCategories = new List<string>();
 
-        private readonly string[] productionOptions = { "scout", "worker", "settler", "swordsman" };
-        private readonly string[] improvementOptions = { "farm", "mine" };
+        private readonly string[] productionOptions = { "scout", "worker", "settler", "swordsman", "chariot", "axeman" };
+        private readonly string[] improvementOptions = { "farm", "mine", "pasture", "camp" };
         private readonly Dictionary<string, string> improvementRequirements = new Dictionary<string, string>
         {
             { "farm", "agriculture" },
-            { "mine", "mining" }
+            { "mine", "mining" },
+            { "pasture", "animal_husbandry" },
+            { "camp", "archery" }
         };
 
         public void Bind(GameState gameState, TurnSystem turnSystemRef, FogOfWarSystem fogOfWarRef, GameDataCatalog dataCatalogRef, MapPresenter mapPresenterRef, UnitPresenter unitPresenterRef, CityPresenter cityPresenterRef, HudController hudControllerRef, UnityEngine.Camera cameraRef)
@@ -700,6 +702,16 @@ namespace CivClone.Presentation
             return player.AvailableResources != null && player.AvailableResources.Contains(resourceId);
         }
 
+        private bool HasRequiredTech(Player player, string techId)
+        {
+            if (player == null || string.IsNullOrWhiteSpace(techId))
+            {
+                return true;
+            }
+
+            return player.KnownTechs != null && player.KnownTechs.Contains(techId);
+        }
+
         private void SetCityProductionByIndex(int index)
         {
             if (selectedCity == null)
@@ -722,6 +734,11 @@ namespace CivClone.Presentation
             if (unitType != null && !HasRequiredResource(state?.ActivePlayer, unitType.RequiresResource))
             {
                 UpdateHudSelection("Requires resource");
+                return;
+            }
+            if (unitType != null && !HasRequiredTech(state?.ActivePlayer, unitType.RequiresTech))
+            {
+                UpdateHudSelection("Requires tech");
                 return;
             }
 
@@ -770,6 +787,10 @@ namespace CivClone.Presentation
                 if (dataCatalog != null)
                 {
                     if (unitType != null && !HasRequiredResource(state?.ActivePlayer, unitType.RequiresResource))
+                    {
+                        continue;
+                    }
+                    if (unitType != null && !HasRequiredTech(state?.ActivePlayer, unitType.RequiresTech))
                     {
                         continue;
                     }
@@ -1876,14 +1897,24 @@ namespace CivClone.Presentation
                 }
 
                 string name = string.IsNullOrWhiteSpace(unit.DisplayName) ? unit.Id : unit.DisplayName;
-                bool hasResource = player.AvailableResources != null && player.AvailableResources.Contains(unit.RequiresResource);
-                if (hasResource)
+                bool hasResource = HasRequiredResource(player, unit.RequiresResource);
+                bool hasTech = HasRequiredTech(player, unit.RequiresTech);
+                if (hasResource && hasTech)
                 {
                     unlocked.Add(name);
                 }
                 else
                 {
-                    locked.Add($"{name} ({unit.RequiresResource})");
+                    var reasons = new List<string>();
+                    if (!hasResource)
+                    {
+                        reasons.Add(unit.RequiresResource);
+                    }
+                    if (!hasTech)
+                    {
+                        reasons.Add(unit.RequiresTech);
+                    }
+                    locked.Add($"{name} ({string.Join("/", reasons)})");
                 }
             }
 
@@ -1922,14 +1953,24 @@ namespace CivClone.Presentation
                 }
 
                 string name = string.IsNullOrWhiteSpace(unit.DisplayName) ? unit.Id : unit.DisplayName;
-                bool hasResource = player.AvailableResources != null && player.AvailableResources.Contains(unit.RequiresResource);
-                if (hasResource)
+                bool hasResource = HasRequiredResource(player, unit.RequiresResource);
+                bool hasTech = HasRequiredTech(player, unit.RequiresTech);
+                if (hasResource && hasTech)
                 {
                     unlocked.Add(name);
                 }
                 else
                 {
-                    locked.Add($"{name}({unit.RequiresResource})");
+                    var reasons = new List<string>();
+                    if (!hasResource)
+                    {
+                        reasons.Add(unit.RequiresResource);
+                    }
+                    if (!hasTech)
+                    {
+                        reasons.Add(unit.RequiresTech);
+                    }
+                    locked.Add($"{name}({string.Join("/", reasons)})");
                 }
             }
 

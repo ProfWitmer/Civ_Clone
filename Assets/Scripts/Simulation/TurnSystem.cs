@@ -221,6 +221,10 @@ namespace CivClone.Simulation
                 {
                     return;
                 }
+                if (!HasRequiredTech(player, unitType.RequiresTech))
+                {
+                    return;
+                }
             }
 
             if (city.ProductionStored < city.ProductionCost)
@@ -328,6 +332,16 @@ namespace CivClone.Simulation
             }
 
             return player.AvailableResources != null && player.AvailableResources.Contains(resourceId);
+        }
+
+        private bool HasRequiredTech(Player player, string techId)
+        {
+            if (player == null || string.IsNullOrWhiteSpace(techId))
+            {
+                return true;
+            }
+
+            return player.KnownTechs != null && player.KnownTechs.Contains(techId);
         }
 
         private bool HasCivic(Player player, string civicId)

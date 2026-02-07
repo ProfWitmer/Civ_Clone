@@ -35,13 +35,25 @@ namespace CivClone.Simulation
 
                     var tile = new Tile(new GridPosition(x, y), terrainId);
                     double resourceRoll = random.NextDouble();
-                    if (terrainId == plains && resourceRoll > 0.92)
+                    if (terrainId == plains && resourceRoll > 0.93)
                     {
                         tile.ResourceId = wheat;
                     }
-                    else if (terrainId == hills && resourceRoll > 0.9)
+                    else if (terrainId == plains && resourceRoll > 0.9)
+                    {
+                        tile.ResourceId = horses;
+                    }
+                    else if (terrainId == hills && resourceRoll > 0.92)
                     {
                         tile.ResourceId = iron;
+                    }
+                    else if (terrainId == hills && resourceRoll > 0.88)
+                    {
+                        tile.ResourceId = copper;
+                    }
+                    else if (terrainId == hills && resourceRoll > 0.85)
+                    {
+                        tile.ResourceId = gems;
                     }
                     else if (terrainId == water && resourceRoll > 0.93)
                     {

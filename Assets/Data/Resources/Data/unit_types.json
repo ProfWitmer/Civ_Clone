@@ -1,46 +1,74 @@
 {
-  "Items": [
+  Items: [
     {
-      "Id": "scout",
-      "DisplayName": "Scout",
-      "MovementPoints": 2,
-      "Attack": 1,
-      "Defense": 1,
-      "ProductionCost": 10,
-      "WorkCost": 2,
-      "Range": 1,
-      "RequiresResource": ""
+      Id: scout,
+      DisplayName: Scout,
+      MovementPoints: 2,
+      Attack: 1,
+      Defense: 1,
+      ProductionCost: 10,
+      WorkCost: 2,
+      Range: 1,
+      RequiresResource: ,
+      RequiresTech: 
     },
     {
-      "Id": "settler",
-      "DisplayName": "Settler",
-      "MovementPoints": 2,
-      "Attack": 0,
-      "Defense": 1,
-      "ProductionCost": 30,
-      "WorkCost": 4,
-      "RequiresResource": ""
+      Id: settler,
+      DisplayName: Settler,
+      MovementPoints: 2,
+      Attack: 0,
+      Defense: 1,
+      ProductionCost: 30,
+      WorkCost: 4,
+      RequiresResource: ,
+      RequiresTech: 
     },
     {
-      "Id": "worker",
-      "DisplayName": "Worker",
-      "MovementPoints": 2,
-      "Attack": 0,
-      "Defense": 1,
-      "ProductionCost": 20,
-      "WorkCost": 3,
-      "RequiresResource": ""
+      Id: worker,
+      DisplayName: Worker,
+      MovementPoints: 2,
+      Attack: 0,
+      Defense: 1,
+      ProductionCost: 20,
+      WorkCost: 3,
+      RequiresResource: ,
+      RequiresTech: 
     },
     {
-      "Id": "swordsman",
-      "DisplayName": "Swordsman",
-      "MovementPoints": 2,
-      "Attack": 3,
-      "Defense": 2,
-      "ProductionCost": 25,
-      "WorkCost": 0,
-      "Range": 1,
-      "RequiresResource": "iron"
+      Id: swordsman,
+      DisplayName: Swordsman,
+      MovementPoints: 2,
+      Attack: 3,
+      Defense: 2,
+      ProductionCost: 25,
+      WorkCost: 0,
+      Range: 1,
+      RequiresResource: iron,
+      RequiresTech: iron_working
+    },
+    {
+      Id: chariot,
+      DisplayName: Chariot,
+      MovementPoints: 3,
+      Attack: 2,
+      Defense: 1,
+      ProductionCost: 22,
+      WorkCost: 0,
+      Range: 1,
+      RequiresResource: horses,
+      RequiresTech: wheel
+    },
+    {
+      Id: axeman,
+      DisplayName: Axeman,
+      MovementPoints: 2,
+      Attack: 3,
+      Defense: 2,
+      ProductionCost: 24,
+      WorkCost: 0,
+      Range: 1,
+      RequiresResource: copper,
+      RequiresTech: bronze_working
     }
   ]
 }

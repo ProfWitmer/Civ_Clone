@@ -14,5 +14,6 @@ namespace CivClone.Infrastructure
         public int WorkCost = 2;
         public int Range = 1;
         public string RequiresResource = "";
+        public string RequiresTech = "";
     }
 }

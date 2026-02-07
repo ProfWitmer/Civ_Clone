@@ -135,7 +135,8 @@ namespace CivClone.Infrastructure.Data
                     ProductionCost = GetIntValue(header, row, "ProductionCost", 10),
                     WorkCost = GetIntValue(header, row, "WorkCost", 2),
                     Range = GetIntValue(header, row, "Range", 1),
-                    RequiresResource = GetValue(header, row, "RequiresResource")
+                    RequiresResource = GetValue(header, row, "RequiresResource"),
+                    RequiresTech = GetValue(header, row, "RequiresTech")
                 };
 
                 definitions.Add(definition);

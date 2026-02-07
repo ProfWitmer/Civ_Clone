@@ -191,6 +191,7 @@ namespace CivClone.Infrastructure
                     unit.WorkCost = definition.WorkCost;
                     unit.Range = definition.Range;
                     unit.RequiresResource = definition.RequiresResource;
+                    unit.RequiresTech = definition.RequiresTech;
                     unitList.Add(unit);
                 }
             }

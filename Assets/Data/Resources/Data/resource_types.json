@@ -26,6 +26,33 @@
       "ProductionBonus": 0,
       "ScienceBonus": 0,
       "Color": { "r": 0.2, "g": 0.6, "b": 0.9, "a": 1.0 }
+    },
+    {
+      "Id": "horses",
+      "DisplayName": "Horses",
+      "Category": "Strategic",
+      "FoodBonus": 0,
+      "ProductionBonus": 1,
+      "ScienceBonus": 0,
+      "Color": { "r": 0.7, "g": 0.55, "b": 0.35, "a": 1.0 }
+    },
+    {
+      "Id": "copper",
+      "DisplayName": "Copper",
+      "Category": "Strategic",
+      "FoodBonus": 0,
+      "ProductionBonus": 1,
+      "ScienceBonus": 0,
+      "Color": { "r": 0.72, "g": 0.4, "b": 0.2, "a": 1.0 }
+    },
+    {
+      "Id": "gems",
+      "DisplayName": "Gems",
+      "Category": "Luxury",
+      "FoodBonus": 0,
+      "ProductionBonus": 0,
+      "ScienceBonus": 1,
+      "Color": { "r": 0.65, "g": 0.3, "b": 0.8, "a": 1.0 }
     }
   ]
 }
