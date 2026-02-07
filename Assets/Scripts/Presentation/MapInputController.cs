@@ -212,13 +212,13 @@ private int GetMoveCost(GridPosition position)
         {
             if (state?.Map == null)
             {
-                return 1;
+                return 1 + GetPromotionAttackBonus(unit);
             }
 
             var tile = state.Map.GetTile(position.X, position.Y);
             if (tile == null)
             {
-                return 1;
+                return 1 + GetPromotionAttackBonus(unit);
             }
 
             if (dataCatalog != null && dataCatalog.TryGetTerrainType(tile.TerrainId, out var terrain))
@@ -226,7 +226,7 @@ private int GetMoveCost(GridPosition position)
                 return terrain.MovementCost <= 0 ? 99 : terrain.MovementCost;
             }
 
-            return 1;
+            return 1 + GetPromotionAttackBonus(unit);
         }
 
         private void RunAiTurns()
@@ -400,24 +400,69 @@ private int GetMoveCost(GridPosition position)
             }
         }
 
+        private int GetPromotionAttackBonus(Unit unit)
+        {
+            if (unit?.Promotions == null)
+            {
+                return 0;
+            }
+
+            int bonus = 0;
+            foreach (var promo in unit.Promotions)
+            {
+                switch (promo)
+                {
+                    case "combat1":
+                        bonus += 1;
+                        break;
+                }
+            }
+
+            return bonus;
+        }
+
+        private int GetPromotionDefenseBonus(Unit unit)
+        {
+            if (unit?.Promotions == null)
+            {
+                return 0;
+            }
+
+            int bonus = 0;
+            foreach (var promo in unit.Promotions)
+            {
+                switch (promo)
+                {
+                    case "combat1":
+                        bonus += 1;
+                        break;
+                    case "cover":
+                        bonus += 1;
+                        break;
+                }
+            }
+
+            return bonus;
+        }
+
         private int GetAttack(Unit unit)
         {
             if (dataCatalog != null && dataCatalog.TryGetUnitType(unit.UnitTypeId, out var unitType))
             {
-                return Mathf.Max(0, unitType.Attack);
+                return Mathf.Max(0, unitType.Attack) + GetPromotionAttackBonus(unit);
             }
 
-            return 1;
+            return 1 + GetPromotionAttackBonus(unit);
         }
 
         private int GetDefense(Unit unit)
         {
             if (dataCatalog != null && dataCatalog.TryGetUnitType(unit.UnitTypeId, out var unitType))
             {
-                return Mathf.Max(0, unitType.Defense);
+                return Mathf.Max(0, unitType.Defense) + GetPromotionDefenseBonus(unit);
             }
 
-            return 1;
+            return 1 + GetPromotionDefenseBonus(unit);
         }
 
         private void RemoveUnit(Unit unit)
