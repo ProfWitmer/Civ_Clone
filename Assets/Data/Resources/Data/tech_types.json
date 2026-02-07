@@ -3,12 +3,14 @@
     {
       "Id": "agriculture",
       "DisplayName": "Agriculture",
-      "Cost": 20
+      "Cost": 20,
+      "Prerequisites": ""
     },
     {
       "Id": "mining",
       "DisplayName": "Mining",
-      "Cost": 25
+      "Cost": 25,
+      "Prerequisites": "agriculture"
     }
   ]
 }

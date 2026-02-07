@@ -9,21 +9,30 @@
         <ui:Label name="promotion-label" text="Promotions: None" class="hud-sub" />
         <ui:Label name="promotion-detail-label" text="" class="hud-sub hud-detail" />
         <ui:Label name="research-label" text="Research: None" class="hud-sub" />
+        <ui:Label name="civic-label" text="Civics: None" class="hud-sub" />
+        <ui:Label name="resource-label" text="Resources: None" class="hud-sub" />
+        <ui:Label name="trade-label" text="Trade Routes: None" class="hud-sub" />
         <ui:VisualElement class="hud-minimap">
             <ui:Label text="Minimap" class="hud-minimap-title" />
             <ui:Image name="minimap-image" class="hud-minimap-image" />
         </ui:VisualElement>
-                <ui:VisualElement name="promotion-panel" class="hud-panel" style="display: none;">
+        <ui:VisualElement name="promotion-panel" class="hud-panel" style="display: none;">
             <ui:Label name="promotion-panel-title" text="Choose Promotion" class="hud-title" />
             <ui:Label name="promotion-option1" text="[U] -" class="hud-sub" />
             <ui:Label name="promotion-option2" text="[I] -" class="hud-sub" />
             <ui:Label name="promotion-option3" text="[O] -" class="hud-sub" />
         </ui:VisualElement>
-                        <ui:VisualElement name="tech-panel" class="hud-panel" style="display: none;">
-            <ui:Label text="Choose Research" class="hud-title" />
+        <ui:VisualElement name="tech-panel" class="hud-panel" style="display: none;">
+            <ui:Label name="tech-panel-title" text="Choose Research" class="hud-title" />
             <ui:Label name="tech-option1" text="[J] -" class="hud-sub" />
             <ui:Label name="tech-option2" text="[K] -" class="hud-sub" />
             <ui:Label name="tech-option3" text="[L] -" class="hud-sub" />
+        </ui:VisualElement>
+        <ui:VisualElement name="civic-panel" class="hud-panel" style="display: none;">
+            <ui:Label name="civic-panel-title" text="Choose Civic" class="hud-title" />
+            <ui:Label name="civic-option1" text="[4] -" class="hud-sub" />
+            <ui:Label name="civic-option2" text="[5] -" class="hud-sub" />
+            <ui:Label name="civic-option3" text="[6] -" class="hud-sub" />
         </ui:VisualElement>
         <ui:VisualElement name="combat-log" class="hud-panel">
             <ui:Label text="Combat Log" class="hud-title" />

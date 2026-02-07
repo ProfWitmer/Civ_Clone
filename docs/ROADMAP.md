@@ -57,3 +57,4 @@
 - 2026-02-05: Tuned tile outline settings and made selected tile highlight override hover.
 
 - 2026-02-07: Phase 2 complete (units, cities, improvements, combat, promotions, roads, tech selection).
+- 2026-02-07: Phase 3 started - tech prerequisites, civics scaffold, resources and simple trade routes.

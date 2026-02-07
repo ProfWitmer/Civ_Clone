@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace CivClone.Simulation
 {
@@ -15,7 +16,7 @@ namespace CivClone.Simulation
             researchSystem = new ResearchSystem(catalogRef);
         }
 
-                public void RecalculateCityYields()
+        public void RecalculateCityYields()
         {
             var player = state.ActivePlayer;
             if (player == null)
@@ -26,7 +27,18 @@ namespace CivClone.Simulation
             RecalculateCityYields(player);
         }
 
-public void EndTurn()
+        public void RefreshTradeRoutes()
+        {
+            var player = state.ActivePlayer;
+            if (player == null)
+            {
+                return;
+            }
+
+            UpdateTradeRoutes(player);
+        }
+
+        public void EndTurn()
         {
             if (state.Players.Count == 0)
             {
@@ -39,6 +51,7 @@ public void EndTurn()
                 AdvanceWorkerImprovements(currentPlayer);
                 AdvanceCities(currentPlayer);
                 researchSystem?.Advance(currentPlayer);
+                UpdateTradeRoutes(currentPlayer);
             }
 
             state.ActivePlayerIndex = (state.ActivePlayerIndex + 1) % state.Players.Count;
@@ -57,14 +70,9 @@ public void EndTurn()
             {
                 unit.ResetMovement();
             }
-
-            if (improvementsCompleted)
-            {
-                RecalculateCityYields(player);
-            }
         }
 
-                private void RecalculateCityYields(Player player)
+        private void RecalculateCityYields(Player player)
         {
             if (state?.Map == null || player == null)
             {
@@ -97,14 +105,9 @@ public void EndTurn()
                 city.FoodPerTurn = Math.Max(1, food);
                 city.ProductionPerTurn = Math.Max(1, prod);
             }
-
-            if (improvementsCompleted)
-            {
-                RecalculateCityYields(player);
-            }
         }
 
-private void AdvanceCities(Player player)
+        private void AdvanceCities(Player player)
         {
             RecalculateCityYields(player);
 
@@ -121,11 +124,6 @@ private void AdvanceCities(Player player)
                     city.FoodStored -= foodNeeded;
                     city.Population += 1;
                 }
-            }
-
-            if (improvementsCompleted)
-            {
-                RecalculateCityYields(player);
             }
         }
 
@@ -242,30 +240,149 @@ private void AdvanceCities(Player player)
             }
         }
 
-            if (city.ProductionStored < city.ProductionCost || string.IsNullOrWhiteSpace(city.ProductionTargetId))
+        private void UpdateTradeRoutes(Player player)
+        {
+            if (player == null || state?.Map == null)
             {
                 return;
             }
 
-            bool improvementsCompleted = false;
-            foreach (var unit in player.Units)
+            player.AvailableResources.Clear();
+            player.TradeRoutes.Clear();
+
+            if (player.Cities.Count == 0)
             {
-                if (unit.Position.X == city.Position.X && unit.Position.Y == city.Position.Y)
+                return;
+            }
+
+            for (int i = 0; i < player.Cities.Count; i++)
+            {
+                for (int j = i + 1; j < player.Cities.Count; j++)
                 {
-                    return;
+                    var cityA = player.Cities[i];
+                    var cityB = player.Cities[j];
+                    if (IsRoadConnected(player, cityA.Position, cityB.Position))
+                    {
+                        player.TradeRoutes.Add(new TradeRoute
+                        {
+                            CityA = cityA.Name,
+                            CityB = cityB.Name
+                        });
+                    }
                 }
             }
 
-            int movement = 2;
-            if (catalog != null && catalog.TryGetUnitType(city.ProductionTargetId, out var unitType))
+            foreach (var city in player.Cities)
             {
-                movement = unitType.MovementPoints;
+                for (int y = city.Position.Y - 1; y <= city.Position.Y + 1; y++)
+                {
+                    for (int x = city.Position.X - 1; x <= city.Position.X + 1; x++)
+                    {
+                        var tile = state.Map.GetTile(x, y);
+                        if (tile == null || string.IsNullOrWhiteSpace(tile.ResourceId))
+                        {
+                            continue;
+                        }
+
+                        if (string.IsNullOrWhiteSpace(tile.ImprovementId) && !tile.HasRoad)
+                        {
+                            continue;
+                        }
+
+                        if (!player.AvailableResources.Contains(tile.ResourceId))
+                        {
+                            player.AvailableResources.Add(tile.ResourceId);
+                        }
+                    }
+                }
+            }
+        }
+
+        private bool IsRoadConnected(Player player, GridPosition start, GridPosition end)
+        {
+            if (state?.Map == null)
+            {
+                return false;
             }
 
-            city.ProductionStored -= city.ProductionCost;
-            var newUnit = new Unit(city.ProductionTargetId, city.Position, movement, player.Id);
-            newUnit.Health = newUnit.MaxHealth;
-            player.Units.Add(newUnit);
+            if (start.X == end.X && start.Y == end.Y)
+            {
+                return true;
+            }
+
+            int width = state.Map.Width;
+            int height = state.Map.Height;
+            var visited = new bool[width, height];
+            var queue = new Queue<GridPosition>();
+            queue.Enqueue(start);
+            visited[start.X, start.Y] = true;
+
+            var directions = new[]
+            {
+                new GridPosition(1, 0),
+                new GridPosition(-1, 0),
+                new GridPosition(0, 1),
+                new GridPosition(0, -1)
+            };
+
+            while (queue.Count > 0)
+            {
+                var current = queue.Dequeue();
+                foreach (var dir in directions)
+                {
+                    int nx = current.X + dir.X;
+                    int ny = current.Y + dir.Y;
+                    if (nx < 0 || ny < 0 || nx >= width || ny >= height)
+                    {
+                        continue;
+                    }
+
+                    if (visited[nx, ny])
+                    {
+                        continue;
+                    }
+
+                    var tile = state.Map.GetTile(nx, ny);
+                    if (tile == null)
+                    {
+                        continue;
+                    }
+
+                    bool isCityTile = IsCityTile(player, nx, ny);
+                    if (!tile.HasRoad && !isCityTile)
+                    {
+                        continue;
+                    }
+
+                    if (nx == end.X && ny == end.Y)
+                    {
+                        return true;
+                    }
+
+                    visited[nx, ny] = true;
+                    queue.Enqueue(new GridPosition(nx, ny));
+                }
+            }
+
+            return false;
+        }
+
+        private bool IsCityTile(Player player, int x, int y)
+        {
+            if (player == null)
+            {
+                return false;
+            }
+
+            foreach (var city in player.Cities)
+            {
+                if (city.Position.X == x && city.Position.Y == y)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

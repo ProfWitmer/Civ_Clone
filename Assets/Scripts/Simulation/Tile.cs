@@ -8,6 +8,7 @@ namespace CivClone.Simulation
         public GridPosition Position;
         public string TerrainId;
         public string ImprovementId;
+        public string ResourceId;
         public bool Explored;
         public bool Visible;
         public bool HasRoad;
@@ -17,6 +18,7 @@ namespace CivClone.Simulation
             Position = position;
             TerrainId = terrainId;
             ImprovementId = string.Empty;
+            ResourceId = string.Empty;
             Explored = false;
             Visible = false;
             HasRoad = false;

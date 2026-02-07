@@ -18,9 +18,9 @@ namespace CivClone.Simulation
                 return;
             }
 
-            if (string.IsNullOrWhiteSpace(player.CurrentTechId))
+            if (string.IsNullOrWhiteSpace(player.CurrentTechId) || !TryGetValidTech(player, player.CurrentTechId, out _))
             {
-                player.CurrentTechId = GetFirstTechId();
+                player.CurrentTechId = GetFirstAvailableTech(player);
                 player.ResearchProgress = 0;
             }
 
@@ -36,24 +36,63 @@ namespace CivClone.Simulation
             {
                 if (player.ResearchProgress >= tech.Cost)
                 {
-                    player.KnownTechs.Add(tech.Id);
+                    if (!player.KnownTechs.Contains(tech.Id))
+                    {
+                        player.KnownTechs.Add(tech.Id);
+                    }
                     player.ResearchProgress = 0;
-                    player.CurrentTechId = GetFirstUnresearched(player);
+                    player.CurrentTechId = GetFirstAvailableTech(player);
                 }
             }
         }
 
-        private string GetFirstTechId()
+        private bool TryGetValidTech(Player player, string techId, out TechType tech)
         {
-            if (catalog?.TechTypes == null || catalog.TechTypes.Length == 0)
+            tech = null;
+            if (catalog == null || player == null || string.IsNullOrWhiteSpace(techId))
             {
-                return string.Empty;
+                return false;
             }
 
-            return catalog.TechTypes[0].Id;
+            if (!catalog.TryGetTechType(techId, out tech))
+            {
+                return false;
+            }
+
+            if (player.KnownTechs.Contains(techId))
+            {
+                return false;
+            }
+
+            return AreTechPrereqsMet(player, tech);
         }
 
-        private string GetFirstUnresearched(Player player)
+        private bool AreTechPrereqsMet(Player player, TechType tech)
+        {
+            if (player == null || tech == null || string.IsNullOrWhiteSpace(tech.Prerequisites))
+            {
+                return true;
+            }
+
+            var parts = tech.Prerequisites.Split(',');
+            foreach (var part in parts)
+            {
+                var id = part.Trim();
+                if (string.IsNullOrWhiteSpace(id))
+                {
+                    continue;
+                }
+
+                if (!player.KnownTechs.Contains(id))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private string GetFirstAvailableTech(Player player)
         {
             if (catalog?.TechTypes == null)
             {
@@ -62,7 +101,17 @@ namespace CivClone.Simulation
 
             foreach (var tech in catalog.TechTypes)
             {
-                if (tech != null && !player.KnownTechs.Contains(tech.Id))
+                if (tech == null || string.IsNullOrWhiteSpace(tech.Id))
+                {
+                    continue;
+                }
+
+                if (player.KnownTechs.Contains(tech.Id))
+                {
+                    continue;
+                }
+
+                if (AreTechPrereqsMet(player, tech))
                 {
                     return tech.Id;
                 }

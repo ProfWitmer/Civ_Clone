@@ -1,0 +1,4 @@
+Id,DisplayName,Category,Description
+despotism,Despotism,Government,+1 production in all cities; -1 happiness.
+monarchy,Monarchy,Government,+1 happiness in all cities.
+republic,Republic,Government,+1 commerce in all cities.

@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using CivClone.Infrastructure.Data.Definitions;
 using UnityEngine;
 
 namespace CivClone.Infrastructure

@@ -25,10 +25,22 @@ namespace CivClone.Infrastructure.Data.Definitions
     {
         public TechTypeDefinition[] Items;
     }
-}
 
     [Serializable]
     public class PromotionTypeDefinitionList
     {
         public PromotionTypeDefinition[] Items;
     }
+
+    [Serializable]
+    public class ResourceTypeDefinitionList
+    {
+        public ResourceTypeDefinition[] Items;
+    }
+
+    [Serializable]
+    public class CivicTypeDefinitionList
+    {
+        public CivicTypeDefinition[] Items;
+    }
+}

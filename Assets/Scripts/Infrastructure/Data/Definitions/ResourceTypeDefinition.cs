@@ -1,13 +1,14 @@
 using System;
+using UnityEngine;
 
 namespace CivClone.Infrastructure.Data.Definitions
 {
     [Serializable]
-    public class TechTypeDefinition
+    public class ResourceTypeDefinition
     {
         public string Id;
         public string DisplayName;
-        public int Cost;
-        public string Prerequisites;
+        public string Category;
+        public Color Color;
     }
 }

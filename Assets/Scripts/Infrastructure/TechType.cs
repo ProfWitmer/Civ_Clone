@@ -8,5 +8,6 @@ namespace CivClone.Infrastructure
         public string Id = "agriculture";
         public string DisplayName = "Agriculture";
         public int Cost = 20;
+        public string Prerequisites = "";
     }
 }

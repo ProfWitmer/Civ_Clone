@@ -3,11 +3,11 @@ using System;
 namespace CivClone.Infrastructure.Data.Definitions
 {
     [Serializable]
-    public class TechTypeDefinition
+    public class CivicTypeDefinition
     {
         public string Id;
         public string DisplayName;
-        public int Cost;
-        public string Prerequisites;
+        public string Category;
+        public string Description;
     }
 }

@@ -1,0 +1,7 @@
+{
+  Items: [
+    {
+      Id: despotism,
+      DisplayName: Despotism,
+      Category: Government,
+      Description: +1

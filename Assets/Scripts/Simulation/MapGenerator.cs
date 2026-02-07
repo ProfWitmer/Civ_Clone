@@ -24,16 +24,31 @@ namespace CivClone.Simulation
                     double roll = random.NextDouble();
                     if (roll > 0.9)
                     {
-                        terrainId = "hills";
+                        terrainId = hills;
                     }
 
                     bool edgeWater = x == 0 || y == 0 || x == _config.Width - 1 || y == _config.Height - 1;
                     if (edgeWater || roll < 0.08)
                     {
-                        terrainId = "water";
+                        terrainId = water;
                     }
 
-                    map.Tiles.Add(new Tile(new GridPosition(x, y), terrainId));
+                    var tile = new Tile(new GridPosition(x, y), terrainId);
+                    double resourceRoll = random.NextDouble();
+                    if (terrainId == plains && resourceRoll > 0.92)
+                    {
+                        tile.ResourceId = wheat;
+                    }
+                    else if (terrainId == hills && resourceRoll > 0.9)
+                    {
+                        tile.ResourceId = iron;
+                    }
+                    else if (terrainId == water && resourceRoll > 0.93)
+                    {
+                        tile.ResourceId = fish;
+                    }
+
+                    map.Tiles.Add(tile);
                 }
             }
 

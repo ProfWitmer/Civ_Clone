@@ -19,6 +19,8 @@ namespace CivClone.Presentation
         [SerializeField] private KeyCode[] techSelectKeys = { KeyCode.J, KeyCode.K, KeyCode.L };
         [SerializeField] private KeyCode promotionKey = KeyCode.U;
         [SerializeField] private KeyCode[] promotionSelectKeys = { KeyCode.U, KeyCode.I, KeyCode.O };
+        [SerializeField] private KeyCode civicPanelKey = KeyCode.C;
+        [SerializeField] private KeyCode[] civicSelectKeys = { KeyCode.Alpha4, KeyCode.Alpha5, KeyCode.Alpha6 };
         [SerializeField] private int humanPlayerId = 0;
 
         private GameState state;
@@ -34,12 +36,16 @@ namespace CivClone.Presentation
         private City selectedCity;
         private bool promotionSelectionOpen;
         private bool techSelectionOpen;
-        private readonly System.Collections.Generic.List<string> availableTechs = new System.Collections.Generic.List<string>();
-        private readonly System.Collections.Generic.List<string> availablePromotions = new System.Collections.Generic.List<string>();
+        private bool civicSelectionOpen;
+        private int civicCategoryIndex;
+        private readonly List<string> availableTechs = new List<string>();
+        private readonly List<string> availablePromotions = new List<string>();
+        private readonly List<string> availableCivics = new List<string>();
+        private readonly List<string> civicCategories = new List<string>();
 
         private readonly string[] productionOptions = { "scout", "worker", "settler" };
         private readonly string[] improvementOptions = { "farm", "mine" };
-        private readonly System.Collections.Generic.Dictionary<string, string> improvementRequirements = new System.Collections.Generic.Dictionary<string, string>
+        private readonly Dictionary<string, string> improvementRequirements = new Dictionary<string, string>
         {
             { "farm", "agriculture" },
             { "mine", "mining" }
@@ -61,6 +67,12 @@ namespace CivClone.Presentation
             {
                 mapPresenter.TryGetComponent(out tileHighlighter);
             }
+
+            turnSystem?.RefreshTradeRoutes();
+
+            UpdateResearchInfo();
+            UpdateCivicInfo();
+            UpdateResourceInfo();
         }
 
         private void Update()
@@ -115,6 +127,13 @@ namespace CivClone.Presentation
             }
 
             HandlePromotionSelection();
+
+            if (Input.GetKeyDown(civicPanelKey))
+            {
+                ToggleCivicSelection();
+            }
+
+            HandleCivicSelection();
 
             if (Input.GetKeyDown(endTurnKey))
             {
@@ -207,20 +226,23 @@ namespace CivClone.Presentation
                 return;
             }
 
-            selectedUnit.Position = tileView.Position;
-            selectedUnit.MovementRemaining = Mathf.Max(0, selectedUnit.MovementRemaining - moveCost);
-            unitPresenter.UpdateUnitPosition(selectedUnit);
-            UpdateHudSelection();
-
-            if (tileHighlighter != null)
+            if (!inRange)
             {
-                tileHighlighter.SetSelectedUnitTile(selectedUnit.Position);
-            }
+                selectedUnit.Position = tileView.Position;
+                selectedUnit.MovementRemaining = Mathf.Max(0, selectedUnit.MovementRemaining - moveCost);
+                unitPresenter.UpdateUnitPosition(selectedUnit);
+                UpdateHudSelection();
 
-            ApplyFog();
+                if (tileHighlighter != null)
+                {
+                    tileHighlighter.SetSelectedUnitTile(selectedUnit.Position);
+                }
+
+                ApplyFog();
+            }
         }
 
-                private int GetWorkCost(Unit unit)
+        private int GetWorkCost(Unit unit)
         {
             if (unit == null)
             {
@@ -235,17 +257,17 @@ namespace CivClone.Presentation
             return 2;
         }
 
-private int GetMoveCost(GridPosition position)
+        private int GetMoveCost(GridPosition position)
         {
             if (state?.Map == null)
             {
-                return 1 + GetPromotionAttackBonus(unit);
+                return 1;
             }
 
             var tile = state.Map.GetTile(position.X, position.Y);
             if (tile == null)
             {
-                return 1 + GetPromotionAttackBonus(unit);
+                return 1;
             }
 
             if (tile.HasRoad)
@@ -258,7 +280,7 @@ private int GetMoveCost(GridPosition position)
                 return terrain.MovementCost <= 0 ? 99 : terrain.MovementCost;
             }
 
-            return 1 + GetPromotionAttackBonus(unit);
+            return 1;
         }
 
         private void RunAiTurns()
@@ -529,12 +551,6 @@ private int GetMoveCost(GridPosition position)
             return bonus;
         }
 
-                private int GetPromotionDefenseBonus(Unit unit)
-        {
-            return GetPromotionDefenseBonus(unit, false);
-        }
-
-
         private int GetAttack(Unit unit)
         {
             if (dataCatalog != null && dataCatalog.TryGetUnitType(unit.UnitTypeId, out var unitType))
@@ -654,7 +670,7 @@ private int GetMoveCost(GridPosition position)
 
             if (selectedCity.ProductionQueue == null)
             {
-                selectedCity.ProductionQueue = new System.Collections.Generic.List<string>();
+                selectedCity.ProductionQueue = new List<string>();
             }
 
             selectedCity.ProductionQueue.Add(unitTypeId);
@@ -737,6 +753,23 @@ private int GetMoveCost(GridPosition position)
             UpdateCityInfo();
         }
 
+        private void HandleProductionHotkeys()
+        {
+            if (selectedCity == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < productionOptionKeys.Length && i < productionOptions.Length; i++)
+            {
+                if (Input.GetKeyDown(productionOptionKeys[i]))
+                {
+                    SetCityProductionByIndex(i);
+                    break;
+                }
+            }
+        }
+
         private void TryBuildImprovement()
         {
             if (selectedUnit == null || selectedUnit.UnitTypeId != "worker" || state?.Map == null)
@@ -790,6 +823,56 @@ private int GetMoveCost(GridPosition position)
             UpdateHudSelection($"Working on {improvementId} ({workCost} turns)");
         }
 
+        private void TryBuildRoad()
+        {
+            if (selectedUnit == null || selectedUnit.UnitTypeId != "worker" || state?.Map == null)
+            {
+                return;
+            }
+
+            var tile = state.Map.GetTile(selectedUnit.Position.X, selectedUnit.Position.Y);
+            if (tile == null)
+            {
+                return;
+            }
+
+            if (tile.HasRoad)
+            {
+                UpdateHudSelection("Road already built");
+                return;
+            }
+
+            int workCost = GetWorkCost(selectedUnit);
+            selectedUnit.StartRoadWork(selectedUnit.Position, workCost);
+            selectedUnit.MovementRemaining = 0;
+            UpdateHudSelection($"Building road ({workCost} turns)");
+        }
+
+        private bool AreTechPrereqsMet(Player player, string prereqList)
+        {
+            if (player == null || string.IsNullOrWhiteSpace(prereqList))
+            {
+                return true;
+            }
+
+            var parts = prereqList.Split(,);
+            foreach (var part in parts)
+            {
+                var id = part.Trim();
+                if (string.IsNullOrWhiteSpace(id))
+                {
+                    continue;
+                }
+
+                if (!player.KnownTechs.Contains(id))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         private void CycleResearch()
         {
             var player = state?.ActivePlayer;
@@ -819,6 +902,11 @@ private int GetMoveCost(GridPosition position)
                 string candidate = techIds[idx];
                 if (!player.KnownTechs.Contains(candidate))
                 {
+                    if (dataCatalog != null && dataCatalog.TryGetTechType(candidate, out var tech) && !AreTechPrereqsMet(player, tech.Prerequisites))
+                    {
+                        continue;
+                    }
+
                     player.CurrentTechId = candidate;
                     player.ResearchProgress = 0;
                     UpdateResearchInfo();
@@ -829,6 +917,455 @@ private int GetMoveCost(GridPosition position)
             player.CurrentTechId = techIds[(currentIndex + 1 + techIds.Count) % techIds.Count];
             player.ResearchProgress = 0;
             UpdateResearchInfo();
+        }
+
+        private void ToggleTechSelection()
+        {
+            if (hudController == null || dataCatalog == null || dataCatalog.TechTypes == null || dataCatalog.TechTypes.Length == 0)
+            {
+                return;
+            }
+
+            techSelectionOpen = !techSelectionOpen;
+            if (!techSelectionOpen)
+            {
+                hudController.HideTechPanel();
+                return;
+            }
+
+            RefreshTechOptions();
+        }
+
+        private void RefreshTechOptions()
+        {
+            if (hudController == null || state?.ActivePlayer == null)
+            {
+                return;
+            }
+
+            var player = state.ActivePlayer;
+            availableTechs.Clear();
+
+            if (dataCatalog != null && dataCatalog.TechTypes != null)
+            {
+                foreach (var tech in dataCatalog.TechTypes)
+                {
+                    if (tech == null || string.IsNullOrWhiteSpace(tech.Id))
+                    {
+                        continue;
+                    }
+
+                    if (player.KnownTechs.Contains(tech.Id))
+                    {
+                        continue;
+                    }
+
+                    if (!AreTechPrereqsMet(player, tech.Prerequisites))
+                    {
+                        continue;
+                    }
+
+                    availableTechs.Add(tech.Id);
+                }
+            }
+
+            string option1 = "[J] -";
+            string option2 = "[K] -";
+            string option3 = "[L] -";
+            if (availableTechs.Count > 0)
+            {
+                option1 = $"[J] {GetTechDisplayName(availableTechs[0])}";
+            }
+            if (availableTechs.Count > 1)
+            {
+                option2 = $"[K] {GetTechDisplayName(availableTechs[1])}";
+            }
+            if (availableTechs.Count > 2)
+            {
+                option3 = $"[L] {GetTechDisplayName(availableTechs[2])}";
+            }
+
+            hudController.ShowTechPanel("Choose Research", option1, option2, option3);
+        }
+
+        private void HandleTechSelection()
+        {
+            if (!techSelectionOpen || hudController == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < techSelectKeys.Length; i++)
+            {
+                if (Input.GetKeyDown(techSelectKeys[i]))
+                {
+                    SetTechByIndex(i);
+                    break;
+                }
+            }
+        }
+
+        private void SetTechByIndex(int index)
+        {
+            var player = state?.ActivePlayer;
+            if (player == null)
+            {
+                return;
+            }
+
+            if (index < 0 || index >= availableTechs.Count)
+            {
+                return;
+            }
+
+            string techId = availableTechs[index];
+            player.CurrentTechId = techId;
+            player.ResearchProgress = 0;
+            techSelectionOpen = false;
+            hudController.HideTechPanel();
+            UpdateResearchInfo();
+        }
+
+        private string GetTechDisplayName(string techId)
+        {
+            if (string.IsNullOrWhiteSpace(techId))
+            {
+                return "-";
+            }
+
+            if (dataCatalog != null && dataCatalog.TryGetTechType(techId, out var tech) && !string.IsNullOrWhiteSpace(tech.DisplayName))
+            {
+                return tech.DisplayName;
+            }
+
+            return techId;
+        }
+
+        private bool ArePromotionPrereqsMet(Unit unit, string requires)
+        {
+            if (unit == null || string.IsNullOrWhiteSpace(requires))
+            {
+                return true;
+            }
+
+            var parts = requires.Split(,);
+            foreach (var part in parts)
+            {
+                var id = part.Trim();
+                if (string.IsNullOrWhiteSpace(id))
+                {
+                    continue;
+                }
+
+                if (unit.Promotions == null || !unit.Promotions.Contains(id))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private void TogglePromotionSelection()
+        {
+            if (hudController == null || selectedUnit == null || dataCatalog == null || dataCatalog.PromotionTypes == null)
+            {
+                return;
+            }
+
+            promotionSelectionOpen = !promotionSelectionOpen;
+            if (!promotionSelectionOpen)
+            {
+                hudController.HidePromotionPanel();
+                return;
+            }
+
+            RefreshPromotionOptions();
+        }
+
+        private void RefreshPromotionOptions()
+        {
+            if (hudController == null || selectedUnit == null)
+            {
+                return;
+            }
+
+            availablePromotions.Clear();
+            if (dataCatalog != null && dataCatalog.PromotionTypes != null)
+            {
+                foreach (var promotion in dataCatalog.PromotionTypes)
+                {
+                    if (promotion == null || string.IsNullOrWhiteSpace(promotion.Id))
+                    {
+                        continue;
+                    }
+
+                    if (selectedUnit.Promotions.Contains(promotion.Id))
+                    {
+                        continue;
+                    }
+
+                    if (!ArePromotionPrereqsMet(selectedUnit, promotion.Requires))
+                    {
+                        continue;
+                    }
+
+                    availablePromotions.Add(promotion.Id);
+                }
+            }
+
+            string option1 = "[U] -";
+            string option2 = "[I] -";
+            string option3 = "[O] -";
+            if (availablePromotions.Count > 0)
+            {
+                option1 = $"[U] {GetPromotionDisplayName(availablePromotions[0])}";
+            }
+            if (availablePromotions.Count > 1)
+            {
+                option2 = $"[I] {GetPromotionDisplayName(availablePromotions[1])}";
+            }
+            if (availablePromotions.Count > 2)
+            {
+                option3 = $"[O] {GetPromotionDisplayName(availablePromotions[2])}";
+            }
+
+            hudController.ShowPromotionPanel(option1, option2, option3);
+        }
+
+        private void HandlePromotionSelection()
+        {
+            if (!promotionSelectionOpen || hudController == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < promotionSelectKeys.Length; i++)
+            {
+                if (Input.GetKeyDown(promotionSelectKeys[i]))
+                {
+                    SetPromotionByIndex(i);
+                    break;
+                }
+            }
+        }
+
+        private void SetPromotionByIndex(int index)
+        {
+            if (selectedUnit == null)
+            {
+                return;
+            }
+
+            if (index < 0 || index >= availablePromotions.Count)
+            {
+                return;
+            }
+
+            string promotionId = availablePromotions[index];
+            if (!selectedUnit.Promotions.Contains(promotionId))
+            {
+                selectedUnit.Promotions.Add(promotionId);
+            }
+
+            promotionSelectionOpen = false;
+            hudController.HidePromotionPanel();
+            UpdatePromotionInfo();
+            UpdateHudSelection();
+        }
+
+        private string GetPromotionDisplayName(string promotionId)
+        {
+            if (string.IsNullOrWhiteSpace(promotionId))
+            {
+                return "-";
+            }
+
+            if (dataCatalog != null && dataCatalog.TryGetPromotionType(promotionId, out var promotion) && !string.IsNullOrWhiteSpace(promotion.DisplayName))
+            {
+                return promotion.DisplayName;
+            }
+
+            return promotionId;
+        }
+
+        private void ToggleCivicSelection()
+        {
+            if (hudController == null || dataCatalog == null || dataCatalog.CivicTypes == null || dataCatalog.CivicTypes.Length == 0)
+            {
+                return;
+            }
+
+            civicSelectionOpen = !civicSelectionOpen;
+            if (!civicSelectionOpen)
+            {
+                hudController.HideCivicPanel();
+                return;
+            }
+
+            RefreshCivicCategories();
+            RefreshCivicOptions();
+        }
+
+        private void RefreshCivicCategories()
+        {
+            civicCategories.Clear();
+            if (dataCatalog == null || dataCatalog.CivicTypes == null)
+            {
+                return;
+            }
+
+            foreach (var civic in dataCatalog.CivicTypes)
+            {
+                if (civic == null || string.IsNullOrWhiteSpace(civic.Category))
+                {
+                    continue;
+                }
+
+                if (!civicCategories.Contains(civic.Category))
+                {
+                    civicCategories.Add(civic.Category);
+                }
+            }
+
+            if (civicCategoryIndex >= civicCategories.Count)
+            {
+                civicCategoryIndex = 0;
+            }
+        }
+
+        private void RefreshCivicOptions()
+        {
+            if (hudController == null || state?.ActivePlayer == null)
+            {
+                return;
+            }
+
+            var player = state.ActivePlayer;
+            if (civicCategories.Count == 0)
+            {
+                hudController.ShowCivicPanel("Choose Civic", "[4] -", "[5] -", "[6] -");
+                return;
+            }
+
+            string category = civicCategories[civicCategoryIndex];
+            availableCivics.Clear();
+
+            foreach (var civic in dataCatalog.CivicTypes)
+            {
+                if (civic == null || string.IsNullOrWhiteSpace(civic.Id))
+                {
+                    continue;
+                }
+
+                if (civic.Category != category)
+                {
+                    continue;
+                }
+
+                availableCivics.Add(civic.Id);
+            }
+
+            string option1 = "[4] -";
+            string option2 = "[5] -";
+            string option3 = "[6] -";
+
+            if (availableCivics.Count > 0)
+            {
+                option1 = $"[4] {GetCivicDisplayName(availableCivics[0], player)}";
+            }
+            if (availableCivics.Count > 1)
+            {
+                option2 = $"[5] {GetCivicDisplayName(availableCivics[1], player)}";
+            }
+            if (availableCivics.Count > 2)
+            {
+                option3 = $"[6] {GetCivicDisplayName(availableCivics[2], player)}";
+            }
+
+            hudController.ShowCivicPanel($"Choose Civic ({category})", option1, option2, option3);
+        }
+
+        private void HandleCivicSelection()
+        {
+            if (!civicSelectionOpen || hudController == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < civicSelectKeys.Length; i++)
+            {
+                if (Input.GetKeyDown(civicSelectKeys[i]))
+                {
+                    SetCivicByIndex(i);
+                    break;
+                }
+            }
+        }
+
+        private void SetCivicByIndex(int index)
+        {
+            var player = state?.ActivePlayer;
+            if (player == null || civicCategories.Count == 0)
+            {
+                return;
+            }
+
+            if (index < 0 || index >= availableCivics.Count)
+            {
+                return;
+            }
+
+            string category = civicCategories[civicCategoryIndex];
+            string civicId = availableCivics[index];
+
+            bool updated = false;
+            foreach (var civic in player.Civics)
+            {
+                if (civic.Category == category)
+                {
+                    civic.CivicId = civicId;
+                    updated = true;
+                    break;
+                }
+            }
+
+            if (!updated)
+            {
+                player.Civics.Add(new CivicSelection { Category = category, CivicId = civicId });
+            }
+
+            civicSelectionOpen = false;
+            hudController.HideCivicPanel();
+            UpdateCivicInfo();
+        }
+
+        private string GetCivicDisplayName(string civicId, Player player)
+        {
+            if (string.IsNullOrWhiteSpace(civicId))
+            {
+                return "-";
+            }
+
+            string label = civicId;
+            if (dataCatalog != null && dataCatalog.TryGetCivicType(civicId, out var civic) && !string.IsNullOrWhiteSpace(civic.DisplayName))
+            {
+                label = civic.DisplayName;
+            }
+
+            if (player != null)
+            {
+                foreach (var selected in player.Civics)
+                {
+                    if (selected.CivicId == civicId)
+                    {
+                        label = $"{label} (Active)";
+                        break;
+                    }
+                }
+            }
+
+            return label;
         }
 
         private int GetProductionCost(string unitTypeId)
@@ -861,6 +1398,7 @@ private int GetMoveCost(GridPosition position)
 
             return 0;
         }
+
         private void UpdateResearchInfo()
         {
             if (hudController == null || state?.ActivePlayer == null)
@@ -889,7 +1427,136 @@ private int GetMoveCost(GridPosition position)
             hudController.SetResearchInfo($"Research: {techName} {player.ResearchProgress}/{cost} [T] Cycle [Y] Choose");
         }
 
-private void UpdateHudSelection(string warning = null)
+        private void UpdatePromotionInfo()
+        {
+            if (hudController == null)
+            {
+                return;
+            }
+
+            if (selectedUnit == null)
+            {
+                hudController.SetPromotionInfo("Promotions: None");
+                hudController.SetPromotionDetail(string.Empty);
+                return;
+            }
+
+            if (selectedUnit.Promotions == null || selectedUnit.Promotions.Count == 0)
+            {
+                hudController.SetPromotionInfo("Promotions: None");
+                hudController.SetPromotionDetail("[U] Promote");
+                return;
+            }
+
+            var labels = new List<string>();
+            foreach (var promo in selectedUnit.Promotions)
+            {
+                labels.Add(GetPromotionDisplayName(promo));
+            }
+
+            hudController.SetPromotionInfo("Promotions: " + string.Join(", ", labels));
+            hudController.SetPromotionDetail("[U] Promote");
+        }
+
+        private void UpdateCivicInfo()
+        {
+            if (hudController == null || state?.ActivePlayer == null)
+            {
+                return;
+            }
+
+            var player = state.ActivePlayer;
+            if (player.Civics == null || player.Civics.Count == 0)
+            {
+                hudController.SetCivicInfo("Civics: None [C] Choose");
+                return;
+            }
+
+            var entries = new List<string>();
+            foreach (var civic in player.Civics)
+            {
+                if (civic == null || string.IsNullOrWhiteSpace(civic.CivicId))
+                {
+                    continue;
+                }
+
+                string name = GetCivicDisplayName(civic.CivicId, null);
+                if (!string.IsNullOrWhiteSpace(civic.Category))
+                {
+                    entries.Add($"{civic.Category}: {name}");
+                }
+                else
+                {
+                    entries.Add(name);
+                }
+            }
+
+            if (entries.Count == 0)
+            {
+                hudController.SetCivicInfo("Civics: None [C] Choose");
+                return;
+            }
+
+            hudController.SetCivicInfo("Civics: " + string.Join(", ", entries) + " [C] Choose");
+        }
+
+        private void UpdateResourceInfo()
+        {
+            if (hudController == null || state?.ActivePlayer == null)
+            {
+                return;
+            }
+
+            var player = state.ActivePlayer;
+            if (player.AvailableResources == null || player.AvailableResources.Count == 0)
+            {
+                hudController.SetResourceInfo("Resources: None");
+            }
+            else
+            {
+                var names = new List<string>();
+                foreach (var resourceId in player.AvailableResources)
+                {
+                    if (string.IsNullOrWhiteSpace(resourceId))
+                    {
+                        continue;
+                    }
+
+                    if (dataCatalog != null && dataCatalog.TryGetResourceType(resourceId, out var resource) && !string.IsNullOrWhiteSpace(resource.DisplayName))
+                    {
+                        names.Add(resource.DisplayName);
+                    }
+                    else
+                    {
+                        names.Add(resourceId);
+                    }
+                }
+
+                hudController.SetResourceInfo("Resources: " + string.Join(", ", names));
+            }
+
+            if (player.TradeRoutes == null || player.TradeRoutes.Count == 0)
+            {
+                hudController.SetTradeInfo("Trade Routes: None");
+            }
+            else
+            {
+                var entries = new List<string>();
+                foreach (var route in player.TradeRoutes)
+                {
+                    if (route == null || string.IsNullOrWhiteSpace(route.CityA) || string.IsNullOrWhiteSpace(route.CityB))
+                    {
+                        continue;
+                    }
+
+                    entries.Add($"{route.CityA} <-> {route.CityB}");
+                }
+
+                hudController.SetTradeInfo(entries.Count == 0 ? "Trade Routes: None" : "Trade Routes: " + string.Join(", ", entries));
+            }
+        }
+
+        private void UpdateHudSelection(string warning = null)
         {
             if (hudController == null)
             {
@@ -910,6 +1577,10 @@ private void UpdateHudSelection(string warning = null)
                 if (selectedUnit.WorkRemaining > 0 && !string.IsNullOrWhiteSpace(selectedUnit.WorkTargetImprovementId))
                 {
                     movementLabel = $"{movementLabel} Work {selectedUnit.WorkRemaining} ({selectedUnit.WorkTargetImprovementId})";
+                }
+                else if (selectedUnit.WorkRemaining > 0 && selectedUnit.WorkTargetIsRoad)
+                {
+                    movementLabel = $"{movementLabel} Work {selectedUnit.WorkRemaining} (Road)";
                 }
                 else
                 {
@@ -996,8 +1667,10 @@ private void UpdateHudSelection(string warning = null)
             UpdateHudSelection();
             UpdatePromotionInfo();
             UpdateCityInfo();
-            hudController?.Refresh();
             UpdateResearchInfo();
+            UpdateCivicInfo();
+            UpdateResourceInfo();
+            hudController?.Refresh();
         }
 
         private void ApplyFog()
@@ -1016,6 +1689,8 @@ private void UpdateHudSelection(string warning = null)
                 minimap.Redraw();
             }
             UpdateResearchInfo();
+            UpdateCivicInfo();
+            UpdateResourceInfo();
         }
     }
 }
