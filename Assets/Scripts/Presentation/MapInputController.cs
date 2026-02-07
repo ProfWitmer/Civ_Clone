@@ -666,7 +666,12 @@ namespace CivClone.Presentation
             {
                 queueInfo = " Queue: " + string.Join(", ", selectedCity.ProductionQueue);
             }
-            hudController.SetProductionInfo($"Production: {targetName} {selectedCity.ProductionStored}/{selectedCity.ProductionCost} (+{selectedCity.ProductionPerTurn}) {turns}t [P] Cycle {optionsHint}{queueInfo}");
+            string resourceHint = BuildProductionResourceHint(state?.ActivePlayer);
+            if (!string.IsNullOrWhiteSpace(resourceHint))
+            {
+                resourceHint = " " + resourceHint;
+            }
+            hudController.SetProductionInfo($"Production: {targetName} {selectedCity.ProductionStored}/{selectedCity.ProductionCost} (+{selectedCity.ProductionPerTurn}) {turns}t [P] Cycle {optionsHint}{queueInfo}{resourceHint}");
         }
 
         private void EnqueueProduction(string unitTypeId)
@@ -1055,6 +1060,54 @@ namespace CivClone.Presentation
                 string currentName = string.IsNullOrWhiteSpace(currentTech.DisplayName) ? currentTech.Id : currentTech.DisplayName;
                 lines.Add($"Current: {currentName} {player.ResearchProgress}/{currentTech.Cost}");
             }
+            var tiers = BuildTechTiers();
+            for (int i = 0; i < tiers.Count; i++)
+            {
+                var tier = tiers[i];
+                if (tier.Count == 0)
+                {
+                    continue;
+                }
+
+                lines.Add($"Tier {i}:");
+                foreach (var tech in tier)
+                {
+                    string name = !string.IsNullOrWhiteSpace(tech.DisplayName) ? tech.DisplayName : tech.Id;
+                    string prereq = string.IsNullOrWhiteSpace(tech.Prerequisites) ? "" : " (Requires: " + tech.Prerequisites + ")";
+                    string status;
+                    if (player.KnownTechs.Contains(tech.Id))
+                    {
+                        status = "Known";
+                    }
+                    else if (player.CurrentTechId == tech.Id)
+                    {
+                        status = "Researching";
+                    }
+                    else if (AreTechPrereqsMet(player, tech.Prerequisites))
+                    {
+                        status = "Available";
+                    }
+                    else
+                    {
+                        status = "Locked";
+                    }
+
+                    lines.Add($"  [{status}] {name}{prereq}");
+                }
+            }
+
+            return string.Join("\n", lines);
+        }
+
+        private List<List<TechType>> BuildTechTiers()
+        {
+            var tiers = new List<List<TechType>>();
+            if (dataCatalog?.TechTypes == null)
+            {
+                return tiers;
+            }
+
+            var techLookup = new Dictionary<string, TechType>();
             foreach (var tech in dataCatalog.TechTypes)
             {
                 if (tech == null || string.IsNullOrWhiteSpace(tech.Id))
@@ -1062,34 +1115,65 @@ namespace CivClone.Presentation
                     continue;
                 }
 
-                string name = !string.IsNullOrWhiteSpace(tech.DisplayName) ? tech.DisplayName : tech.Id;
-                string prereq = string.IsNullOrWhiteSpace(tech.Prerequisites) ? "" : " (Requires: " + tech.Prerequisites + ")";
-                string status;
-                if (player.KnownTechs.Contains(tech.Id))
-                {
-                    status = "Known";
-                }
-                else if (player.CurrentTechId == tech.Id)
-                {
-                    status = "Researching";
-                }
-                else if (AreTechPrereqsMet(player, tech.Prerequisites))
-                {
-                    status = "Available";
-                }
-                else
-                {
-                    status = "Locked";
-                }
-
-                lines.Add($"[{status}] {name}{prereq}");
+                techLookup[tech.Id] = tech;
             }
 
-            if (lines.Count > 2)
+            var memo = new Dictionary<string, int>();
+            foreach (var tech in techLookup.Values)
             {
-                lines.Sort(2, lines.Count - 2, System.StringComparer.Ordinal);
+                int tier = GetTechTier(tech.Id, techLookup, memo);
+                while (tiers.Count <= tier)
+                {
+                    tiers.Add(new List<TechType>());
+                }
+                tiers[tier].Add(tech);
             }
-            return string.Join("\n", lines);
+
+            foreach (var tier in tiers)
+            {
+                tier.Sort((a, b) => string.Compare(a.DisplayName ?? a.Id, b.DisplayName ?? b.Id, System.StringComparison.Ordinal));
+            }
+
+            return tiers;
+        }
+
+        private int GetTechTier(string techId, Dictionary<string, TechType> lookup, Dictionary<string, int> memo)
+        {
+            if (string.IsNullOrWhiteSpace(techId))
+            {
+                return 0;
+            }
+
+            if (memo.TryGetValue(techId, out var cached))
+            {
+                return cached;
+            }
+
+            if (!lookup.TryGetValue(techId, out var tech) || string.IsNullOrWhiteSpace(tech.Prerequisites))
+            {
+                memo[techId] = 0;
+                return 0;
+            }
+
+            int maxTier = 0;
+            var parts = tech.Prerequisites.Split(',');
+            foreach (var part in parts)
+            {
+                var prereqId = part.Trim();
+                if (string.IsNullOrWhiteSpace(prereqId))
+                {
+                    continue;
+                }
+
+                int prereqTier = GetTechTier(prereqId, lookup, memo);
+                if (prereqTier + 1 > maxTier)
+                {
+                    maxTier = prereqTier + 1;
+                }
+            }
+
+            memo[techId] = maxTier;
+            return maxTier;
         }
 
         private void HandleTechSelection()
@@ -1707,6 +1791,52 @@ namespace CivClone.Presentation
             }
 
             return "Unlocked: " + string.Join(", ", unlocked) + " | Locked: " + string.Join(", ", locked);
+        }
+
+        private string BuildProductionResourceHint(Player player)
+        {
+            if (player == null || dataCatalog?.UnitTypes == null)
+            {
+                return string.Empty;
+            }
+
+            var unlocked = new List<string>();
+            var locked = new List<string>();
+            foreach (var unit in dataCatalog.UnitTypes)
+            {
+                if (unit == null || string.IsNullOrWhiteSpace(unit.RequiresResource))
+                {
+                    continue;
+                }
+
+                string name = string.IsNullOrWhiteSpace(unit.DisplayName) ? unit.Id : unit.DisplayName;
+                bool hasResource = player.AvailableResources != null && player.AvailableResources.Contains(unit.RequiresResource);
+                if (hasResource)
+                {
+                    unlocked.Add(name);
+                }
+                else
+                {
+                    locked.Add($"{name}({unit.RequiresResource})");
+                }
+            }
+
+            if (unlocked.Count == 0 && locked.Count == 0)
+            {
+                return string.Empty;
+            }
+
+            if (unlocked.Count == 0)
+            {
+                return "Units: Locked " + string.Join(", ", locked);
+            }
+
+            if (locked.Count == 0)
+            {
+                return "Units: Unlocked " + string.Join(", ", unlocked);
+            }
+
+            return "Units: +" + string.Join(", ", unlocked) + " / -" + string.Join(", ", locked);
         }
 
         private void UpdateHudSelection(string warning = null)
