@@ -19,7 +19,13 @@
             <ui:Label name="promotion-option2" text="[I] -" class="hud-sub" />
             <ui:Label name="promotion-option3" text="[O] -" class="hud-sub" />
         </ui:VisualElement>
-                <ui:VisualElement name="combat-log" class="hud-panel">
+                        <ui:VisualElement name="tech-panel" class="hud-panel" style="display: none;">
+            <ui:Label text="Choose Research" class="hud-title" />
+            <ui:Label name="tech-option1" text="[J] -" class="hud-sub" />
+            <ui:Label name="tech-option2" text="[K] -" class="hud-sub" />
+            <ui:Label name="tech-option3" text="[L] -" class="hud-sub" />
+        </ui:VisualElement>
+        <ui:VisualElement name="combat-log" class="hud-panel">
             <ui:Label text="Combat Log" class="hud-title" />
             <ui:Label name="combat-log-label" text="" class="hud-sub" />
         </ui:VisualElement>

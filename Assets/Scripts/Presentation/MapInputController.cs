@@ -13,7 +13,10 @@ namespace CivClone.Presentation
         [SerializeField] private KeyCode cycleProductionKey = KeyCode.P;
         [SerializeField] private KeyCode[] productionOptionKeys = { KeyCode.Alpha1, KeyCode.Alpha2, KeyCode.Alpha3 };
         [SerializeField] private KeyCode buildImprovementKey = KeyCode.B;
-        [SerializeField] private KeyCode cycleResearchKey = KeyCode.R;
+        [SerializeField] private KeyCode buildRoadKey = KeyCode.R;
+        [SerializeField] private KeyCode cycleResearchKey = KeyCode.T;
+        [SerializeField] private KeyCode techPanelKey = KeyCode.Y;
+        [SerializeField] private KeyCode[] techSelectKeys = { KeyCode.J, KeyCode.K, KeyCode.L };
         [SerializeField] private KeyCode promotionKey = KeyCode.U;
         [SerializeField] private KeyCode[] promotionSelectKeys = { KeyCode.U, KeyCode.I, KeyCode.O };
         [SerializeField] private int humanPlayerId = 0;
@@ -30,6 +33,8 @@ namespace CivClone.Presentation
         private Unit selectedUnit;
         private City selectedCity;
         private bool promotionSelectionOpen;
+        private bool techSelectionOpen;
+        private readonly System.Collections.Generic.List<string> availableTechs = new System.Collections.Generic.List<string>();
         private readonly System.Collections.Generic.List<string> availablePromotions = new System.Collections.Generic.List<string>();
 
         private readonly string[] productionOptions = { "scout", "worker", "settler" };
@@ -87,10 +92,22 @@ namespace CivClone.Presentation
                 TryBuildImprovement();
             }
 
+            if (Input.GetKeyDown(buildRoadKey))
+            {
+                TryBuildRoad();
+            }
+
             if (Input.GetKeyDown(cycleResearchKey))
             {
                 CycleResearch();
             }
+
+            if (Input.GetKeyDown(techPanelKey))
+            {
+                ToggleTechSelection();
+            }
+
+            HandleTechSelection();
 
             if (Input.GetKeyDown(promotionKey))
             {
@@ -229,6 +246,11 @@ private int GetMoveCost(GridPosition position)
             if (tile == null)
             {
                 return 1 + GetPromotionAttackBonus(unit);
+            }
+
+            if (tile.HasRoad)
+            {
+                return 1;
             }
 
             if (dataCatalog != null && dataCatalog.TryGetTerrainType(tile.TerrainId, out var terrain))
@@ -864,7 +886,7 @@ private int GetMoveCost(GridPosition position)
                 }
             }
 
-            hudController.SetResearchInfo($"Research: {techName} {player.ResearchProgress}/{cost} [R] Cycle");
+            hudController.SetResearchInfo($"Research: {techName} {player.ResearchProgress}/{cost} [T] Cycle [Y] Choose");
         }
 
 private void UpdateHudSelection(string warning = null)

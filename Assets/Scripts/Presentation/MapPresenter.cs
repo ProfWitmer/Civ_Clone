@@ -29,6 +29,7 @@ namespace CivClone.Presentation
         [SerializeField] private Transform tileRoot;
         [SerializeField] private Color defaultColor = new Color(0.23f, 0.56f, 0.27f);
         [SerializeField] private Color hillsColor = new Color(0.4f, 0.5f, 0.25f);
+        [SerializeField] private Color roadColor = new Color(0.75f, 0.65f, 0.45f, 0.9f);
 
         private readonly System.Collections.Generic.Dictionary<string, Sprite> tileSprites = new System.Collections.Generic.Dictionary<string, Sprite>();
         private readonly System.Collections.Generic.Dictionary<string, Material> tileMaterials = new System.Collections.Generic.Dictionary<string, Material>();
@@ -149,7 +150,14 @@ public void Render(CivClone.Simulation.WorldMap map, GameDataCatalog dataCatalog
 
             if (string.IsNullOrWhiteSpace(tile.ImprovementId))
             {
-                view.SetImprovement(Color.white, GetSortingOrder(tile.Position) + 1, false);
+                if (tile.HasRoad)
+                {
+                    view.SetImprovement(roadColor, GetSortingOrder(tile.Position) + 1, true);
+                }
+                else
+                {
+                    view.SetImprovement(Color.white, GetSortingOrder(tile.Position) + 1, false);
+                }
                 return;
             }
 

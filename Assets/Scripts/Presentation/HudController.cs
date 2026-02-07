@@ -16,6 +16,10 @@ namespace CivClone.Presentation
         private const string PromotionLabelName = "promotion-label";
         private const string PromotionDetailLabelName = "promotion-detail-label";
         private const string CombatLogLabelName = "combat-log-label";
+        private const string TechPanelName = "tech-panel";
+        private const string TechOption1Name = "tech-option1";
+        private const string TechOption2Name = "tech-option2";
+        private const string TechOption3Name = "tech-option3";
         private const string PromotionPanelName = "promotion-panel";
         private const string PromotionOption1Name = "promotion-option1";
         private const string PromotionOption2Name = "promotion-option2";
@@ -33,6 +37,10 @@ namespace CivClone.Presentation
         private Label promotionLabel;
         private Label promotionDetailLabel;
         private Label combatLogLabel;
+        private VisualElement techPanel;
+        private Label techOption1;
+        private Label techOption2;
+        private Label techOption3;
         private VisualElement promotionPanel;
         private Label promotionOption1;
         private Label promotionOption2;
@@ -58,6 +66,10 @@ namespace CivClone.Presentation
             promotionLabel = root.Q<Label>(PromotionLabelName);
             promotionDetailLabel = root.Q<Label>(PromotionDetailLabelName);
             combatLogLabel = root.Q<Label>(CombatLogLabelName);
+            techPanel = root.Q<VisualElement>(TechPanelName);
+            techOption1 = root.Q<Label>(TechOption1Name);
+            techOption2 = root.Q<Label>(TechOption2Name);
+            techOption3 = root.Q<Label>(TechOption3Name);
             promotionPanel = root.Q<VisualElement>(PromotionPanelName);
             promotionOption1 = root.Q<Label>(PromotionOption1Name);
             promotionOption2 = root.Q<Label>(PromotionOption2Name);
@@ -168,6 +180,29 @@ namespace CivClone.Presentation
             {
                 combatLogLabel.text = string.Join("\n", combatLog);
             }
+        }
+
+        public void ShowTechPanel(string option1, string option2, string option3)
+        {
+            if (techPanel == null)
+            {
+                return;
+            }
+
+            techPanel.style.display = DisplayStyle.Flex;
+            if (techOption1 != null) techOption1.text = option1;
+            if (techOption2 != null) techOption2.text = option2;
+            if (techOption3 != null) techOption3.text = option3;
+        }
+
+        public void HideTechPanel()
+        {
+            if (techPanel == null)
+            {
+                return;
+            }
+
+            techPanel.style.display = DisplayStyle.None;
         }
 
         public void ShowPromotionPanel(string option1, string option2, string option3)

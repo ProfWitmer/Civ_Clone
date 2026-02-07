@@ -139,7 +139,7 @@ private void AdvanceCities(Player player)
             bool improvementsCompleted = false;
             foreach (var unit in player.Units)
             {
-                if (unit.WorkRemaining <= 0 || string.IsNullOrWhiteSpace(unit.WorkTargetImprovementId))
+                if (unit.WorkRemaining <= 0 || (!unit.WorkTargetIsRoad && string.IsNullOrWhiteSpace(unit.WorkTargetImprovementId)))
                 {
                     continue;
                 }
@@ -161,8 +161,16 @@ private void AdvanceCities(Player player)
                     continue;
                 }
 
-                tile.ImprovementId = unit.WorkTargetImprovementId;
-                unit.WorkTargetImprovementId = string.Empty;
+                if (unit.WorkTargetIsRoad)
+                {
+                    tile.HasRoad = true;
+                    unit.WorkTargetIsRoad = false;
+                }
+                else
+                {
+                    tile.ImprovementId = unit.WorkTargetImprovementId;
+                    unit.WorkTargetImprovementId = string.Empty;
+                }
                 improvementsCompleted = true;
             }
 

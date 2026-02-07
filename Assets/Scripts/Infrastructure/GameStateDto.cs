@@ -33,7 +33,8 @@ namespace CivClone.Infrastructure
                     TerrainId = tile.TerrainId,
                     ImprovementId = tile.ImprovementId,
                     Explored = tile.Explored,
-                    Visible = tile.Visible
+                    Visible = tile.Visible,
+                    HasRoad = tile.HasRoad
                 });
             }
 
@@ -60,6 +61,7 @@ namespace CivClone.Infrastructure
                         Health = unit.Health,
                         MaxHealth = unit.MaxHealth,
                         WorkTargetImprovementId = unit.WorkTargetImprovementId,
+                        WorkTargetIsRoad = unit.WorkTargetIsRoad,
                         WorkTargetX = unit.WorkTargetPosition.X,
                         WorkTargetY = unit.WorkTargetPosition.Y,
                         Promotions = new System.Collections.Generic.List<string>(unit.Promotions)
@@ -106,7 +108,8 @@ namespace CivClone.Infrastructure
             {
                 ImprovementId = tile.ImprovementId,
                 Explored = tile.Explored,
-                Visible = tile.Visible
+                Visible = tile.Visible,
+                HasRoad = tile.HasRoad
             };
             map.Tiles.Add(newTile);
             }
@@ -136,6 +139,7 @@ namespace CivClone.Infrastructure
                     newUnit.Health = unit.Health;
                     newUnit.MaxHealth = unit.MaxHealth;
                     newUnit.WorkTargetImprovementId = unit.WorkTargetImprovementId;
+                    newUnit.WorkTargetIsRoad = unit.WorkTargetIsRoad;
                     newUnit.WorkTargetPosition = new GridPosition(unit.WorkTargetX, unit.WorkTargetY);
                     if (unit.Promotions != null)
                     {

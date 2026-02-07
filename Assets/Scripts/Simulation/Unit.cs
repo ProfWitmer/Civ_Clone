@@ -15,6 +15,7 @@ namespace CivClone.Simulation
         public int Health = 10;
         public System.Collections.Generic.List<string> Promotions = new System.Collections.Generic.List<string>();
         public string WorkTargetImprovementId;
+        public bool WorkTargetIsRoad;
         public GridPosition WorkTargetPosition;
 
         public Unit(string unitTypeId, GridPosition position, int movementPoints, int ownerId)
@@ -27,6 +28,7 @@ namespace CivClone.Simulation
             OwnerId = ownerId;
             Health = MaxHealth;
             WorkTargetImprovementId = string.Empty;
+            WorkTargetIsRoad = false;
             WorkTargetPosition = position;
         }
 
@@ -44,6 +46,15 @@ namespace CivClone.Simulation
         {
             WorkTargetPosition = position;
             WorkTargetImprovementId = improvementId ?? string.Empty;
+            WorkTargetIsRoad = false;
+            WorkRemaining = workCost;
+        }
+
+        public void StartRoadWork(GridPosition position, int workCost)
+        {
+            WorkTargetPosition = position;
+            WorkTargetImprovementId = string.Empty;
+            WorkTargetIsRoad = true;
             WorkRemaining = workCost;
         }
     }

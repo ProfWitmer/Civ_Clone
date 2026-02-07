@@ -10,6 +10,7 @@ namespace CivClone.Simulation
         public string ImprovementId;
         public bool Explored;
         public bool Visible;
+        public bool HasRoad;
 
         public Tile(GridPosition position, string terrainId)
         {
@@ -18,6 +19,7 @@ namespace CivClone.Simulation
             ImprovementId = string.Empty;
             Explored = false;
             Visible = false;
+            HasRoad = false;
         }
     }
 }
