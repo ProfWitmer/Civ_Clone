@@ -7,6 +7,7 @@ namespace CivClone.Presentation
     public sealed class UnitPresenter : MonoBehaviour
     {
         [SerializeField] private Color unitColor = new Color(0.2f, 0.6f, 0.95f);
+        [SerializeField] private Color damagedColor = new Color(0.8f, 0.25f, 0.2f);
         [SerializeField] private float unitScale = 0.6f;
 
         private readonly Dictionary<Unit, UnitView> unitViews = new Dictionary<Unit, UnitView>();
@@ -49,6 +50,26 @@ namespace CivClone.Presentation
                     view.Bind(unit);
 
                     unitViews[unit] = view;
+                    UpdateUnitVisual(unit);
+                }
+            }
+        }
+
+        public void UpdateUnitVisual(Unit unit)
+        {
+            if (unit == null)
+            {
+                return;
+            }
+
+            if (unitViews.TryGetValue(unit, out var view))
+            {
+                var renderer = view.GetComponent<SpriteRenderer>();
+                if (renderer != null)
+                {
+                    float max = Mathf.Max(1f, unit.MaxHealth);
+                    float healthPct = Mathf.Clamp01(unit.Health / max);
+                    renderer.color = Color.Lerp(damagedColor, unitColor, healthPct);
                 }
             }
         }
@@ -68,6 +89,7 @@ namespace CivClone.Presentation
                 {
                     renderer.sortingOrder = mapPresenter.GetSortingOrder(unit.Position) + 1;
                 }
+                UpdateUnitVisual(unit);
             }
         }
 

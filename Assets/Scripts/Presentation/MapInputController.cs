@@ -348,7 +348,8 @@ private int GetMoveCost(GridPosition position)
             if (attackRoll >= defenseRoll)
             {
                 defender.Health = Mathf.Max(0, defender.Health - damage);
-                UpdateHudSelection($"Hit for {damage}");
+                unitPresenter?.UpdateUnitVisual(defender);
+                hudController?.SetEventMessage($"Hit for {damage}");
                 if (defender.Health <= 0)
                 {
                     RemoveUnit(defender);
@@ -362,7 +363,8 @@ private int GetMoveCost(GridPosition position)
             else
             {
                 attacker.Health = Mathf.Max(0, attacker.Health - damage);
-                UpdateHudSelection($"Took {damage}");
+                unitPresenter?.UpdateUnitVisual(attacker);
+                hudController?.SetEventMessage($"Took {damage}");
                 if (attacker.Health <= 0)
                 {
                     RemoveUnit(attacker);

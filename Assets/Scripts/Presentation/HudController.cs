@@ -9,6 +9,7 @@ namespace CivClone.Presentation
     {
         private const string TurnLabelName = "turn-label";
         private const string SelectionLabelName = "selection-label";
+        private const string EventLabelName = "event-label";
         private const string EndTurnButtonName = "endturn-button";
         private const string CityLabelName = "city-label";
         private const string ProductionLabelName = "production-label";
@@ -19,12 +20,14 @@ namespace CivClone.Presentation
 
         private Label turnLabel;
         private Label selectionLabel;
+        private Label eventLabel;
         private Label cityLabel;
         private Label productionLabel;
         private Label researchLabel;
         private Button endTurnButton;
 
         private System.Action onEndTurn;
+        private Coroutine eventClearRoutine;
 
         private void Awake()
         {
@@ -33,6 +36,7 @@ namespace CivClone.Presentation
 
             turnLabel = root.Q<Label>(TurnLabelName);
             selectionLabel = root.Q<Label>(SelectionLabelName);
+            eventLabel = root.Q<Label>(EventLabelName);
             cityLabel = root.Q<Label>(CityLabelName);
             productionLabel = root.Q<Label>(ProductionLabelName);
             researchLabel = root.Q<Label>(ResearchLabelName);
@@ -62,6 +66,34 @@ namespace CivClone.Presentation
             {
                 selectionLabel.text = selection;
             }
+        }
+
+        public void SetEventMessage(string message, float duration = 2.5f)
+        {
+            if (eventLabel == null)
+            {
+                return;
+            }
+
+            eventLabel.text = message ?? string.Empty;
+            if (eventClearRoutine != null)
+            {
+                StopCoroutine(eventClearRoutine);
+            }
+            eventClearRoutine = StartCoroutine(ClearEventAfter(duration));
+        }
+
+        private System.Collections.IEnumerator ClearEventAfter(float duration)
+        {
+            if (duration > 0f)
+            {
+                yield return new WaitForSeconds(duration);
+            }
+            if (eventLabel != null)
+            {
+                eventLabel.text = string.Empty;
+            }
+            eventClearRoutine = null;
         }
 
         public void SetCityInfo(string cityInfo)
@@ -95,6 +127,10 @@ namespace CivClone.Presentation
             if (selectionLabel != null && string.IsNullOrEmpty(selectionLabel.text))
             {
                 selectionLabel.text = "Selection: None";
+            }
+            if (eventLabel != null && string.IsNullOrEmpty(eventLabel.text))
+            {
+                eventLabel.text = string.Empty;
             }
 
             if (cityLabel != null && string.IsNullOrEmpty(cityLabel.text))

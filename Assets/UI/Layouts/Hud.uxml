@@ -3,6 +3,7 @@
     <ui:VisualElement class="hud-root">
         <ui:Label name="turn-label" text="Turn 1 - Player 1" class="hud-title" />
         <ui:Label name="selection-label" text="Selection: None" class="hud-sub" />
+        <ui:Label name="event-label" text="" class="hud-sub hud-event" />
         <ui:Label name="city-label" text="City: None" class="hud-sub" />
         <ui:Label name="production-label" text="Production: None" class="hud-sub" />
         <ui:Label name="research-label" text="Research: None" class="hud-sub" />

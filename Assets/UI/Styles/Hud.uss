@@ -59,3 +59,8 @@
     background-color: rgba(0, 0, 0, 0.35);
     border-radius: 4px;
 }
+
+.hud-event {
+    color: rgb(250, 228, 150);
+    margin-bottom: 10px;
+}
