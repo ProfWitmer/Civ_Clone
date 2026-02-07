@@ -71,6 +71,8 @@ namespace CivClone.Presentation
                     float healthPct = Mathf.Clamp01(unit.Health / max);
                     renderer.color = Color.Lerp(damagedColor, unitColor, healthPct);
                 }
+
+                view.SetHealth(healthPct);
             }
         }
 
