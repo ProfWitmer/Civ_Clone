@@ -8,5 +8,6 @@ namespace CivClone.Infrastructure
         public string Id = "promotion";
         public string DisplayName = "Promotion";
         public string Description = "";
+        public string Requires = "";
     }
 }

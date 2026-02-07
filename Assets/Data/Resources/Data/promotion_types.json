@@ -9,7 +9,8 @@
     {
       "Id": "combat2",
       "DisplayName": "Combat II",
-      "Description": "+20% strength"
+      "Description": "+20% strength",
+      "Requires": "combat1"
     }
     {
       "Id": "drill1",

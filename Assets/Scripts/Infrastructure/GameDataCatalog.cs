@@ -218,6 +218,7 @@ namespace CivClone.Infrastructure
                     promotion.Id = definition.Id;
                     promotion.DisplayName = definition.DisplayName;
                     promotion.Description = definition.Description;
+                    promotion.Requires = definition.Requires;
                     promotionList.Add(promotion);
                 }
             }
