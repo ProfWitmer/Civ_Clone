@@ -12,5 +12,6 @@ namespace CivClone.Infrastructure
         public int Defense = 1;
         public int ProductionCost = 10;
         public int WorkCost = 2;
+        public int Range = 1;
     }
 }

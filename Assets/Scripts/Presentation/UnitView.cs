@@ -7,10 +7,48 @@ namespace CivClone.Presentation
     {
         public Unit Unit { get; private set; }
 
-        public void Bind(Unit unit)
+        public void Bind(Unit unit, SpriteRenderer renderer)
         {
             Unit = unit;
+            spriteRenderer = renderer;
+            baseLocalPosition = transform.localPosition;
             EnsureHealthBar();
+        }
+
+        public void PlayHit(Vector3 direction)
+        {
+            if (isAnimating)
+            {
+                return;
+            }
+
+            StartCoroutine(HitRoutine(direction));
+        }
+
+        private System.Collections.IEnumerator HitRoutine(Vector3 direction)
+        {
+            isAnimating = true;
+            if (spriteRenderer == null)
+            {
+                spriteRenderer = GetComponent<SpriteRenderer>();
+            }
+
+            var originalColor = spriteRenderer != null ? spriteRenderer.color : Color.white;
+            if (spriteRenderer != null)
+            {
+                spriteRenderer.color = Color.white;
+            }
+
+            Vector3 knock = direction.normalized * 0.1f;
+            transform.localPosition = baseLocalPosition + knock;
+            yield return new WaitForSeconds(0.12f);
+
+            transform.localPosition = baseLocalPosition;
+            if (spriteRenderer != null)
+            {
+                spriteRenderer.color = originalColor;
+            }
+            isAnimating = false;
         }
 
         public void SetHealth(float normalized)

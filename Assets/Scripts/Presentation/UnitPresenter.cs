@@ -47,7 +47,7 @@ namespace CivClone.Presentation
                     collider.size = new Vector2(1f, 1f);
 
                     var view = unitObject.AddComponent<UnitView>();
-                    view.Bind(unit);
+                    view.Bind(unit, renderer);
 
                     unitViews[unit] = view;
                     UpdateUnitVisual(unit);
@@ -73,6 +73,19 @@ namespace CivClone.Presentation
                 }
 
                 view.SetHealth(healthPct);
+            }
+        }
+
+        public void PlayHit(Unit unit, Vector3 direction)
+        {
+            if (unit == null)
+            {
+                return;
+            }
+
+            if (unitViews.TryGetValue(unit, out var view))
+            {
+                view.PlayHit(direction);
             }
         }
 

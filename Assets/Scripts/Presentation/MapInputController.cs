@@ -165,16 +165,21 @@ namespace CivClone.Presentation
             }
 
             int moveCost = GetMoveCost(tileView.Position);
-            if (moveCost >= 99)
+            int range = GetUnitRange(selectedUnit);
+            bool inRange = range > 1 && (Mathf.Abs(selectedUnit.Position.X - tileView.Position.X) + Mathf.Abs(selectedUnit.Position.Y - tileView.Position.Y)) <= range;
+            if (!inRange)
             {
-                UpdateHudSelection("Impassable terrain");
-                return;
-            }
+                if (moveCost >= 99)
+                {
+                    UpdateHudSelection("Impassable terrain");
+                    return;
+                }
 
-            if (selectedUnit.MovementRemaining < moveCost)
-            {
-                UpdateHudSelection("Insufficient movement");
-                return;
+                if (selectedUnit.MovementRemaining < moveCost)
+                {
+                    UpdateHudSelection("Insufficient movement");
+                    return;
+                }
             }
 
             var occupant = FindUnitAt(tileView.Position);
@@ -365,8 +370,9 @@ private int GetMoveCost(GridPosition position)
                 return;
             }
 
+            bool isRangedAttack = GetUnitRange(attacker) > 1 && (Mathf.Abs(attacker.Position.X - defender.Position.X) + Mathf.Abs(attacker.Position.Y - defender.Position.Y)) <= GetUnitRange(attacker);
             int attack = GetAttack(attacker);
-            int defense = GetDefense(defender);
+            int defense = GetDefense(defender, isRangedAttack);
             defense += GetDefenseBonus(defender.Position);
 
             int attackRoll = attack + Random.Range(0, 6);
@@ -385,8 +391,11 @@ private int GetMoveCost(GridPosition position)
                 if (defender.Health <= 0)
                 {
                     RemoveUnit(defender);
-                    attacker.Position = defender.Position;
-                    attacker.MovementRemaining = Mathf.Max(0, attacker.MovementRemaining - moveCost);
+                    if (!isRangedAttack)
+                    {
+                        attacker.Position = defender.Position;
+                        attacker.MovementRemaining = Mathf.Max(0, attacker.MovementRemaining - moveCost);
+                    }
                     unitPresenter.RenderUnits(state, mapPresenter);
                     SelectUnit(attacker);
                     UpdateHudSelection("Won combat");
@@ -458,7 +467,17 @@ private int GetMoveCost(GridPosition position)
             return bonus;
         }
 
-        private int GetPromotionDefenseBonus(Unit unit)
+        private int GetUnitRange(Unit unit)
+        {
+            if (dataCatalog != null && dataCatalog.TryGetUnitType(unit.UnitTypeId, out var unitType))
+            {
+                return Mathf.Max(1, unitType.Range);
+            }
+
+            return 1;
+        }
+
+        private int GetPromotionDefenseBonus(Unit unit, bool isRanged)
         {
             if (unit?.Promotions == null)
             {
@@ -477,13 +496,22 @@ private int GetMoveCost(GridPosition position)
                         bonus += 2;
                         break;
                     case "cover":
-                        bonus += 1;
+                        if (isRanged)
+                        {
+                            bonus += 1;
+                        }
                         break;
                 }
             }
 
             return bonus;
         }
+
+                private int GetPromotionDefenseBonus(Unit unit)
+        {
+            return GetPromotionDefenseBonus(unit, false);
+        }
+
 
         private int GetAttack(Unit unit)
         {
@@ -495,14 +523,14 @@ private int GetMoveCost(GridPosition position)
             return 1 + GetPromotionAttackBonus(unit);
         }
 
-        private int GetDefense(Unit unit)
+        private int GetDefense(Unit unit, bool isRanged)
         {
             if (dataCatalog != null && dataCatalog.TryGetUnitType(unit.UnitTypeId, out var unitType))
             {
-                return Mathf.Max(0, unitType.Defense) + GetPromotionDefenseBonus(unit);
+                return Mathf.Max(0, unitType.Defense) + GetPromotionDefenseBonus(unit, isRanged);
             }
 
-            return 1 + GetPromotionDefenseBonus(unit);
+            return 1 + GetPromotionDefenseBonus(unit, isRanged);
         }
 
         private void RemoveUnit(Unit unit)
