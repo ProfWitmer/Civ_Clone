@@ -122,6 +122,112 @@ namespace CivClone.Presentation
             popup.Initialize(text, color, sorting);
         }
 
+        private void TogglePromotionSelection()
+        {
+            if (promotionSelectionOpen)
+            {
+                promotionSelectionOpen = false;
+                hudController?.HidePromotionPanel();
+                return;
+            }
+
+            if (selectedUnit == null || dataCatalog == null || dataCatalog.PromotionTypes == null)
+            {
+                hudController?.SetEventMessage("No promotions available");
+                return;
+            }
+
+            availablePromotions.Clear();
+            foreach (var promo in dataCatalog.PromotionTypes)
+            {
+                if (promo == null || string.IsNullOrWhiteSpace(promo.Id))
+                {
+                    continue;
+                }
+
+                if (selectedUnit.Promotions.Contains(promo.Id))
+                {
+                    continue;
+                }
+
+                if (!string.IsNullOrWhiteSpace(promo.Requires) && !selectedUnit.Promotions.Contains(promo.Requires))
+                {
+                    continue;
+                }
+
+                availablePromotions.Add(promo.Id);
+                if (availablePromotions.Count >= 3)
+                {
+                    break;
+                }
+            }
+
+            if (availablePromotions.Count == 0)
+            {
+                hudController?.SetEventMessage("All promotions already granted");
+                return;
+            }
+
+            promotionSelectionOpen = true;
+            string option1 = GetPromotionOptionLabel(0, "[U]");
+            string option2 = GetPromotionOptionLabel(1, "[I]");
+            string option3 = GetPromotionOptionLabel(2, "[O]");
+            hudController?.ShowPromotionPanel(option1, option2, option3);
+        }
+
+        private string GetPromotionOptionLabel(int index, string hotkey)
+        {
+            if (index >= availablePromotions.Count)
+            {
+                return $"{hotkey} -";
+            }
+
+            string promoId = availablePromotions[index];
+            if (dataCatalog != null && dataCatalog.TryGetPromotionType(promoId, out var promo) && !string.IsNullOrWhiteSpace(promo.DisplayName))
+            {
+                string requires = string.Empty;
+                if (!string.IsNullOrWhiteSpace(promo.Requires))
+                {
+                    if (dataCatalog != null && dataCatalog.TryGetPromotionType(promo.Requires, out var req) && !string.IsNullOrWhiteSpace(req.DisplayName))
+                    {
+                        requires = $" (Req: {req.DisplayName})";
+                    }
+                    else
+                    {
+                        requires = $" (Req: {promo.Requires})";
+                    }
+                }
+
+                return $"{hotkey} {promo.DisplayName}{requires}";
+            }
+
+            return $"{hotkey} {promoId}";
+        }
+
+        private void HandlePromotionSelection()
+        {
+            if (!promotionSelectionOpen || selectedUnit == null)
+            {
+                return;
+            }
+
+            int count = Mathf.Min(promotionSelectKeys.Length, availablePromotions.Count);
+            for (int i = 0; i < count; i++)
+            {
+                if (Input.GetKeyDown(promotionSelectKeys[i]))
+                {
+                    string promoId = availablePromotions[i];
+                    selectedUnit.Promotions.Add(promoId);
+                    promotionSelectionOpen = false;
+                    hudController?.HidePromotionPanel();
+                    UpdateHudSelection();
+                    UpdatePromotionInfo();
+                    hudController?.SetEventMessage("Promotion granted");
+                    return;
+                }
+            }
+        }
+
         private void HandleClick()
         {
             Vector3 world = sceneCamera.ScreenToWorldPoint(Input.mousePosition);
@@ -217,13 +323,13 @@ private int GetMoveCost(GridPosition position)
         {
             if (state?.Map == null)
             {
-                return 1 + GetPromotionAttackBonus(unit);
+                return 1;
             }
 
             var tile = state.Map.GetTile(position.X, position.Y);
             if (tile == null)
             {
-                return 1 + GetPromotionAttackBonus(unit);
+                return 1;
             }
 
             if (dataCatalog != null && dataCatalog.TryGetTerrainType(tile.TerrainId, out var terrain))
@@ -231,264 +337,7 @@ private int GetMoveCost(GridPosition position)
                 return terrain.MovementCost <= 0 ? 99 : terrain.MovementCost;
             }
 
-            return 1 + GetPromotionAttackBonus(unit);
-        }
-
-        private void RunAiTurns()
-        {
-            if (state?.ActivePlayer == null)
-            {
-                return;
-            }
-
-            int safety = 0;
-            while (state.ActivePlayer != null && state.ActivePlayer.Id != humanPlayerId && safety < 10)
-            {
-                RunAiTurn(state.ActivePlayer);
-                turnSystem.EndTurn();
-                safety++;
-            }
-        }
-
-        private void RunAiTurn(Player aiPlayer)
-        {
-            if (aiPlayer == null)
-            {
-                return;
-            }
-
-            foreach (var unit in new List<Unit>(aiPlayer.Units))
-            {
-                if (unit.UnitTypeId == "settler" && !CityExistsAt(unit.Position))
-                {
-                    var city = new City($"City {aiPlayer.Cities.Count + 1}", unit.Position, aiPlayer.Id, 1);
-                    city.ProductionTargetId = productionOptions[0];
-                    city.ProductionCost = GetProductionCost(city.ProductionTargetId);
-                    aiPlayer.Cities.Add(city);
-                    aiPlayer.Units.Remove(unit);
-                    continue;
-                }
-
-                TryMoveUnitRandomly(unit);
-            }
-        }
-
-        private void TryMoveUnitRandomly(Unit unit)
-        {
-            if (unit == null || state?.Map == null)
-            {
-                return;
-            }
-
-            var directions = new[]
-            {
-                new GridPosition(1, 0),
-                new GridPosition(-1, 0),
-                new GridPosition(0, 1),
-                new GridPosition(0, -1)
-            };
-
-            var offset = directions[Random.Range(0, directions.Length)];
-            var target = new GridPosition(unit.Position.X + offset.X, unit.Position.Y + offset.Y);
-            var tile = state.Map.GetTile(target.X, target.Y);
-            if (tile == null)
-            {
-                return;
-            }
-
-            int moveCost = GetMoveCost(target);
-            if (unit.MovementRemaining < moveCost)
-            {
-                return;
-            }
-
-            var occupant = FindUnitAt(target);
-            if (occupant != null && occupant.OwnerId != unit.OwnerId)
-            {
-                ResolveCombat(unit, occupant, moveCost);
-                return;
-            }
-
-            if (occupant == null)
-            {
-                unit.Position = target;
-                unit.MovementRemaining = Mathf.Max(0, unit.MovementRemaining - moveCost);
-            }
-        }
-
-        private bool CityExistsAt(GridPosition position)
-        {
-            if (state?.Players == null)
-            {
-                return false;
-            }
-
-            foreach (var player in state.Players)
-            {
-                foreach (var city in player.Cities)
-                {
-                    if (city.Position.X == position.X && city.Position.Y == position.Y)
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
-        }
-
-        private Unit FindUnitAt(GridPosition position)
-        {
-            if (state?.Players == null)
-            {
-                return null;
-            }
-
-            foreach (var player in state.Players)
-            {
-                foreach (var unit in player.Units)
-                {
-                    if (unit.Position.X == position.X && unit.Position.Y == position.Y)
-                    {
-                        return unit;
-                    }
-                }
-            }
-
-            return null;
-        }
-
-        private void ResolveCombat(Unit attacker, Unit defender, int moveCost)
-        {
-            if (attacker == null || defender == null || state == null)
-            {
-                return;
-            }
-
-            int attack = GetAttack(attacker);
-            int defense = GetDefense(defender);
-            defense += GetDefenseBonus(defender.Position);
-
-            int attackRoll = attack + Random.Range(0, 6);
-            int defenseRoll = defense + Random.Range(0, 6);
-
-            int damage = Mathf.Clamp(attackRoll - defenseRoll + 1, 1, 6);
-            if (attackRoll >= defenseRoll)
-            {
-                int reduction = GetPromotionDamageReduction(defender);
-                int finalDamage = Mathf.Max(1, damage - reduction);
-                defender.Health = Mathf.Max(0, defender.Health - finalDamage);
-                unitPresenter?.UpdateUnitVisual(defender);
-                hudController?.SetEventMessage($"Hit for {finalDamage}");
-                SpawnCombatText(defender.Position, $"-{finalDamage}", new Color(0.95f, 0.4f, 0.2f));
-                if (defender.Health <= 0)
-                {
-                    RemoveUnit(defender);
-                    attacker.Position = defender.Position;
-                    attacker.MovementRemaining = Mathf.Max(0, attacker.MovementRemaining - moveCost);
-                    unitPresenter.RenderUnits(state, mapPresenter);
-                    SelectUnit(attacker);
-                    UpdateHudSelection("Won combat");
-                }
-            }
-            else
-            {
-                int reduction = GetPromotionDamageReduction(attacker);
-                int finalDamage = Mathf.Max(1, damage - reduction);
-                attacker.Health = Mathf.Max(0, attacker.Health - finalDamage);
-                unitPresenter?.UpdateUnitVisual(attacker);
-                hudController?.SetEventMessage($"Took {finalDamage}");
-                SpawnCombatText(attacker.Position, $"-{finalDamage}", new Color(0.9f, 0.2f, 0.2f));
-                if (attacker.Health <= 0)
-                {
-                    RemoveUnit(attacker);
-                    selectedUnit = null;
-                    unitPresenter.RenderUnits(state, mapPresenter);
-                    UpdateHudSelection("Lost combat");
-                }
-            }
-        }
-
-        private int GetPromotionDamageReduction(Unit unit)
-        {
-            if (unit?.Promotions == null)
-            {
-                return 0;
-            }
-
-            int reduction = 0;
-            foreach (var promo in unit.Promotions)
-            {
-                switch (promo)
-                {
-                    case "drill1":
-                        reduction += 1;
-                        break;
-                }
-            }
-
-            return reduction;
-        }
-
-        private int GetPromotionAttackBonus(Unit unit)
-        {
-            if (unit?.Promotions == null)
-            {
-                return 0;
-            }
-
-            int bonus = 0;
-            foreach (var promo in unit.Promotions)
-            {
-                switch (promo)
-                {
-                    case "combat1":
-                        bonus += 1;
-                        break;
-                    case "combat2":
-                        bonus += 2;
-                        break;
-                }
-            }
-
-            return bonus;
-        }
-
-        private int GetPromotionDefenseBonus(Unit unit)
-        {
-            if (unit?.Promotions == null)
-            {
-                return 0;
-            }
-
-            int bonus = 0;
-            foreach (var promo in unit.Promotions)
-            {
-                switch (promo)
-                {
-                    case "combat1":
-                        bonus += 1;
-                        break;
-                    case "combat2":
-                        bonus += 2;
-                        break;
-                    case "cover":
-                        bonus += 1;
-                        break;
-                }
-            }
-
-            return bonus;
-        }
-
-        private int GetAttack(Unit unit)
-        {
-            if (dataCatalog != null && dataCatalog.TryGetUnitType(unit.UnitTypeId, out var unitType))
-            {
-                return Mathf.Max(0, unitType.Attack) + GetPromotionAttackBonus(unit);
-            }
-
-            return 1 + GetPromotionAttackBonus(unit);
+            return 1;
         }
 
         private int GetDefense(Unit unit)
