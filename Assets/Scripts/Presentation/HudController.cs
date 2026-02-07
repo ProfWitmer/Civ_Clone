@@ -15,6 +15,7 @@ namespace CivClone.Presentation
         private const string ProductionLabelName = "production-label";
         private const string PromotionLabelName = "promotion-label";
         private const string PromotionDetailLabelName = "promotion-detail-label";
+        private const string CombatLogLabelName = "combat-log-label";
         private const string PromotionPanelName = "promotion-panel";
         private const string PromotionOption1Name = "promotion-option1";
         private const string PromotionOption2Name = "promotion-option2";
@@ -31,6 +32,7 @@ namespace CivClone.Presentation
         private Label productionLabel;
         private Label promotionLabel;
         private Label promotionDetailLabel;
+        private Label combatLogLabel;
         private VisualElement promotionPanel;
         private Label promotionOption1;
         private Label promotionOption2;
@@ -40,6 +42,8 @@ namespace CivClone.Presentation
 
         private System.Action onEndTurn;
         private Coroutine eventClearRoutine;
+        private readonly System.Collections.Generic.List<string> combatLog = new System.Collections.Generic.List<string>();
+        private const int CombatLogMax = 6;
 
         private void Awake()
         {
@@ -53,6 +57,7 @@ namespace CivClone.Presentation
             productionLabel = root.Q<Label>(ProductionLabelName);
             promotionLabel = root.Q<Label>(PromotionLabelName);
             promotionDetailLabel = root.Q<Label>(PromotionDetailLabelName);
+            combatLogLabel = root.Q<Label>(CombatLogLabelName);
             promotionPanel = root.Q<VisualElement>(PromotionPanelName);
             promotionOption1 = root.Q<Label>(PromotionOption1Name);
             promotionOption2 = root.Q<Label>(PromotionOption2Name);
@@ -143,6 +148,25 @@ namespace CivClone.Presentation
             if (promotionDetailLabel != null)
             {
                 promotionDetailLabel.text = detail;
+            }
+        }
+
+        public void LogCombat(string entry)
+        {
+            if (string.IsNullOrWhiteSpace(entry))
+            {
+                return;
+            }
+
+            combatLog.Add(entry);
+            if (combatLog.Count > CombatLogMax)
+            {
+                combatLog.RemoveAt(0);
+            }
+
+            if (combatLogLabel != null)
+            {
+                combatLogLabel.text = string.Join("\n", combatLog);
             }
         }
 

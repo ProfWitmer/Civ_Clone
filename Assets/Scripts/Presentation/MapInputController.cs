@@ -380,6 +380,7 @@ private int GetMoveCost(GridPosition position)
                 defender.Health = Mathf.Max(0, defender.Health - finalDamage);
                 unitPresenter?.UpdateUnitVisual(defender);
                 hudController?.SetEventMessage($"Hit for {finalDamage}");
+                hudController?.LogCombat($"{attacker.UnitTypeId} hit {defender.UnitTypeId} for {finalDamage}");
                 SpawnCombatText(defender.Position, $"-{finalDamage}", new Color(0.95f, 0.4f, 0.2f));
                 if (defender.Health <= 0)
                 {
@@ -389,6 +390,7 @@ private int GetMoveCost(GridPosition position)
                     unitPresenter.RenderUnits(state, mapPresenter);
                     SelectUnit(attacker);
                     UpdateHudSelection("Won combat");
+                    hudController?.LogCombat($"{defender.UnitTypeId} defeated");
                 }
             }
             else
@@ -398,6 +400,7 @@ private int GetMoveCost(GridPosition position)
                 attacker.Health = Mathf.Max(0, attacker.Health - finalDamage);
                 unitPresenter?.UpdateUnitVisual(attacker);
                 hudController?.SetEventMessage($"Took {finalDamage}");
+                hudController?.LogCombat($"{attacker.UnitTypeId} took {finalDamage} from {defender.UnitTypeId}");
                 SpawnCombatText(attacker.Position, $"-{finalDamage}", new Color(0.9f, 0.2f, 0.2f));
                 if (attacker.Health <= 0)
                 {
@@ -405,6 +408,7 @@ private int GetMoveCost(GridPosition position)
                     selectedUnit = null;
                     unitPresenter.RenderUnits(state, mapPresenter);
                     UpdateHudSelection("Lost combat");
+                    hudController?.LogCombat($"{attacker.UnitTypeId} defeated");
                 }
             }
         }

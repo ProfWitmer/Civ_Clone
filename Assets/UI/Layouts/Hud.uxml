@@ -19,6 +19,10 @@
             <ui:Label name="promotion-option2" text="[I] -" class="hud-sub" />
             <ui:Label name="promotion-option3" text="[O] -" class="hud-sub" />
         </ui:VisualElement>
+                <ui:VisualElement name="combat-log" class="hud-panel">
+            <ui:Label text="Combat Log" class="hud-title" />
+            <ui:Label name="combat-log-label" text="" class="hud-sub" />
+        </ui:VisualElement>
         <ui:Button name="endturn-button" text="End Turn" class="hud-button" />
     </ui:VisualElement>
 </ui:UXML>
