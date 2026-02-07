@@ -86,7 +86,8 @@ namespace CivClone.Infrastructure
                         FoodPerTurn = city.FoodPerTurn,
                         ProductionPerTurn = city.ProductionPerTurn,
                         ProductionTargetId = city.ProductionTargetId,
-                        ProductionCost = city.ProductionCost
+                        ProductionCost = city.ProductionCost,
+                        ProductionQueue = new System.Collections.Generic.List<string>(city.ProductionQueue)
                     });
                 }
 
@@ -154,7 +155,8 @@ namespace CivClone.Infrastructure
                         FoodPerTurn = city.FoodPerTurn,
                         ProductionPerTurn = city.ProductionPerTurn,
                         ProductionTargetId = city.ProductionTargetId,
-                        ProductionCost = city.ProductionCost
+                        ProductionCost = city.ProductionCost,
+                        ProductionQueue = new System.Collections.Generic.List<string>(city.ProductionQueue)
                     };
                     player.Cities.Add(newCity);
                 }
@@ -220,6 +222,7 @@ namespace CivClone.Infrastructure
             public int ProductionPerTurn;
             public string ProductionTargetId;
             public int ProductionCost;
+            public System.Collections.Generic.List<string> ProductionQueue = new System.Collections.Generic.List<string>();
         }
     }
 }

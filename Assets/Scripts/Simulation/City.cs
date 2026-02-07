@@ -16,6 +16,7 @@ namespace CivClone.Simulation
         public int FoodPerTurn = 1;
         public int ProductionPerTurn = 1;
         public string ProductionTargetId = "scout";
+        public System.Collections.Generic.List<string> ProductionQueue = new System.Collections.Generic.List<string>();
         public int ProductionCost = 10;
 
         public City(string name, GridPosition position, int ownerId, int population)

@@ -583,7 +583,28 @@ private int GetMoveCost(GridPosition position)
                 targetName = unitType.DisplayName;
             }
             string optionsHint = productionOptions.Length >= 3 ? "[1-3] Select" : "";
-            hudController.SetProductionInfo($"Production: {targetName} {selectedCity.ProductionStored}/{selectedCity.ProductionCost} (+{selectedCity.ProductionPerTurn}) {turns}t [P] Cycle {optionsHint}");
+            string queueInfo = string.Empty;
+            if (selectedCity.ProductionQueue != null && selectedCity.ProductionQueue.Count > 0)
+            {
+                queueInfo = " Queue: " + string.Join(", ", selectedCity.ProductionQueue);
+            }
+            hudController.SetProductionInfo($"Production: {targetName} {selectedCity.ProductionStored}/{selectedCity.ProductionCost} (+{selectedCity.ProductionPerTurn}) {turns}t [P] Cycle {optionsHint}{queueInfo}");
+        }
+
+        private void EnqueueProduction(string unitTypeId)
+        {
+            if (selectedCity == null || string.IsNullOrWhiteSpace(unitTypeId))
+            {
+                return;
+            }
+
+            if (selectedCity.ProductionQueue == null)
+            {
+                selectedCity.ProductionQueue = new System.Collections.Generic.List<string>();
+            }
+
+            selectedCity.ProductionQueue.Add(unitTypeId);
+            UpdateCityInfo();
         }
 
         private void SetCityProductionByIndex(int index)
@@ -605,8 +626,18 @@ private int GetMoveCost(GridPosition position)
                 return;
             }
 
+            if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
+            {
+                EnqueueProduction(candidate);
+                return;
+            }
+
             selectedCity.ProductionTargetId = candidate;
             selectedCity.ProductionCost = GetProductionCost(candidate);
+            if (selectedCity.ProductionQueue != null)
+            {
+                selectedCity.ProductionQueue.Clear();
+            }
             UpdateCityInfo();
         }
 
@@ -633,8 +664,18 @@ private int GetMoveCost(GridPosition position)
                 string candidate = productionOptions[idx];
                 if (dataCatalog == null || dataCatalog.TryGetUnitType(candidate, out _))
                 {
+                    if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
+                    {
+                        EnqueueProduction(candidate);
+                        return;
+                    }
+
                     selectedCity.ProductionTargetId = candidate;
                     selectedCity.ProductionCost = GetProductionCost(candidate);
+                    if (selectedCity.ProductionQueue != null)
+                    {
+                        selectedCity.ProductionQueue.Clear();
+                    }
                     break;
                 }
             }

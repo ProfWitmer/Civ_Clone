@@ -179,6 +179,61 @@ private void AdvanceCities(Player player)
                 return;
             }
 
+            string targetId = city.ProductionTargetId;
+            if (city.ProductionQueue != null && city.ProductionQueue.Count > 0)
+            {
+                targetId = city.ProductionQueue[0];
+            }
+
+            if (string.IsNullOrWhiteSpace(targetId))
+            {
+                return;
+            }
+
+            if (catalog != null && catalog.TryGetUnitType(targetId, out var unitType))
+            {
+                city.ProductionCost = unitType.ProductionCost;
+            }
+
+            if (city.ProductionStored < city.ProductionCost)
+            {
+                return;
+            }
+
+            foreach (var unit in player.Units)
+            {
+                if (unit.Position.X == city.Position.X && unit.Position.Y == city.Position.Y)
+                {
+                    return;
+                }
+            }
+
+            int movement = 2;
+            if (catalog != null && catalog.TryGetUnitType(targetId, out var unitType2))
+            {
+                movement = unitType2.MovementPoints;
+            }
+
+            city.ProductionStored -= city.ProductionCost;
+            var newUnit = new Unit(targetId, city.Position, movement, player.Id);
+            newUnit.Health = newUnit.MaxHealth;
+            player.Units.Add(newUnit);
+
+            if (city.ProductionQueue != null && city.ProductionQueue.Count > 0)
+            {
+                city.ProductionQueue.RemoveAt(0);
+            }
+
+            if (city.ProductionQueue != null && city.ProductionQueue.Count > 0)
+            {
+                city.ProductionTargetId = city.ProductionQueue[0];
+                if (catalog != null && catalog.TryGetUnitType(city.ProductionTargetId, out var nextType))
+                {
+                    city.ProductionCost = nextType.ProductionCost;
+                }
+            }
+        }
+
             if (city.ProductionStored < city.ProductionCost || string.IsNullOrWhiteSpace(city.ProductionTargetId))
             {
                 return;
