@@ -106,7 +106,8 @@ namespace CivClone.Infrastructure
         public void LoadFromDefinitions(IEnumerable<TerrainTypeDefinition> terrainDefinitions,
             IEnumerable<UnitTypeDefinition> unitDefinitions,
             IEnumerable<ImprovementTypeDefinition> improvementDefinitions,
-            IEnumerable<TechTypeDefinition> techDefinitions)
+            IEnumerable<TechTypeDefinition> techDefinitions,
+            IEnumerable<PromotionTypeDefinition> promotionDefinitions)
         {
             var terrainList = new List<TerrainType>();
             if (terrainDefinitions != null)
@@ -202,6 +203,24 @@ namespace CivClone.Infrastructure
                 ImprovementTypes = improvementList.ToArray();
             }
 
+
+            var promotionList = new List<PromotionType>();
+            if (promotionDefinitions != null)
+            {
+                foreach (var definition in promotionDefinitions)
+                {
+                    if (definition == null || string.IsNullOrWhiteSpace(definition.Id))
+                    {
+                        continue;
+                    }
+
+                    var promotion = ScriptableObject.CreateInstance<PromotionType>();
+                    promotion.Id = definition.Id;
+                    promotion.DisplayName = definition.DisplayName;
+                    promotion.Description = definition.Description;
+                    promotionList.Add(promotion);
+                }
+            }
             if (techList.Count > 0)
             {
                 TechTypes = techList.ToArray();

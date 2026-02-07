@@ -11,11 +11,13 @@ namespace CivClone.Infrastructure.Data
         private const string UnitResourcePath = "Data/unit_types";
         private const string ImprovementResourcePath = "Data/improvement_types";
         private const string TechResourcePath = "Data/tech_types";
+        private const string PromotionResourcePath = "Data/promotion_types";
 
         private const string TerrainCsvResourcePath = "Csv/terrain_types";
         private const string UnitCsvResourcePath = "Csv/unit_types";
         private const string ImprovementCsvResourcePath = "Csv/improvement_types";
         private const string TechCsvResourcePath = "Csv/tech_types";
+        private const string PromotionCsvResourcePath = "Csv/promotion_types";
 
         public bool TryLoadFromResources(GameDataCatalog catalog)
         {
@@ -29,13 +31,14 @@ namespace CivClone.Infrastructure.Data
             var unitDefinitions = LoadUnitDefinitions(dataLoader);
             var improvementDefinitions = LoadImprovementDefinitions(dataLoader);
             var techDefinitions = LoadTechDefinitions(dataLoader);
+            var promotionDefinitions = LoadPromotionDefinitions(dataLoader);
 
-            if (terrainDefinitions.Count == 0 && unitDefinitions.Count == 0 && improvementDefinitions.Count == 0 && techDefinitions.Count == 0)
+            if (terrainDefinitions.Count == 0 && unitDefinitions.Count == 0 && improvementDefinitions.Count == 0 && techDefinitions.Count == 0 && promotionDefinitions.Count == 0)
             {
                 return false;
             }
 
-            catalog.LoadFromDefinitions(terrainDefinitions, unitDefinitions, improvementDefinitions, techDefinitions);
+            catalog.LoadFromDefinitions(terrainDefinitions, unitDefinitions, improvementDefinitions, techDefinitions, promotionDefinitions);
             return true;
         }
 

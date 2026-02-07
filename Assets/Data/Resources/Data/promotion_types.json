@@ -1,0 +1,19 @@
+{
+  "Items": [
+    {
+      "Id": "combat1",
+      "DisplayName": "Combat I",
+      "Description": "+10% strength"
+    },
+    {
+      "Id": "drill1",
+      "DisplayName": "Drill I",
+      "Description": "+1 first strike"
+    },
+    {
+      "Id": "cover",
+      "DisplayName": "Cover",
+      "Description": "+25% vs ranged"
+    }
+  ]
+}
