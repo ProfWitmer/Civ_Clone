@@ -15,6 +15,7 @@ namespace CivClone.Presentation
         [SerializeField] private KeyCode buildImprovementKey = KeyCode.B;
         [SerializeField] private KeyCode cycleResearchKey = KeyCode.R;
         [SerializeField] private KeyCode promotionKey = KeyCode.U;
+        [SerializeField] private KeyCode[] promotionSelectKeys = { KeyCode.U, KeyCode.I, KeyCode.O };
         [SerializeField] private int humanPlayerId = 0;
 
         private GameState state;
@@ -28,6 +29,8 @@ namespace CivClone.Presentation
         private Map.IsometricTileHighlighter tileHighlighter;
         private Unit selectedUnit;
         private City selectedCity;
+        private bool promotionSelectionOpen;
+        private readonly System.Collections.Generic.List<string> availablePromotions = new System.Collections.Generic.List<string>();
 
         private readonly string[] productionOptions = { "scout", "worker", "settler" };
         private readonly string[] improvementOptions = { "farm", "mine" };
@@ -91,8 +94,10 @@ namespace CivClone.Presentation
 
             if (Input.GetKeyDown(promotionKey))
             {
-                GrantTestPromotion();
+                TogglePromotionSelection();
             }
+
+            HandlePromotionSelection();
 
             if (Input.GetKeyDown(endTurnKey))
             {

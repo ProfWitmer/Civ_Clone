@@ -15,6 +15,10 @@ namespace CivClone.Presentation
         private const string ProductionLabelName = "production-label";
         private const string PromotionLabelName = "promotion-label";
         private const string PromotionDetailLabelName = "promotion-detail-label";
+        private const string PromotionPanelName = "promotion-panel";
+        private const string PromotionOption1Name = "promotion-option1";
+        private const string PromotionOption2Name = "promotion-option2";
+        private const string PromotionOption3Name = "promotion-option3";
         private const string ResearchLabelName = "research-label";
 
         private GameState state;
@@ -27,6 +31,10 @@ namespace CivClone.Presentation
         private Label productionLabel;
         private Label promotionLabel;
         private Label promotionDetailLabel;
+        private VisualElement promotionPanel;
+        private Label promotionOption1;
+        private Label promotionOption2;
+        private Label promotionOption3;
         private Label researchLabel;
         private Button endTurnButton;
 
@@ -45,6 +53,10 @@ namespace CivClone.Presentation
             productionLabel = root.Q<Label>(ProductionLabelName);
             promotionLabel = root.Q<Label>(PromotionLabelName);
             promotionDetailLabel = root.Q<Label>(PromotionDetailLabelName);
+            promotionPanel = root.Q<VisualElement>(PromotionPanelName);
+            promotionOption1 = root.Q<Label>(PromotionOption1Name);
+            promotionOption2 = root.Q<Label>(PromotionOption2Name);
+            promotionOption3 = root.Q<Label>(PromotionOption3Name);
             researchLabel = root.Q<Label>(ResearchLabelName);
             endTurnButton = root.Q<Button>(EndTurnButtonName);
 
@@ -132,6 +144,29 @@ namespace CivClone.Presentation
             {
                 promotionDetailLabel.text = detail;
             }
+        }
+
+        public void ShowPromotionPanel(string option1, string option2, string option3)
+        {
+            if (promotionPanel == null)
+            {
+                return;
+            }
+
+            promotionPanel.style.display = DisplayStyle.Flex;
+            if (promotionOption1 != null) promotionOption1.text = option1;
+            if (promotionOption2 != null) promotionOption2.text = option2;
+            if (promotionOption3 != null) promotionOption3.text = option3;
+        }
+
+        public void HidePromotionPanel()
+        {
+            if (promotionPanel == null)
+            {
+                return;
+            }
+
+            promotionPanel.style.display = DisplayStyle.None;
         }
 
         public void SetResearchInfo(string researchInfo)

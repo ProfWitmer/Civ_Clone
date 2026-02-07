@@ -13,6 +13,12 @@
             <ui:Label text="Minimap" class="hud-minimap-title" />
             <ui:Image name="minimap-image" class="hud-minimap-image" />
         </ui:VisualElement>
+                <ui:VisualElement name="promotion-panel" class="hud-panel" style="display: none;">
+            <ui:Label name="promotion-panel-title" text="Choose Promotion" class="hud-title" />
+            <ui:Label name="promotion-option1" text="[U] -" class="hud-sub" />
+            <ui:Label name="promotion-option2" text="[I] -" class="hud-sub" />
+            <ui:Label name="promotion-option3" text="[O] -" class="hud-sub" />
+        </ui:VisualElement>
         <ui:Button name="endturn-button" text="End Turn" class="hud-button" />
     </ui:VisualElement>
 </ui:UXML>
