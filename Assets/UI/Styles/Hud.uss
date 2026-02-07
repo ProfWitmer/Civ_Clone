@@ -64,3 +64,8 @@
     color: rgb(250, 228, 150);
     margin-bottom: 10px;
 }
+
+.hud-detail {
+    color: rgba(236, 239, 228, 0.75);
+    margin-bottom: 8px;
+}

@@ -800,6 +800,7 @@ private void UpdateHudSelection(string warning = null)
             {
                 hudController.SetSelection("Selection: None");
                 hudController.SetPromotionInfo("Promotions: None");
+                hudController.SetPromotionDetail(string.Empty);
                 return;
             }
 

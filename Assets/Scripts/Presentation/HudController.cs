@@ -14,6 +14,7 @@ namespace CivClone.Presentation
         private const string CityLabelName = "city-label";
         private const string ProductionLabelName = "production-label";
         private const string PromotionLabelName = "promotion-label";
+        private const string PromotionDetailLabelName = "promotion-detail-label";
         private const string ResearchLabelName = "research-label";
 
         private GameState state;
@@ -25,6 +26,7 @@ namespace CivClone.Presentation
         private Label cityLabel;
         private Label productionLabel;
         private Label promotionLabel;
+        private Label promotionDetailLabel;
         private Label researchLabel;
         private Button endTurnButton;
 
@@ -42,6 +44,7 @@ namespace CivClone.Presentation
             cityLabel = root.Q<Label>(CityLabelName);
             productionLabel = root.Q<Label>(ProductionLabelName);
             promotionLabel = root.Q<Label>(PromotionLabelName);
+            promotionDetailLabel = root.Q<Label>(PromotionDetailLabelName);
             researchLabel = root.Q<Label>(ResearchLabelName);
             endTurnButton = root.Q<Button>(EndTurnButtonName);
 
@@ -123,6 +126,14 @@ namespace CivClone.Presentation
             }
         }
 
+        public void SetPromotionDetail(string detail)
+        {
+            if (promotionDetailLabel != null)
+            {
+                promotionDetailLabel.text = detail;
+            }
+        }
+
         public void SetResearchInfo(string researchInfo)
         {
             if (researchLabel != null)
@@ -157,6 +168,11 @@ namespace CivClone.Presentation
             if (promotionLabel != null && string.IsNullOrEmpty(promotionLabel.text))
             {
                 promotionLabel.text = "Promotions: None";
+            }
+
+            if (promotionDetailLabel != null && string.IsNullOrEmpty(promotionDetailLabel.text))
+            {
+                promotionDetailLabel.text = string.Empty;
             }
 
             if (researchLabel != null && string.IsNullOrEmpty(researchLabel.text))
