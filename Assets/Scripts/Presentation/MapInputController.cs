@@ -94,6 +94,23 @@ namespace CivClone.Presentation
             }
         }
 
+        private void SpawnCombatText(GridPosition position, string text, Color color)
+        {
+            if (mapPresenter == null)
+            {
+                return;
+            }
+
+            var world = mapPresenter.GridToWorld(position) + new Vector3(0f, 0.2f, -0.2f);
+            var obj = new GameObject("CombatText");
+            obj.transform.SetParent(mapPresenter.transform, false);
+            obj.transform.position = world;
+
+            var popup = obj.AddComponent<CombatTextPopup>();
+            int sorting = mapPresenter.GetSortingOrder(position) + 5;
+            popup.Initialize(text, color, sorting);
+        }
+
         private void HandleClick()
         {
             Vector3 world = sceneCamera.ScreenToWorldPoint(Input.mousePosition);
@@ -350,6 +367,7 @@ private int GetMoveCost(GridPosition position)
                 defender.Health = Mathf.Max(0, defender.Health - damage);
                 unitPresenter?.UpdateUnitVisual(defender);
                 hudController?.SetEventMessage($"Hit for {damage}");
+                SpawnCombatText(defender.Position, $"-{damage}", new Color(0.95f, 0.4f, 0.2f));
                 if (defender.Health <= 0)
                 {
                     RemoveUnit(defender);
@@ -365,6 +383,7 @@ private int GetMoveCost(GridPosition position)
                 attacker.Health = Mathf.Max(0, attacker.Health - damage);
                 unitPresenter?.UpdateUnitVisual(attacker);
                 hudController?.SetEventMessage($"Took {damage}");
+                SpawnCombatText(attacker.Position, $"-{damage}", new Color(0.9f, 0.2f, 0.2f));
                 if (attacker.Health <= 0)
                 {
                     RemoveUnit(attacker);
