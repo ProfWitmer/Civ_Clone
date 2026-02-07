@@ -1,4 +1,4 @@
 Id,DisplayName,Description
 combat1,Combat I,+10% strength
-drill1,Drill I,+1 first strike
+drill1,Drill I,-1 damage taken
 cover,Cover,+25% vs ranged

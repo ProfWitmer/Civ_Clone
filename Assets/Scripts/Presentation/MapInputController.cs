@@ -370,10 +370,12 @@ private int GetMoveCost(GridPosition position)
             int damage = Mathf.Clamp(attackRoll - defenseRoll + 1, 1, 6);
             if (attackRoll >= defenseRoll)
             {
-                defender.Health = Mathf.Max(0, defender.Health - damage);
+                int reduction = GetPromotionDamageReduction(defender);
+                int finalDamage = Mathf.Max(1, damage - reduction);
+                defender.Health = Mathf.Max(0, defender.Health - finalDamage);
                 unitPresenter?.UpdateUnitVisual(defender);
-                hudController?.SetEventMessage($"Hit for {damage}");
-                SpawnCombatText(defender.Position, $"-{damage}", new Color(0.95f, 0.4f, 0.2f));
+                hudController?.SetEventMessage($"Hit for {finalDamage}");
+                SpawnCombatText(defender.Position, $"-{finalDamage}", new Color(0.95f, 0.4f, 0.2f));
                 if (defender.Health <= 0)
                 {
                     RemoveUnit(defender);
@@ -386,10 +388,12 @@ private int GetMoveCost(GridPosition position)
             }
             else
             {
-                attacker.Health = Mathf.Max(0, attacker.Health - damage);
+                int reduction = GetPromotionDamageReduction(attacker);
+                int finalDamage = Mathf.Max(1, damage - reduction);
+                attacker.Health = Mathf.Max(0, attacker.Health - finalDamage);
                 unitPresenter?.UpdateUnitVisual(attacker);
-                hudController?.SetEventMessage($"Took {damage}");
-                SpawnCombatText(attacker.Position, $"-{damage}", new Color(0.9f, 0.2f, 0.2f));
+                hudController?.SetEventMessage($"Took {finalDamage}");
+                SpawnCombatText(attacker.Position, $"-{finalDamage}", new Color(0.9f, 0.2f, 0.2f));
                 if (attacker.Health <= 0)
                 {
                     RemoveUnit(attacker);
@@ -398,6 +402,27 @@ private int GetMoveCost(GridPosition position)
                     UpdateHudSelection("Lost combat");
                 }
             }
+        }
+
+        private int GetPromotionDamageReduction(Unit unit)
+        {
+            if (unit?.Promotions == null)
+            {
+                return 0;
+            }
+
+            int reduction = 0;
+            foreach (var promo in unit.Promotions)
+            {
+                switch (promo)
+                {
+                    case "drill1":
+                        reduction += 1;
+                        break;
+                }
+            }
+
+            return reduction;
         }
 
         private int GetPromotionAttackBonus(Unit unit)
