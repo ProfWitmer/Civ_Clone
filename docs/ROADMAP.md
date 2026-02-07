@@ -58,3 +58,4 @@
 
 - 2026-02-07: Phase 2 complete (units, cities, improvements, combat, promotions, roads, tech selection).
 - 2026-02-07: Phase 3 started - tech prerequisites, civics scaffold, resources and simple trade routes.
+- 2026-02-07: Phase 4 started - basic AI production/research/worker actions and war declarations on combat.
