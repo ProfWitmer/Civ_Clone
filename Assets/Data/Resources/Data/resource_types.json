@@ -1,22 +1,31 @@
 {
-  Items: [
+  "Items": [
     {
-      Id: wheat,
-      DisplayName: Wheat,
-      Category: Bonus,
-      Color: { r: 0.9, g: 0.8, b: 0.2, a: 1.0 }
+      "Id": "wheat",
+      "DisplayName": "Wheat",
+      "Category": "Bonus",
+      "FoodBonus": 1,
+      "ProductionBonus": 0,
+      "ScienceBonus": 0,
+      "Color": { "r": 0.9, "g": 0.8, "b": 0.2, "a": 1.0 }
     },
     {
-      Id: iron,
-      DisplayName: Iron,
-      Category: Strategic,
-      Color: { r: 0.6, g: 0.6, b: 0.6, a: 1.0 }
+      "Id": "iron",
+      "DisplayName": "Iron",
+      "Category": "Strategic",
+      "FoodBonus": 0,
+      "ProductionBonus": 1,
+      "ScienceBonus": 0,
+      "Color": { "r": 0.6, "g": 0.6, "b": 0.6, "a": 1.0 }
     },
     {
-      Id: fish,
-      DisplayName: Fish,
-      Category: Bonus,
-      Color: { r: 0.2, g: 0.6, b: 0.9, a: 1.0 }
+      "Id": "fish",
+      "DisplayName": "Fish",
+      "Category": "Bonus",
+      "FoodBonus": 1,
+      "ProductionBonus": 0,
+      "ScienceBonus": 0,
+      "Color": { "r": 0.2, "g": 0.6, "b": 0.9, "a": 1.0 }
     }
   ]
 }

@@ -30,6 +30,8 @@ namespace CivClone.Simulation
             }
 
             int science = 1 + player.Cities.Count;
+            science += GetCivicScienceBonus(player);
+            science += GetResourceScienceBonus(player);
             player.ResearchProgress += science;
 
             if (catalog != null && catalog.TryGetTechType(player.CurrentTechId, out var tech))
@@ -74,7 +76,7 @@ namespace CivClone.Simulation
                 return true;
             }
 
-            var parts = tech.Prerequisites.Split(',');
+            var parts = tech.Prerequisites.Split(,);
             foreach (var part in parts)
             {
                 var id = part.Trim();
@@ -90,6 +92,48 @@ namespace CivClone.Simulation
             }
 
             return true;
+        }
+
+        private int GetCivicScienceBonus(Player player)
+        {
+            if (player?.Civics == null)
+            {
+                return 0;
+            }
+
+            foreach (var civic in player.Civics)
+            {
+                if (civic != null && civic.CivicId == "republic")
+                {
+                    return player.Cities.Count;
+                }
+            }
+
+            return 0;
+        }
+
+        private int GetResourceScienceBonus(Player player)
+        {
+            if (player?.AvailableResources == null || catalog == null)
+            {
+                return 0;
+            }
+
+            int bonus = 0;
+            foreach (var resourceId in player.AvailableResources)
+            {
+                if (string.IsNullOrWhiteSpace(resourceId))
+                {
+                    continue;
+                }
+
+                if (catalog.TryGetResourceType(resourceId, out var resource))
+                {
+                    bonus += resource.ScienceBonus;
+                }
+            }
+
+            return bonus;
         }
 
         private string GetFirstAvailableTech(Player player)

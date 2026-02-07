@@ -1,4 +1,4 @@
-Id,DisplayName,Category,ColorHex
-wheat,Wheat,Bonus,F2D14A
-iron,Iron,Strategic,9E9E9E
-fish,Fish,Bonus,3399E6
+Id,DisplayName,Category,FoodBonus,ProductionBonus,ScienceBonus,ColorHex
+wheat,Wheat,Bonus,1,0,0,F2D14A
+iron,Iron,Strategic,0,1,0,9E9E9E
+fish,Fish,Bonus,1,0,0,3399E6

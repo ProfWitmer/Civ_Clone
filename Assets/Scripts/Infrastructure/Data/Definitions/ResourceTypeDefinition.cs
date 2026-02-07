@@ -9,6 +9,9 @@ namespace CivClone.Infrastructure.Data.Definitions
         public string Id;
         public string DisplayName;
         public string Category;
+        public int FoodBonus;
+        public int ProductionBonus;
+        public int ScienceBonus;
         public Color Color;
     }
 }

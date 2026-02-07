@@ -50,8 +50,8 @@ namespace CivClone.Simulation
             {
                 AdvanceWorkerImprovements(currentPlayer);
                 AdvanceCities(currentPlayer);
-                researchSystem?.Advance(currentPlayer);
                 UpdateTradeRoutes(currentPlayer);
+                researchSystem?.Advance(currentPlayer);
             }
 
             state.ActivePlayerIndex = (state.ActivePlayerIndex + 1) % state.Players.Count;
@@ -84,20 +84,38 @@ namespace CivClone.Simulation
                 int food = city.BaseFoodPerTurn;
                 int prod = city.BaseProductionPerTurn;
 
+                if (HasCivic(player, "despotism"))
+                {
+                    prod += 1;
+                }
+                if (HasCivic(player, "monarchy"))
+                {
+                    food += 1;
+                }
+
                 for (int y = city.Position.Y - 1; y <= city.Position.Y + 1; y++)
                 {
                     for (int x = city.Position.X - 1; x <= city.Position.X + 1; x++)
                     {
                         var tile = state.Map.GetTile(x, y);
-                        if (tile == null || string.IsNullOrWhiteSpace(tile.ImprovementId))
+                        if (tile == null)
                         {
                             continue;
                         }
 
-                        if (catalog != null && catalog.TryGetImprovementType(tile.ImprovementId, out var improvement))
+                        if (!string.IsNullOrWhiteSpace(tile.ImprovementId) && catalog != null && catalog.TryGetImprovementType(tile.ImprovementId, out var improvement))
                         {
                             food += improvement.FoodBonus;
                             prod += improvement.ProductionBonus;
+                        }
+
+                        if (!string.IsNullOrWhiteSpace(tile.ResourceId) && (tile.HasRoad || !string.IsNullOrWhiteSpace(tile.ImprovementId)))
+                        {
+                            if (catalog != null && catalog.TryGetResourceType(tile.ResourceId, out var resource))
+                            {
+                                food += resource.FoodBonus;
+                                prod += resource.ProductionBonus;
+                            }
                         }
                     }
                 }
@@ -296,6 +314,24 @@ namespace CivClone.Simulation
                     }
                 }
             }
+        }
+
+        private bool HasCivic(Player player, string civicId)
+        {
+            if (player?.Civics == null || string.IsNullOrWhiteSpace(civicId))
+            {
+                return false;
+            }
+
+            foreach (var civic in player.Civics)
+            {
+                if (civic != null && civic.CivicId == civicId)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private bool IsRoadConnected(Player player, GridPosition start, GridPosition end)

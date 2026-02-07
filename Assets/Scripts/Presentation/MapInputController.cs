@@ -16,6 +16,7 @@ namespace CivClone.Presentation
         [SerializeField] private KeyCode buildRoadKey = KeyCode.R;
         [SerializeField] private KeyCode cycleResearchKey = KeyCode.T;
         [SerializeField] private KeyCode techPanelKey = KeyCode.Y;
+        [SerializeField] private KeyCode techTreeKey = KeyCode.H;
         [SerializeField] private KeyCode[] techSelectKeys = { KeyCode.J, KeyCode.K, KeyCode.L };
         [SerializeField] private KeyCode promotionKey = KeyCode.U;
         [SerializeField] private KeyCode[] promotionSelectKeys = { KeyCode.U, KeyCode.I, KeyCode.O };
@@ -36,6 +37,7 @@ namespace CivClone.Presentation
         private City selectedCity;
         private bool promotionSelectionOpen;
         private bool techSelectionOpen;
+        private bool techTreeOpen;
         private bool civicSelectionOpen;
         private int civicCategoryIndex;
         private readonly List<string> availableTechs = new List<string>();
@@ -118,6 +120,12 @@ namespace CivClone.Presentation
             {
                 ToggleTechSelection();
             }
+
+            if (Input.GetKeyDown(techTreeKey))
+            {
+                ToggleTechTree();
+            }
+
 
             HandleTechSelection();
 
@@ -988,6 +996,66 @@ namespace CivClone.Presentation
             hudController.ShowTechPanel("Choose Research", option1, option2, option3);
         }
 
+        private void ToggleTechTree()
+        {
+            if (hudController == null)
+            {
+                return;
+            }
+
+            techTreeOpen = !techTreeOpen;
+            if (!techTreeOpen)
+            {
+                hudController.HideTechTree();
+                return;
+            }
+
+            hudController.ShowTechTree(BuildTechTreeText());
+        }
+
+        private string BuildTechTreeText()
+        {
+            if (state?.ActivePlayer == null || dataCatalog?.TechTypes == null)
+            {
+                return "No tech data.";
+            }
+
+            var player = state.ActivePlayer;
+            var lines = new List<string>();
+            foreach (var tech in dataCatalog.TechTypes)
+            {
+                if (tech == null || string.IsNullOrWhiteSpace(tech.Id))
+                {
+                    continue;
+                }
+
+                string name = !string.IsNullOrWhiteSpace(tech.DisplayName) ? tech.DisplayName : tech.Id;
+                string prereq = string.IsNullOrWhiteSpace(tech.Prerequisites) ? "" : " (Requires: " + tech.Prerequisites + ")";
+                string status;
+                if (player.KnownTechs.Contains(tech.Id))
+                {
+                    status = "Known";
+                }
+                else if (player.CurrentTechId == tech.Id)
+                {
+                    status = "Researching";
+                }
+                else if (AreTechPrereqsMet(player, tech.Prerequisites))
+                {
+                    status = "Available";
+                }
+                else
+                {
+                    status = "Locked";
+                }
+
+                lines.Add( {name}{prereq}");
+            }
+
+            return string.Join("
+", lines);
+        }
+
         private void HandleTechSelection()
         {
             if (!techSelectionOpen || hudController == null)
@@ -1424,7 +1492,7 @@ namespace CivClone.Presentation
                 }
             }
 
-            hudController.SetResearchInfo($"Research: {techName} {player.ResearchProgress}/{cost} [T] Cycle [Y] Choose");
+            hudController.SetResearchInfo($"Research: {techName} {player.ResearchProgress}/{cost} [T] Cycle [Y] Choose [H] Tree");
         }
 
         private void UpdatePromotionInfo()

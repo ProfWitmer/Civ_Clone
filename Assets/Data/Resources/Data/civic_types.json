@@ -1,7 +1,22 @@
 {
-  Items: [
+  "Items": [
     {
-      Id: despotism,
-      DisplayName: Despotism,
-      Category: Government,
-      Description: +1
+      "Id": "despotism",
+      "DisplayName": "Despotism",
+      "Category": "Government",
+      "Description": "+1 production in all cities."
+    },
+    {
+      "Id": "monarchy",
+      "DisplayName": "Monarchy",
+      "Category": "Government",
+      "Description": "+1 food in all cities."
+    },
+    {
+      "Id": "republic",
+      "DisplayName": "Republic",
+      "Category": "Government",
+      "Description": "+1 science per city."
+    }
+  ]
+}
