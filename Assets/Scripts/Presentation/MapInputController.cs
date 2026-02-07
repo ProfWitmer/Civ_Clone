@@ -440,6 +440,9 @@ private int GetMoveCost(GridPosition position)
                     case "combat1":
                         bonus += 1;
                         break;
+                    case "combat2":
+                        bonus += 2;
+                        break;
                 }
             }
 
@@ -460,6 +463,9 @@ private int GetMoveCost(GridPosition position)
                 {
                     case "combat1":
                         bonus += 1;
+                        break;
+                    case "combat2":
+                        bonus += 2;
                         break;
                     case "cover":
                         bonus += 1;

@@ -5,6 +5,12 @@
       "DisplayName": "Combat I",
       "Description": "+10% strength"
     },
+    },
+    {
+      "Id": "combat2",
+      "DisplayName": "Combat II",
+      "Description": "+20% strength"
+    }
     {
       "Id": "drill1",
       "DisplayName": "Drill I",
