@@ -11,6 +11,7 @@ namespace CivClone.Presentation
         [SerializeField] private KeyCode endTurnKey = KeyCode.Return;
         [SerializeField] private KeyCode foundCityKey = KeyCode.F;
         [SerializeField] private KeyCode cycleProductionKey = KeyCode.P;
+        [SerializeField] private KeyCode[] productionOptionKeys = { KeyCode.Alpha1, KeyCode.Alpha2, KeyCode.Alpha3 };
         [SerializeField] private KeyCode buildImprovementKey = KeyCode.B;
         [SerializeField] private KeyCode cycleResearchKey = KeyCode.R;
         [SerializeField] private int humanPlayerId = 0;
@@ -74,6 +75,8 @@ namespace CivClone.Presentation
             {
                 CycleCityProduction();
             }
+
+            HandleProductionHotkeys();
 
             if (Input.GetKeyDown(buildImprovementKey))
             {
@@ -470,7 +473,32 @@ private int GetMoveCost(GridPosition position)
             {
                 targetName = unitType.DisplayName;
             }
-            hudController.SetProductionInfo($"Production: {targetName} {selectedCity.ProductionStored}/{selectedCity.ProductionCost} (+{selectedCity.ProductionPerTurn}) {turns}t [P] Cycle");
+            string optionsHint = productionOptions.Length >= 3 ? "[1-3] Select" : "";
+            hudController.SetProductionInfo($"Production: {targetName} {selectedCity.ProductionStored}/{selectedCity.ProductionCost} (+{selectedCity.ProductionPerTurn}) {turns}t [P] Cycle {optionsHint}");
+        }
+
+        private void SetCityProductionByIndex(int index)
+        {
+            if (selectedCity == null)
+            {
+                return;
+            }
+
+            if (index < 0 || index >= productionOptions.Length)
+            {
+                return;
+            }
+
+            string candidate = productionOptions[index];
+            if (dataCatalog != null && !dataCatalog.TryGetUnitType(candidate, out _))
+            {
+                UpdateHudSelection("Unit type missing");
+                return;
+            }
+
+            selectedCity.ProductionTargetId = candidate;
+            selectedCity.ProductionCost = GetProductionCost(candidate);
+            UpdateCityInfo();
         }
 
         private void CycleCityProduction()
