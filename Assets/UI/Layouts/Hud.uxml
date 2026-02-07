@@ -11,6 +11,7 @@
         <ui:Label name="research-label" text="Research: None" class="hud-sub" />
         <ui:Label name="civic-label" text="Civics: None" class="hud-sub" />
         <ui:Label name="resource-label" text="Resources: None" class="hud-sub" />
+        <ui:Label name="resource-unit-label" text="Resource Units: None" class="hud-sub" />
         <ui:Label name="trade-label" text="Trade Routes: None" class="hud-sub" />
         <ui:VisualElement class="hud-minimap">
             <ui:Label text="Minimap" class="hud-minimap-title" />

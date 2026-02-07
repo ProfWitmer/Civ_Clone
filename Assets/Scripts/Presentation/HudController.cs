@@ -7,36 +7,37 @@ namespace CivClone.Presentation
     [RequireComponent(typeof(UIDocument))]
     public class HudController : MonoBehaviour
     {
-        private const string TurnLabelName = "turn-label";
-        private const string SelectionLabelName = "selection-label";
-        private const string EventLabelName = "event-label";
-        private const string EndTurnButtonName = "endturn-button";
-        private const string CityLabelName = "city-label";
-        private const string ProductionLabelName = "production-label";
-        private const string PromotionLabelName = "promotion-label";
-        private const string PromotionDetailLabelName = "promotion-detail-label";
-        private const string CombatLogLabelName = "combat-log-label";
-        private const string TechPanelName = "tech-panel";
-        private const string TechOption1Name = "tech-option1";
-        private const string TechOption2Name = "tech-option2";
-        private const string TechOption3Name = "tech-option3";
-        private const string TechPanelTitleName = "tech-panel-title";
-        private const string TechTreePanelName = "tech-tree-panel";
-        private const string TechTreeTitleName = "tech-tree-title";
-        private const string TechTreeLabelName = "tech-tree-label";
-        private const string PromotionPanelName = "promotion-panel";
-        private const string PromotionOption1Name = "promotion-option1";
-        private const string PromotionOption2Name = "promotion-option2";
-        private const string PromotionOption3Name = "promotion-option3";
-        private const string ResearchLabelName = "research-label";
-        private const string CivicLabelName = "civic-label";
-        private const string ResourceLabelName = "resource-label";
-        private const string TradeLabelName = "trade-label";
-        private const string CivicPanelName = "civic-panel";
-        private const string CivicPanelTitleName = "civic-panel-title";
-        private const string CivicOption1Name = "civic-option1";
-        private const string CivicOption2Name = "civic-option2";
-        private const string CivicOption3Name = "civic-option3";
+        private const string TurnLabelName = turn-label;
+        private const string SelectionLabelName = selection-label;
+        private const string EventLabelName = event-label;
+        private const string EndTurnButtonName = endturn-button;
+        private const string CityLabelName = city-label;
+        private const string ProductionLabelName = production-label;
+        private const string PromotionLabelName = promotion-label;
+        private const string PromotionDetailLabelName = promotion-detail-label;
+        private const string CombatLogLabelName = combat-log-label;
+        private const string TechPanelName = tech-panel;
+        private const string TechOption1Name = tech-option1;
+        private const string TechOption2Name = tech-option2;
+        private const string TechOption3Name = tech-option3;
+        private const string TechPanelTitleName = tech-panel-title;
+        private const string TechTreePanelName = tech-tree-panel;
+        private const string TechTreeTitleName = tech-tree-title;
+        private const string TechTreeLabelName = tech-tree-label;
+        private const string PromotionPanelName = promotion-panel;
+        private const string PromotionOption1Name = promotion-option1;
+        private const string PromotionOption2Name = promotion-option2;
+        private const string PromotionOption3Name = promotion-option3;
+        private const string ResearchLabelName = research-label;
+        private const string CivicLabelName = civic-label;
+        private const string ResourceLabelName = resource-label;
+        private const string ResourceUnitLabelName = resource-unit-label;
+        private const string TradeLabelName = trade-label;
+        private const string CivicPanelName = civic-panel;
+        private const string CivicPanelTitleName = civic-panel-title;
+        private const string CivicOption1Name = civic-option1;
+        private const string CivicOption2Name = civic-option2;
+        private const string CivicOption3Name = civic-option3;
 
         private GameState state;
         private TurnSystem turnSystem;
@@ -64,6 +65,7 @@ namespace CivClone.Presentation
         private Label researchLabel;
         private Label civicLabel;
         private Label resourceLabel;
+        private Label resourceUnitLabel;
         private Label tradeLabel;
         private VisualElement civicPanel;
         private Label civicPanelTitle;
@@ -105,6 +107,7 @@ namespace CivClone.Presentation
             researchLabel = root.Q<Label>(ResearchLabelName);
             civicLabel = root.Q<Label>(CivicLabelName);
             resourceLabel = root.Q<Label>(ResourceLabelName);
+            resourceUnitLabel = root.Q<Label>(ResourceUnitLabelName);
             tradeLabel = root.Q<Label>(TradeLabelName);
             civicPanel = root.Q<VisualElement>(CivicPanelName);
             civicPanelTitle = root.Q<Label>(CivicPanelTitleName);
@@ -214,7 +217,7 @@ namespace CivClone.Presentation
 
             if (combatLogLabel != null)
             {
-                combatLogLabel.text = string.Join("\n", combatLog);
+                combatLogLabel.text = string.Join(n, combatLog);
             }
         }
 
@@ -255,189 +258,4 @@ namespace CivClone.Presentation
             techTreePanel.style.display = DisplayStyle.Flex;
             if (techTreeTitle != null)
             {
-                techTreeTitle.text = "Tech Tree";
-            }
-            if (techTreeLabel != null)
-            {
-                techTreeLabel.text = text ?? string.Empty;
-            }
-        }
-
-        public void HideTechTree()
-        {
-            if (techTreePanel == null)
-            {
-                return;
-            }
-
-            techTreePanel.style.display = DisplayStyle.None;
-        }
-
-        public void ShowPromotionPanel(string option1, string option2, string option3)
-        {
-            if (promotionPanel == null)
-            {
-                return;
-            }
-
-            promotionPanel.style.display = DisplayStyle.Flex;
-            if (promotionOption1 != null) promotionOption1.text = option1;
-            if (promotionOption2 != null) promotionOption2.text = option2;
-            if (promotionOption3 != null) promotionOption3.text = option3;
-        }
-
-        public void HidePromotionPanel()
-        {
-            if (promotionPanel == null)
-            {
-                return;
-            }
-
-            promotionPanel.style.display = DisplayStyle.None;
-        }
-
-        public void ShowCivicPanel(string title, string option1, string option2, string option3)
-        {
-            if (civicPanel == null)
-            {
-                return;
-            }
-
-            civicPanel.style.display = DisplayStyle.Flex;
-            if (civicPanelTitle != null)
-            {
-                civicPanelTitle.text = title;
-            }
-            if (civicOption1 != null) civicOption1.text = option1;
-            if (civicOption2 != null) civicOption2.text = option2;
-            if (civicOption3 != null) civicOption3.text = option3;
-        }
-
-        public void HideCivicPanel()
-        {
-            if (civicPanel == null)
-            {
-                return;
-            }
-
-            civicPanel.style.display = DisplayStyle.None;
-        }
-
-        public void SetResearchInfo(string researchInfo)
-        {
-            if (researchLabel != null)
-            {
-                researchLabel.text = researchInfo;
-            }
-        }
-
-        public void SetCivicInfo(string civicInfo)
-        {
-            if (civicLabel != null)
-            {
-                civicLabel.text = civicInfo;
-            }
-        }
-
-        public void SetResourceInfo(string resourceInfo)
-        {
-            if (resourceLabel != null)
-            {
-                resourceLabel.text = resourceInfo;
-            }
-        }
-
-        public void SetTradeInfo(string tradeInfo)
-        {
-            if (tradeLabel != null)
-            {
-                tradeLabel.text = tradeInfo;
-            }
-        }
-
-        public void Refresh()
-        {
-            UpdateTurnLabel();
-
-            if (selectionLabel != null && string.IsNullOrEmpty(selectionLabel.text))
-            {
-                selectionLabel.text = "Selection: None";
-            }
-            if (eventLabel != null && string.IsNullOrEmpty(eventLabel.text))
-            {
-                eventLabel.text = string.Empty;
-            }
-
-            if (cityLabel != null && string.IsNullOrEmpty(cityLabel.text))
-            {
-                cityLabel.text = "City: None";
-            }
-
-            if (productionLabel != null && string.IsNullOrEmpty(productionLabel.text))
-            {
-                productionLabel.text = "Production: None";
-            }
-
-            if (promotionLabel != null && string.IsNullOrEmpty(promotionLabel.text))
-            {
-                promotionLabel.text = "Promotions: None";
-            }
-
-            if (promotionDetailLabel != null && string.IsNullOrEmpty(promotionDetailLabel.text))
-            {
-                promotionDetailLabel.text = string.Empty;
-            }
-
-            if (researchLabel != null && string.IsNullOrEmpty(researchLabel.text))
-            {
-                researchLabel.text = "Research: None";
-            }
-
-            if (civicLabel != null && string.IsNullOrEmpty(civicLabel.text))
-            {
-                civicLabel.text = "Civics: None";
-            }
-
-            if (resourceLabel != null && string.IsNullOrEmpty(resourceLabel.text))
-            {
-                resourceLabel.text = "Resources: None";
-            }
-
-            if (tradeLabel != null && string.IsNullOrEmpty(tradeLabel.text))
-            {
-                tradeLabel.text = "Trade Routes: None";
-            }
-        }
-
-        private void UpdateTurnLabel()
-        {
-            if (state == null)
-            {
-                return;
-            }
-
-            if (turnLabel != null)
-            {
-                string playerName = state.ActivePlayer != null ? state.ActivePlayer.Name : "-";
-                turnLabel.text = $"Turn {state.CurrentTurn} - {playerName}";
-            }
-        }
-
-        private void HandleEndTurn()
-        {
-            if (onEndTurn != null)
-            {
-                onEndTurn.Invoke();
-                return;
-            }
-
-            if (turnSystem == null)
-            {
-                return;
-            }
-
-            turnSystem.EndTurn();
-            Refresh();
-        }
-    }
-}
+                techTreeTitle.text = Tech

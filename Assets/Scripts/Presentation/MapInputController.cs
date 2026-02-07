@@ -1049,6 +1049,12 @@ namespace CivClone.Presentation
 
             var player = state.ActivePlayer;
             var lines = new List<string>();
+            lines.Add("Legend: [Known] [Researching] [Available] [Locked]");
+            if (!string.IsNullOrWhiteSpace(player.CurrentTechId) && dataCatalog.TryGetTechType(player.CurrentTechId, out var currentTech))
+            {
+                string currentName = string.IsNullOrWhiteSpace(currentTech.DisplayName) ? currentTech.Id : currentTech.DisplayName;
+                lines.Add($"Current: {currentName} {player.ResearchProgress}/{currentTech.Cost}");
+            }
             foreach (var tech in dataCatalog.TechTypes)
             {
                 if (tech == null || string.IsNullOrWhiteSpace(tech.Id))
@@ -1076,11 +1082,14 @@ namespace CivClone.Presentation
                     status = "Locked";
                 }
 
-                lines.Add( {name}{prereq}");
+                lines.Add($"[{status}] {name}{prereq}");
             }
 
-            return string.Join("
-", lines);
+            if (lines.Count > 2)
+            {
+                lines.Sort(2, lines.Count - 2, System.StringComparer.Ordinal);
+            }
+            return string.Join("\n", lines);
         }
 
         private void HandleTechSelection()
@@ -1630,6 +1639,9 @@ namespace CivClone.Presentation
                 hudController.SetResourceInfo("Resources: " + string.Join(", ", names));
             }
 
+            var resourceUnits = BuildResourceUnitList(player);
+            hudController.SetResourceUnitInfo(string.IsNullOrWhiteSpace(resourceUnits) ? "Resource Units: None" : "Resource Units: " + resourceUnits);
+
             if (player.TradeRoutes == null || player.TradeRoutes.Count == 0)
             {
                 hudController.SetTradeInfo("Trade Routes: None");
@@ -1649,6 +1661,52 @@ namespace CivClone.Presentation
 
                 hudController.SetTradeInfo(entries.Count == 0 ? "Trade Routes: None" : "Trade Routes: " + string.Join(", ", entries));
             }
+        }
+
+        private string BuildResourceUnitList(Player player)
+        {
+            if (player == null || dataCatalog?.UnitTypes == null)
+            {
+                return string.Empty;
+            }
+
+            var unlocked = new List<string>();
+            var locked = new List<string>();
+            foreach (var unit in dataCatalog.UnitTypes)
+            {
+                if (unit == null || string.IsNullOrWhiteSpace(unit.RequiresResource))
+                {
+                    continue;
+                }
+
+                string name = string.IsNullOrWhiteSpace(unit.DisplayName) ? unit.Id : unit.DisplayName;
+                bool hasResource = player.AvailableResources != null && player.AvailableResources.Contains(unit.RequiresResource);
+                if (hasResource)
+                {
+                    unlocked.Add(name);
+                }
+                else
+                {
+                    locked.Add($"{name} ({unit.RequiresResource})");
+                }
+            }
+
+            if (unlocked.Count == 0 && locked.Count == 0)
+            {
+                return string.Empty;
+            }
+
+            if (unlocked.Count == 0)
+            {
+                return "Locked: " + string.Join(", ", locked);
+            }
+
+            if (locked.Count == 0)
+            {
+                return "Unlocked: " + string.Join(", ", unlocked);
+            }
+
+            return "Unlocked: " + string.Join(", ", unlocked) + " | Locked: " + string.Join(", ", locked);
         }
 
         private void UpdateHudSelection(string warning = null)
