@@ -451,7 +451,166 @@ private int GetMoveCost(GridPosition position)
             hudController.SetCityInfo($"City: {selectedCity.Name} (Pop {selectedCity.Population}) Food {selectedCity.FoodStored}/{5 + selectedCity.Population * 2} (+{selectedCity.FoodPerTurn}) Prod {selectedCity.ProductionStored}/{selectedCity.ProductionCost} (+{selectedCity.ProductionPerTurn}) ({selectedCity.ProductionTargetId}) [P] Cycle");
         }
 
-                private void UpdateResearchInfo()
+        private void CycleCityProduction()
+        {
+            if (selectedCity == null || productionOptions.Length == 0)
+            {
+                return;
+            }
+
+            int currentIndex = -1;
+            for (int i = 0; i < productionOptions.Length; i++)
+            {
+                if (productionOptions[i] == selectedCity.ProductionTargetId)
+                {
+                    currentIndex = i;
+                    break;
+                }
+            }
+
+            for (int offset = 1; offset <= productionOptions.Length; offset++)
+            {
+                int idx = (currentIndex + offset + productionOptions.Length) % productionOptions.Length;
+                string candidate = productionOptions[idx];
+                if (dataCatalog == null || dataCatalog.TryGetUnitType(candidate, out _))
+                {
+                    selectedCity.ProductionTargetId = candidate;
+                    selectedCity.ProductionCost = GetProductionCost(candidate);
+                    break;
+                }
+            }
+
+            UpdateCityInfo();
+        }
+
+        private void TryBuildImprovement()
+        {
+            if (selectedUnit == null || selectedUnit.UnitTypeId != "worker" || state?.Map == null)
+            {
+                return;
+            }
+
+            var tile = state.Map.GetTile(selectedUnit.Position.X, selectedUnit.Position.Y);
+            if (tile == null)
+            {
+                return;
+            }
+
+            if (!string.IsNullOrWhiteSpace(tile.ImprovementId))
+            {
+                UpdateHudSelection("Tile already improved");
+                return;
+            }
+
+            var activePlayer = state.ActivePlayer;
+            if (activePlayer == null)
+            {
+                return;
+            }
+
+            string improvementId = null;
+            for (int i = 0; i < improvementOptions.Length; i++)
+            {
+                var candidate = improvementOptions[i];
+                if (improvementRequirements.TryGetValue(candidate, out var techReq) && !string.IsNullOrWhiteSpace(techReq))
+                {
+                    if (!activePlayer.KnownTechs.Contains(techReq))
+                    {
+                        continue;
+                    }
+                }
+
+                improvementId = candidate;
+                break;
+            }
+
+            if (string.IsNullOrWhiteSpace(improvementId))
+            {
+                UpdateHudSelection("No available improvements");
+                return;
+            }
+
+            tile.ImprovementId = improvementId;
+            selectedUnit.MovementRemaining = 0;
+            selectedUnit.ResetWork(GetWorkCost(selectedUnit));
+            turnSystem?.RecalculateCityYields();
+            mapPresenter?.UpdateImprovements(state.Map, dataCatalog);
+            UpdateHudSelection($"Built {improvementId}");
+            UpdateCityInfo();
+        }
+
+        private void CycleResearch()
+        {
+            var player = state?.ActivePlayer;
+            if (player == null || dataCatalog == null || dataCatalog.TechTypes == null || dataCatalog.TechTypes.Length == 0)
+            {
+                return;
+            }
+
+            var techIds = new List<string>();
+            foreach (var tech in dataCatalog.TechTypes)
+            {
+                if (tech != null && !string.IsNullOrWhiteSpace(tech.Id))
+                {
+                    techIds.Add(tech.Id);
+                }
+            }
+
+            if (techIds.Count == 0)
+            {
+                return;
+            }
+
+            int currentIndex = techIds.IndexOf(player.CurrentTechId);
+            for (int offset = 1; offset <= techIds.Count; offset++)
+            {
+                int idx = (currentIndex + offset + techIds.Count) % techIds.Count;
+                string candidate = techIds[idx];
+                if (!player.KnownTechs.Contains(candidate))
+                {
+                    player.CurrentTechId = candidate;
+                    player.ResearchProgress = 0;
+                    UpdateResearchInfo();
+                    return;
+                }
+            }
+
+            player.CurrentTechId = techIds[(currentIndex + 1 + techIds.Count) % techIds.Count];
+            player.ResearchProgress = 0;
+            UpdateResearchInfo();
+        }
+
+        private int GetProductionCost(string unitTypeId)
+        {
+            if (dataCatalog != null && dataCatalog.TryGetUnitType(unitTypeId, out var unitType))
+            {
+                return Mathf.Max(1, unitType.ProductionCost);
+            }
+
+            return 10;
+        }
+
+        private int GetDefenseBonus(GridPosition position)
+        {
+            if (state?.Map == null)
+            {
+                return 0;
+            }
+
+            var tile = state.Map.GetTile(position.X, position.Y);
+            if (tile == null)
+            {
+                return 0;
+            }
+
+            if (dataCatalog != null && dataCatalog.TryGetTerrainType(tile.TerrainId, out var terrain))
+            {
+                return Mathf.Max(0, terrain.DefenseBonus);
+            }
+
+            return 0;
+        }
+        private void UpdateResearchInfo()
         {
             if (hudController == null || state?.ActivePlayer == null)
             {
@@ -466,9 +625,14 @@ private int GetMoveCost(GridPosition position)
             }
 
             int cost = 0;
+            string techName = player.CurrentTechId;
             if (dataCatalog != null && dataCatalog.TryGetTechType(player.CurrentTechId, out var tech))
             {
                 cost = tech.Cost;
+                if (!string.IsNullOrWhiteSpace(tech.DisplayName))
+                {
+                    techName = tech.DisplayName;
+                }
             }
 
             hudController.SetResearchInfo($"Research: {techName} {player.ResearchProgress}/{cost} [R] Cycle");

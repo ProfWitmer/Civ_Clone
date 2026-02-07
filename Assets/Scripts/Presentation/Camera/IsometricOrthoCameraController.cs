@@ -40,7 +40,7 @@ namespace CivClone.Presentation.Camera
         {
             if (mapPresenter == null)
             {
-                mapPresenter = FindObjectOfType<MapPresenter>();
+                mapPresenter = FindFirstObjectByType<MapPresenter>();
             }
 
             CenterOnMap();

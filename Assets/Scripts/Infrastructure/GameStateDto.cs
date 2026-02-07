@@ -79,8 +79,6 @@ namespace CivClone.Infrastructure
                         BaseProductionPerTurn = city.BaseProductionPerTurn,
                         FoodPerTurn = city.FoodPerTurn,
                         ProductionPerTurn = city.ProductionPerTurn,
-                        BaseFoodPerTurn = city.BaseFoodPerTurn,
-                        BaseProductionPerTurn = city.BaseProductionPerTurn,
                         ProductionTargetId = city.ProductionTargetId,
                         ProductionCost = city.ProductionCost
                     });
@@ -141,8 +139,6 @@ namespace CivClone.Infrastructure
                         BaseProductionPerTurn = city.BaseProductionPerTurn,
                         FoodPerTurn = city.FoodPerTurn,
                         ProductionPerTurn = city.ProductionPerTurn,
-                        BaseFoodPerTurn = city.BaseFoodPerTurn,
-                        BaseProductionPerTurn = city.BaseProductionPerTurn,
                         ProductionTargetId = city.ProductionTargetId,
                         ProductionCost = city.ProductionCost
                     };

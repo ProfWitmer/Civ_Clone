@@ -21,7 +21,7 @@ namespace CivClone.Presentation
         {
             if (bootstrap == null)
             {
-                bootstrap = FindObjectOfType<GameBootstrap>();
+                bootstrap = FindFirstObjectByType<GameBootstrap>();
             }
 
             if (loadOnStart)

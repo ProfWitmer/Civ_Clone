@@ -5,6 +5,7 @@
 - Visual style: match Civ IV (2.5D/3D isometric look).
 - Data-driven content: JSON/CSV preferred.
 - Approach: balanced (keep architecture clean, but prioritize playable milestones).
+- Headless code coverage/test runs via `make test-cover` currently fail due to Unity licensing in batch mode. Run tests/coverage in the editor and use the generated report under `CodeCoverage/Report`.
 
 ## First Playable Milestone
 - Explore a random map with a unit, end turns, and found a city.

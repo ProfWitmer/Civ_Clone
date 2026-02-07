@@ -36,6 +36,7 @@ namespace CivClone.Presentation
         private Sprite improvementSprite;
         private int mapWidth;
         private int mapHeight;
+        private GameDataCatalog dataCatalog;
 
                 private void ClearTiles()
         {
@@ -71,6 +72,7 @@ public void Render(CivClone.Simulation.WorldMap map, GameDataCatalog dataCatalog
 
             mapWidth = map.Width;
             mapHeight = map.Height;
+            this.dataCatalog = dataCatalog;
 
             if (tileRoot == null)
             {
@@ -111,7 +113,6 @@ public void Render(CivClone.Simulation.WorldMap map, GameDataCatalog dataCatalog
                 view.Bind(tile.Position, renderer, improvementSprite);
                 tileViews[tile.Position] = view;
                 view.SetVisibility(tile.Visible, tile.Explored);
-                    UpdateImprovementVisual(tile, view, dataCatalog);
                 UpdateImprovementVisual(tile, view, dataCatalog);
 
                 if (tile.TerrainId == "hills")
@@ -119,6 +120,46 @@ public void Render(CivClone.Simulation.WorldMap map, GameDataCatalog dataCatalog
                     tileObject.transform.localPosition += new Vector3(0f, hillsElevation, 0f);
                 }
             }
+        }
+
+
+        public void UpdateImprovements(WorldMap map, GameDataCatalog catalog)
+        {
+            if (map == null)
+            {
+                return;
+            }
+
+            dataCatalog = catalog;
+            foreach (var tile in map.Tiles)
+            {
+                if (tileViews.TryGetValue(tile.Position, out var view))
+                {
+                    UpdateImprovementVisual(tile, view, catalog);
+                }
+            }
+        }
+
+        private void UpdateImprovementVisual(Tile tile, TileView view, GameDataCatalog catalog)
+        {
+            if (tile == null || view == null)
+            {
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(tile.ImprovementId))
+            {
+                view.SetImprovement(Color.white, GetSortingOrder(tile.Position) + 1, false);
+                return;
+            }
+
+            var color = new Color(0.95f, 0.9f, 0.5f, 1f);
+            if (catalog != null && catalog.TryGetImprovementColor(tile.ImprovementId, out var improvementColor))
+            {
+                color = improvementColor;
+            }
+
+            view.SetImprovement(color, GetSortingOrder(tile.Position) + 1, true);
         }
 
         public void UpdateFog(WorldMap map)
