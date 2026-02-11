@@ -14,6 +14,7 @@ namespace CivClone.Infrastructure.Data
         private const string PromotionResourcePath = "Data/promotion_types";
         private const string ResourceResourcePath = "Data/resource_types";
         private const string CivicResourcePath = "Data/civic_types";
+        private const string BuildingResourcePath = "Data/building_types";
 
         private const string TerrainCsvResourcePath = "Csv/terrain_types";
         private const string UnitCsvResourcePath = "Csv/unit_types";
@@ -22,6 +23,7 @@ namespace CivClone.Infrastructure.Data
         private const string PromotionCsvResourcePath = "Csv/promotion_types";
         private const string ResourceCsvResourcePath = "Csv/resource_types";
         private const string CivicCsvResourcePath = "Csv/civic_types";
+        private const string BuildingCsvResourcePath = "Csv/building_types";
 
         public bool TryLoadFromResources(GameDataCatalog catalog)
         {
@@ -38,13 +40,14 @@ namespace CivClone.Infrastructure.Data
             var promotionDefinitions = LoadPromotionDefinitions(dataLoader);
             var resourceDefinitions = LoadResourceDefinitions(dataLoader);
             var civicDefinitions = LoadCivicDefinitions(dataLoader);
+            var buildingDefinitions = LoadBuildingDefinitions(dataLoader);
 
-            if (terrainDefinitions.Count == 0 && unitDefinitions.Count == 0 && improvementDefinitions.Count == 0 && techDefinitions.Count == 0 && promotionDefinitions.Count == 0 && resourceDefinitions.Count == 0 && civicDefinitions.Count == 0)
+            if (terrainDefinitions.Count == 0 && unitDefinitions.Count == 0 && improvementDefinitions.Count == 0 && techDefinitions.Count == 0 && promotionDefinitions.Count == 0 && resourceDefinitions.Count == 0 && civicDefinitions.Count == 0 && buildingDefinitions.Count == 0)
             {
                 return false;
             }
 
-            catalog.LoadFromDefinitions(terrainDefinitions, unitDefinitions, improvementDefinitions, techDefinitions, promotionDefinitions, resourceDefinitions, civicDefinitions);
+            catalog.LoadFromDefinitions(terrainDefinitions, unitDefinitions, improvementDefinitions, techDefinitions, promotionDefinitions, resourceDefinitions, civicDefinitions, buildingDefinitions);
             return true;
         }
 
@@ -366,6 +369,55 @@ namespace CivClone.Infrastructure.Data
                     DisplayName = GetValue(header, row, "DisplayName"),
                     Category = GetValue(header, row, "Category"),
                     Description = GetValue(header, row, "Description")
+                };
+
+                definitions.Add(definition);
+            }
+
+            return definitions;
+        }
+
+        private static List<BuildingTypeDefinition> LoadBuildingDefinitions(DataLoader loader)
+        {
+            var definitions = new List<BuildingTypeDefinition>();
+            var json = loader.LoadResourceText(BuildingResourcePath);
+            if (!string.IsNullOrWhiteSpace(json))
+            {
+                var list = JsonUtility.FromJson<BuildingTypeDefinitionList>(json);
+                if (list?.Items != null)
+                {
+                    definitions.AddRange(list.Items);
+                }
+
+                return definitions;
+            }
+
+            var csv = loader.LoadResourceText(BuildingCsvResourcePath);
+            if (string.IsNullOrWhiteSpace(csv))
+            {
+                return definitions;
+            }
+
+            var rows = SimpleCsv.Parse(csv);
+            if (rows.Count == 0)
+            {
+                return definitions;
+            }
+
+            var header = rows[0];
+            for (var i = 1; i < rows.Count; i++)
+            {
+                var row = rows[i];
+                var definition = new BuildingTypeDefinition
+                {
+                    Id = GetValue(header, row, "Id"),
+                    DisplayName = GetValue(header, row, "DisplayName"),
+                    ProductionCost = GetIntValue(header, row, "ProductionCost", 20),
+                    FoodBonus = GetIntValue(header, row, "FoodBonus", 0),
+                    ProductionBonus = GetIntValue(header, row, "ProductionBonus", 0),
+                    ScienceBonus = GetIntValue(header, row, "ScienceBonus", 0),
+                    DefenseBonus = GetIntValue(header, row, "DefenseBonus", 0),
+                    RequiresTech = GetValue(header, row, "RequiresTech")
                 };
 
                 definitions.Add(definition);

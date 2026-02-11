@@ -32,6 +32,7 @@ namespace CivClone.Simulation
             int science = 1 + player.Cities.Count;
             science += GetCivicScienceBonus(player);
             science += GetResourceScienceBonus(player);
+            science += GetBuildingScienceBonus(player);
             player.ResearchProgress += science;
 
             if (catalog != null && catalog.TryGetTechType(player.CurrentTechId, out var tech))
@@ -131,6 +132,22 @@ namespace CivClone.Simulation
                 {
                     bonus += resource.ScienceBonus;
                 }
+            }
+
+            return bonus;
+        }
+
+        private int GetBuildingScienceBonus(Player player)
+        {
+            if (player?.Cities == null)
+            {
+                return 0;
+            }
+
+            int bonus = 0;
+            foreach (var city in player.Cities)
+            {
+                bonus += city.BuildingScienceBonus;
             }
 
             return bonus;

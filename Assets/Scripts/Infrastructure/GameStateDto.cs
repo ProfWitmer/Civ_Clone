@@ -149,7 +149,8 @@ namespace CivClone.Infrastructure
                         ProductionPerTurn = city.ProductionPerTurn,
                         ProductionTargetId = city.ProductionTargetId,
                         ProductionCost = city.ProductionCost,
-                        ProductionQueue = new List<string>(city.ProductionQueue)
+                        ProductionQueue = new List<string>(city.ProductionQueue),
+                        Buildings = city.Buildings != null ? new List<string>(city.Buildings) : new List<string>()
                     });
                 }
 
@@ -267,6 +268,10 @@ namespace CivClone.Infrastructure
                         ProductionQueue = new List<string>(city.ProductionQueue),
                         UnderSiege = city.UnderSiege
                     };
+                    if (city.Buildings != null)
+                    {
+                        newCity.Buildings = new List<string>(city.Buildings);
+                    }
                     player.Cities.Add(newCity);
                 }
 
@@ -342,6 +347,7 @@ namespace CivClone.Infrastructure
             public string ProductionTargetId;
             public int ProductionCost;
             public List<string> ProductionQueue = new List<string>();
+            public List<string> Buildings = new List<string>();
         }
 
         [Serializable]

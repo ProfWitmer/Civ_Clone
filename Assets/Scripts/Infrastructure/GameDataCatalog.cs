@@ -14,6 +14,7 @@ namespace CivClone.Infrastructure
         public PromotionType[] PromotionTypes;
         public ResourceType[] ResourceTypes;
         public CivicType[] CivicTypes;
+        public BuildingType[] BuildingTypes;
 
         private Dictionary<string, TerrainType> terrainLookup;
         private Dictionary<string, UnitType> unitLookup;
@@ -22,6 +23,7 @@ namespace CivClone.Infrastructure
         private Dictionary<string, PromotionType> promotionLookup;
         private Dictionary<string, ResourceType> resourceLookup;
         private Dictionary<string, CivicType> civicLookup;
+        private Dictionary<string, BuildingType> buildingLookup;
 
         public bool TryGetTerrainType(string id, out TerrainType terrainType)
         {
@@ -143,13 +145,26 @@ namespace CivClone.Infrastructure
             return false;
         }
 
+        public bool TryGetBuildingType(string id, out BuildingType buildingType)
+        {
+            EnsureBuildingLookup();
+            if (buildingLookup != null && buildingLookup.TryGetValue(id, out buildingType))
+            {
+                return true;
+            }
+
+            buildingType = null;
+            return false;
+        }
+
         public void LoadFromDefinitions(IEnumerable<TerrainTypeDefinition> terrainDefinitions,
             IEnumerable<UnitTypeDefinition> unitDefinitions,
             IEnumerable<ImprovementTypeDefinition> improvementDefinitions,
             IEnumerable<TechTypeDefinition> techDefinitions,
             IEnumerable<PromotionTypeDefinition> promotionDefinitions,
             IEnumerable<ResourceTypeDefinition> resourceDefinitions,
-            IEnumerable<CivicTypeDefinition> civicDefinitions)
+            IEnumerable<CivicTypeDefinition> civicDefinitions,
+            IEnumerable<BuildingTypeDefinition> buildingDefinitions)
         {
             var terrainList = new List<TerrainType>();
             if (terrainDefinitions != null)
@@ -295,6 +310,29 @@ namespace CivClone.Infrastructure
                 }
             }
 
+            var buildingList = new List<BuildingType>();
+            if (buildingDefinitions != null)
+            {
+                foreach (var definition in buildingDefinitions)
+                {
+                    if (definition == null || string.IsNullOrWhiteSpace(definition.Id))
+                    {
+                        continue;
+                    }
+
+                    var building = ScriptableObject.CreateInstance<BuildingType>();
+                    building.Id = definition.Id;
+                    building.DisplayName = definition.DisplayName;
+                    building.ProductionCost = definition.ProductionCost;
+                    building.FoodBonus = definition.FoodBonus;
+                    building.ProductionBonus = definition.ProductionBonus;
+                    building.ScienceBonus = definition.ScienceBonus;
+                    building.DefenseBonus = definition.DefenseBonus;
+                    building.RequiresTech = definition.RequiresTech;
+                    buildingList.Add(building);
+                }
+            }
+
             if (terrainList.Count > 0)
             {
                 TerrainTypes = terrainList.ToArray();
@@ -323,6 +361,10 @@ namespace CivClone.Infrastructure
             {
                 CivicTypes = civicList.ToArray();
             }
+            if (buildingList.Count > 0)
+            {
+                BuildingTypes = buildingList.ToArray();
+            }
 
             terrainLookup = null;
             unitLookup = null;
@@ -331,6 +373,7 @@ namespace CivClone.Infrastructure
             promotionLookup = null;
             resourceLookup = null;
             civicLookup = null;
+            buildingLookup = null;
         }
 
         private void EnsureTerrainLookup()
@@ -483,6 +526,28 @@ namespace CivClone.Infrastructure
                 if (civic != null && !string.IsNullOrWhiteSpace(civic.Id))
                 {
                     civicLookup[civic.Id] = civic;
+                }
+            }
+        }
+
+        private void EnsureBuildingLookup()
+        {
+            if (buildingLookup != null)
+            {
+                return;
+            }
+
+            buildingLookup = new Dictionary<string, BuildingType>();
+            if (BuildingTypes == null)
+            {
+                return;
+            }
+
+            foreach (var building in BuildingTypes)
+            {
+                if (building != null && !string.IsNullOrWhiteSpace(building.Id))
+                {
+                    buildingLookup[building.Id] = building;
                 }
             }
         }

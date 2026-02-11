@@ -1,3 +1,4 @@
+using System;
 using CivClone.Infrastructure;
 using CivClone.Infrastructure.Data;
 using CivClone.Presentation.Camera;
@@ -167,6 +168,18 @@ namespace CivClone.Presentation
 
         private GameState BuildInitialState()
         {
+            var scenario = LoadScenarioDefinition();
+            if (scenario?.Map != null)
+            {
+                mapConfig.Width = scenario.Map.Width;
+                mapConfig.Height = scenario.Map.Height;
+                mapConfig.Seed = scenario.Map.Seed;
+                if (!string.IsNullOrWhiteSpace(scenario.Map.DefaultTerrainId))
+                {
+                    mapConfig.DefaultTerrainId = scenario.Map.DefaultTerrainId;
+                }
+            }
+
             var generator = new MapGenerator(mapConfig);
             var map = generator.Generate();
 
@@ -175,18 +188,134 @@ namespace CivClone.Presentation
                 Map = map
             };
 
-            var player = new Player(0, "Player 1");
-            player.Units.Add(new Unit("scout", new GridPosition(2, 2), 2, player.Id));
-            player.Units.Add(new Unit("settler", new GridPosition(3, 2), 2, player.Id));
-            state.Players.Add(player);
+            if (scenario != null && scenario.Players != null && scenario.Players.Count > 0)
+            {
+                foreach (var scenarioPlayer in scenario.Players)
+                {
+                    if (scenarioPlayer == null)
+                    {
+                        continue;
+                    }
 
-            var rival = new Player(1, "Rival");
-            rival.Units.Add(new Unit("scout", new GridPosition(6, 2), 2, rival.Id));
-            state.Players.Add(rival);
+                    var player = new Player(scenarioPlayer.Id, string.IsNullOrWhiteSpace(scenarioPlayer.Name) ? $"Player {scenarioPlayer.Id}" : scenarioPlayer.Name);
+                    if (scenarioPlayer.StartingTechs != null)
+                    {
+                        player.KnownTechs.AddRange(scenarioPlayer.StartingTechs);
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(scenarioPlayer.CurrentTechId))
+                    {
+                        player.CurrentTechId = scenarioPlayer.CurrentTechId;
+                    }
+
+                    if (scenarioPlayer.Cities != null)
+                    {
+                        foreach (var cityDef in scenarioPlayer.Cities)
+                        {
+                            if (cityDef == null)
+                            {
+                                continue;
+                            }
+
+                            int population = Mathf.Max(1, cityDef.Population);
+                            var city = new City(string.IsNullOrWhiteSpace(cityDef.Name) ? $"City {player.Cities.Count + 1}" : cityDef.Name,
+                                new GridPosition(cityDef.X, cityDef.Y),
+                                player.Id,
+                                population);
+
+                            string target = GetDefaultProductionTarget();
+                            city.ProductionTargetId = target;
+                            city.ProductionCost = GetProductionCost(target);
+                            player.Cities.Add(city);
+                        }
+                    }
+
+                    if (scenarioPlayer.Units != null)
+                    {
+                        foreach (var unitDef in scenarioPlayer.Units)
+                        {
+                            if (unitDef == null || string.IsNullOrWhiteSpace(unitDef.UnitTypeId))
+                            {
+                                continue;
+                            }
+
+                            int movement = unitDef.MovementPoints;
+                            if (movement <= 0 && dataCatalog != null && dataCatalog.TryGetUnitType(unitDef.UnitTypeId, out var unitType))
+                            {
+                                movement = unitType.MovementPoints;
+                            }
+                            movement = Mathf.Max(1, movement);
+
+                            var unit = new Unit(unitDef.UnitTypeId, new GridPosition(unitDef.X, unitDef.Y), movement, player.Id);
+                            player.Units.Add(unit);
+                        }
+                    }
+
+                    state.Players.Add(player);
+                }
+
+                state.ActivePlayerIndex = Mathf.Clamp(scenario.ActivePlayerIndex, 0, Mathf.Max(0, state.Players.Count - 1));
+            }
+            else
+            {
+                var player = new Player(0, "Player 1");
+                player.Units.Add(new Unit("scout", new GridPosition(2, 2), 2, player.Id));
+                player.Units.Add(new Unit("settler", new GridPosition(3, 2), 2, player.Id));
+                state.Players.Add(player);
+
+                var rival = new Player(1, "Rival");
+                rival.Units.Add(new Unit("scout", new GridPosition(6, 2), 2, rival.Id));
+                state.Players.Add(rival);
+            }
 
             InitializeDiplomacy(state);
 
             return state;
+        }
+
+        private ScenarioDefinition LoadScenarioDefinition()
+        {
+            var loader = new DataLoader();
+            string json = loader.LoadText("Data/scenario.json");
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                return null;
+            }
+
+            try
+            {
+                return JsonUtility.FromJson<ScenarioDefinition>(json);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"Failed to load scenario.json: {ex.Message}");
+                return null;
+            }
+        }
+
+        private string GetDefaultProductionTarget()
+        {
+            if (dataCatalog != null && dataCatalog.TryGetUnitType("warrior", out _))
+            {
+                return "warrior";
+            }
+
+            return "scout";
+        }
+
+        private int GetProductionCost(string productionId)
+        {
+            if (dataCatalog != null && dataCatalog.TryGetUnitType(productionId, out var unitType))
+            {
+                return unitType.ProductionCost;
+            }
+
+            if (dataCatalog != null && dataCatalog.TryGetBuildingType(productionId, out var buildingType))
+            {
+                return buildingType.ProductionCost;
+            }
+
+            return 10;
         }
 
         private void InitializeDiplomacy(GameState state)

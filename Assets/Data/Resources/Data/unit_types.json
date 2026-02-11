@@ -1,74 +1,16 @@
 {
-  Items: [
-    {
-      Id: scout,
-      DisplayName: Scout,
-      MovementPoints: 2,
-      Attack: 1,
-      Defense: 1,
-      ProductionCost: 10,
-      WorkCost: 2,
-      Range: 1,
-      RequiresResource: ,
-      RequiresTech: 
-    },
-    {
-      Id: settler,
-      DisplayName: Settler,
-      MovementPoints: 2,
-      Attack: 0,
-      Defense: 1,
-      ProductionCost: 30,
-      WorkCost: 4,
-      RequiresResource: ,
-      RequiresTech: 
-    },
-    {
-      Id: worker,
-      DisplayName: Worker,
-      MovementPoints: 2,
-      Attack: 0,
-      Defense: 1,
-      ProductionCost: 20,
-      WorkCost: 3,
-      RequiresResource: ,
-      RequiresTech: 
-    },
-    {
-      Id: swordsman,
-      DisplayName: Swordsman,
-      MovementPoints: 2,
-      Attack: 3,
-      Defense: 2,
-      ProductionCost: 25,
-      WorkCost: 0,
-      Range: 1,
-      RequiresResource: iron,
-      RequiresTech: iron_working
-    },
-    {
-      Id: chariot,
-      DisplayName: Chariot,
-      MovementPoints: 3,
-      Attack: 2,
-      Defense: 1,
-      ProductionCost: 22,
-      WorkCost: 0,
-      Range: 1,
-      RequiresResource: horses,
-      RequiresTech: wheel
-    },
-    {
-      Id: axeman,
-      DisplayName: Axeman,
-      MovementPoints: 2,
-      Attack: 3,
-      Defense: 2,
-      ProductionCost: 24,
-      WorkCost: 0,
-      Range: 1,
-      RequiresResource: copper,
-      RequiresTech: bronze_working
-    }
+  "Items": [
+    { "Id": "scout", "DisplayName": "Scout", "MovementPoints": 2, "Attack": 1, "Defense": 1, "ProductionCost": 10, "WorkCost": 2, "Range": 1, "RequiresResource": "", "RequiresTech": "" },
+    { "Id": "settler", "DisplayName": "Settler", "MovementPoints": 2, "Attack": 0, "Defense": 1, "ProductionCost": 30, "WorkCost": 4, "Range": 1, "RequiresResource": "", "RequiresTech": "" },
+    { "Id": "worker", "DisplayName": "Worker", "MovementPoints": 2, "Attack": 0, "Defense": 1, "ProductionCost": 20, "WorkCost": 3, "Range": 1, "RequiresResource": "", "RequiresTech": "" },
+    { "Id": "warrior", "DisplayName": "Warrior", "MovementPoints": 2, "Attack": 1, "Defense": 1, "ProductionCost": 14, "WorkCost": 0, "Range": 1, "RequiresResource": "", "RequiresTech": "" },
+    { "Id": "archer", "DisplayName": "Archer", "MovementPoints": 2, "Attack": 2, "Defense": 2, "ProductionCost": 20, "WorkCost": 0, "Range": 2, "RequiresResource": "", "RequiresTech": "archery" },
+    { "Id": "slinger", "DisplayName": "Slinger", "MovementPoints": 2, "Attack": 2, "Defense": 1, "ProductionCost": 18, "WorkCost": 0, "Range": 2, "RequiresResource": "", "RequiresTech": "hunting" },
+    { "Id": "spearman", "DisplayName": "Spearman", "MovementPoints": 2, "Attack": 2, "Defense": 3, "ProductionCost": 22, "WorkCost": 0, "Range": 1, "RequiresResource": "", "RequiresTech": "bronze_working" },
+    { "Id": "swordsman", "DisplayName": "Swordsman", "MovementPoints": 2, "Attack": 3, "Defense": 2, "ProductionCost": 25, "WorkCost": 0, "Range": 1, "RequiresResource": "iron", "RequiresTech": "iron_working" },
+    { "Id": "chariot", "DisplayName": "Chariot", "MovementPoints": 3, "Attack": 2, "Defense": 1, "ProductionCost": 22, "WorkCost": 0, "Range": 1, "RequiresResource": "horses", "RequiresTech": "wheel" },
+    { "Id": "horseman", "DisplayName": "Horseman", "MovementPoints": 3, "Attack": 3, "Defense": 1, "ProductionCost": 28, "WorkCost": 0, "Range": 1, "RequiresResource": "horses", "RequiresTech": "horseback_riding" },
+    { "Id": "axeman", "DisplayName": "Axeman", "MovementPoints": 2, "Attack": 3, "Defense": 2, "ProductionCost": 24, "WorkCost": 0, "Range": 1, "RequiresResource": "copper", "RequiresTech": "bronze_working" },
+    { "Id": "catapult", "DisplayName": "Catapult", "MovementPoints": 2, "Attack": 4, "Defense": 1, "ProductionCost": 35, "WorkCost": 0, "Range": 2, "RequiresResource": "", "RequiresTech": "construction" }
   ]
 }

@@ -289,6 +289,7 @@ namespace CivClone.Presentation
             {
                 defense = Mathf.Max(1, defense - 1);
             }
+            defense += Mathf.Max(0, city.BuildingDefenseBonus);
 
             float t = Mathf.Clamp01(defense / 6f);
             var baseColor = Color.Lerp(defenseColor * 0.6f, defenseColor, t);
@@ -325,6 +326,7 @@ namespace CivClone.Presentation
             {
                 defense = Mathf.Max(1, defense - 1);
             }
+            defense += Mathf.Max(0, city.BuildingDefenseBonus);
 
             return $"{city.Name} (Pop {city.Population})\\nHP {city.Health}/{city.MaxHealth}  Def {defense}";
         }

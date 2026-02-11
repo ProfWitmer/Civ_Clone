@@ -7,4 +7,14 @@ wheel,The Wheel,30,animal_husbandry
 masonry,Masonry,30,mining
 archery,Archery,25,agriculture
 writing,Writing,35,agriculture
+pottery,Pottery,20,agriculture
+hunting,Hunting,20,agriculture
+mysticism,Mysticism,20,agriculture
+horseback_riding,Horseback Riding,40,"animal_husbandry,wheel"
+construction,Construction,45,masonry
+mathematics,Mathematics,40,writing
+alphabet,Alphabet,40,writing
+currency,Currency,50,alphabet
+sailing,Sailing,25,wheel
+engineering,Engineering,55,"construction,mathematics"
 iron_working,Iron Working,45,bronze_working

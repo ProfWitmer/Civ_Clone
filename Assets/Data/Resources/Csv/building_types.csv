@@ -1,0 +1,7 @@
+Id,DisplayName,ProductionCost,FoodBonus,ProductionBonus,ScienceBonus,DefenseBonus,RequiresTech
+granary,Granary,40,2,0,0,0,pottery
+barracks,Barracks,45,0,0,0,1,bronze_working
+monument,Monument,35,0,0,1,0,mysticism
+library,Library,55,0,0,2,0,writing
+market,Market,60,0,1,0,0,currency
+walls,Walls,50,0,0,0,2,construction

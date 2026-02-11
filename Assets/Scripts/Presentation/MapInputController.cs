@@ -56,7 +56,18 @@ namespace CivClone.Presentation
         private readonly List<int> diplomacyOptionIds = new List<int>();
         private const int DiplomacyPageSize = 3;
 
-        private readonly string[] productionOptions = { "scout", "worker", "settler", "swordsman", "chariot", "axeman" };
+        private readonly string[] unitProductionOptions =
+        {
+            "warrior", "scout", "archer", "slinger", "spearman", "swordsman",
+            "axeman", "chariot", "horseman", "catapult", "settler", "worker"
+        };
+        private readonly string[] buildingProductionOptions = { "granary", "barracks", "monument", "library", "market", "walls" };
+        private readonly string[] productionOptions =
+        {
+            "warrior", "scout", "archer", "slinger", "spearman", "swordsman",
+            "axeman", "chariot", "horseman", "catapult", "settler", "worker",
+            "granary", "barracks", "monument", "library", "market", "walls"
+        };
         private readonly string[] improvementOptions = { "farm", "mine", "pasture", "camp" };
         private readonly Dictionary<string, string> improvementRequirements = new Dictionary<string, string>
         {
@@ -1357,9 +1368,16 @@ namespace CivClone.Presentation
             int remaining = Mathf.Max(0, selectedCity.ProductionCost - selectedCity.ProductionStored);
             int turns = selectedCity.ProductionPerTurn > 0 ? Mathf.CeilToInt(remaining / (float)selectedCity.ProductionPerTurn) : 0;
             string targetName = selectedCity.ProductionTargetId;
-            if (dataCatalog != null && dataCatalog.TryGetUnitType(selectedCity.ProductionTargetId, out var unitType) && !string.IsNullOrWhiteSpace(unitType.DisplayName))
+            if (dataCatalog != null)
             {
-                targetName = unitType.DisplayName;
+                if (dataCatalog.TryGetUnitType(selectedCity.ProductionTargetId, out var unitType) && !string.IsNullOrWhiteSpace(unitType.DisplayName))
+                {
+                    targetName = unitType.DisplayName;
+                }
+                else if (dataCatalog.TryGetBuildingType(selectedCity.ProductionTargetId, out var buildingType) && !string.IsNullOrWhiteSpace(buildingType.DisplayName))
+                {
+                    targetName = buildingType.DisplayName;
+                }
             }
             string optionsHint = productionOptions.Length >= 4 ? "[1-4] Select" : (productionOptions.Length >= 3 ? "[1-3] Select" : "");
             string queueInfo = string.Empty;
@@ -1380,6 +1398,7 @@ namespace CivClone.Presentation
             {
                 defense = Mathf.Max(1, defense - 1);
             }
+            defense += Mathf.Max(0, selectedCity.BuildingDefenseBonus);
 
             hudController.SetCityPanel(
                 $"Name: {selectedCity.Name}",
@@ -1439,21 +1458,40 @@ namespace CivClone.Presentation
             }
 
             string candidate = productionOptions[index];
-            UnitType unitType = null;
-            if (dataCatalog == null || !dataCatalog.TryGetUnitType(candidate, out unitType))
+            bool isUnit = dataCatalog != null && dataCatalog.TryGetUnitType(candidate, out var unitType);
+            bool isBuilding = dataCatalog != null && dataCatalog.TryGetBuildingType(candidate, out var buildingType);
+
+            if (!isUnit && !isBuilding)
             {
-                UpdateHudSelection("Unit type missing");
+                UpdateHudSelection("Production target missing");
                 return;
             }
-            if (unitType != null && !HasRequiredResource(state?.ActivePlayer, unitType.RequiresResource))
+
+            if (isUnit)
             {
-                UpdateHudSelection("Requires resource");
-                return;
+                if (unitType != null && !HasRequiredResource(state?.ActivePlayer, unitType.RequiresResource))
+                {
+                    UpdateHudSelection("Requires resource");
+                    return;
+                }
+                if (unitType != null && !HasRequiredTech(state?.ActivePlayer, unitType.RequiresTech))
+                {
+                    UpdateHudSelection("Requires tech");
+                    return;
+                }
             }
-            if (unitType != null && !HasRequiredTech(state?.ActivePlayer, unitType.RequiresTech))
+            else if (isBuilding)
             {
-                UpdateHudSelection("Requires tech");
-                return;
+                if (buildingType != null && !HasRequiredTech(state?.ActivePlayer, buildingType.RequiresTech))
+                {
+                    UpdateHudSelection("Requires tech");
+                    return;
+                }
+                if (selectedCity.Buildings != null && selectedCity.Buildings.Contains(candidate))
+                {
+                    UpdateHudSelection("Building already built");
+                    return;
+                }
             }
 
             if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
@@ -1492,13 +1530,14 @@ namespace CivClone.Presentation
             {
                 int idx = (currentIndex + offset + productionOptions.Length) % productionOptions.Length;
                 string candidate = productionOptions[idx];
-                UnitType unitType = null;
-                if (dataCatalog == null || !dataCatalog.TryGetUnitType(candidate, out unitType))
+                bool isUnit = dataCatalog != null && dataCatalog.TryGetUnitType(candidate, out var unitType);
+                bool isBuilding = dataCatalog != null && dataCatalog.TryGetBuildingType(candidate, out var buildingType);
+                if (!isUnit && !isBuilding)
                 {
                     continue;
                 }
 
-                if (dataCatalog != null)
+                if (isUnit)
                 {
                     if (unitType != null && !HasRequiredResource(state?.ActivePlayer, unitType.RequiresResource))
                     {
@@ -1508,21 +1547,32 @@ namespace CivClone.Presentation
                     {
                         continue;
                     }
-
-                    if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
-                    {
-                        EnqueueProduction(candidate);
-                        return;
-                    }
-
-                    selectedCity.ProductionTargetId = candidate;
-                    selectedCity.ProductionCost = GetProductionCost(candidate);
-                    if (selectedCity.ProductionQueue != null)
-                    {
-                        selectedCity.ProductionQueue.Clear();
-                    }
-                    break;
                 }
+                else if (isBuilding)
+                {
+                    if (buildingType != null && !HasRequiredTech(state?.ActivePlayer, buildingType.RequiresTech))
+                    {
+                        continue;
+                    }
+                    if (selectedCity.Buildings != null && selectedCity.Buildings.Contains(candidate))
+                    {
+                        continue;
+                    }
+                }
+
+                if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
+                {
+                    EnqueueProduction(candidate);
+                    return;
+                }
+
+                selectedCity.ProductionTargetId = candidate;
+                selectedCity.ProductionCost = GetProductionCost(candidate);
+                if (selectedCity.ProductionQueue != null)
+                {
+                    selectedCity.ProductionQueue.Clear();
+                }
+                break;
             }
 
             UpdateCityInfo();
@@ -2549,6 +2599,11 @@ namespace CivClone.Presentation
                 return Mathf.Max(1, unitType.ProductionCost);
             }
 
+            if (dataCatalog != null && dataCatalog.TryGetBuildingType(unitTypeId, out var buildingType))
+            {
+                return Mathf.Max(1, buildingType.ProductionCost);
+            }
+
             return 10;
         }
 
@@ -2862,9 +2917,14 @@ namespace CivClone.Presentation
 
             var unlocked = new List<string>();
             var locked = new List<string>();
-            foreach (var unit in dataCatalog.UnitTypes)
+            foreach (var unitId in unitProductionOptions)
             {
-                if (unit == null || string.IsNullOrWhiteSpace(unit.RequiresResource))
+                if (dataCatalog == null || !dataCatalog.TryGetUnitType(unitId, out var unit) || unit == null)
+                {
+                    continue;
+                }
+
+                if (string.IsNullOrWhiteSpace(unit.RequiresResource))
                 {
                     continue;
                 }
@@ -2911,7 +2971,7 @@ namespace CivClone.Presentation
 
         private string BuildProductionTooltip(Player player)
         {
-            if (player == null || dataCatalog?.UnitTypes == null)
+            if (player == null || dataCatalog == null)
             {
                 return string.Empty;
             }
@@ -2919,21 +2979,30 @@ namespace CivClone.Presentation
             var lines = new List<string> { "Production options:" };
             foreach (var unitId in productionOptions)
             {
-                if (dataCatalog == null || !dataCatalog.TryGetUnitType(unitId, out var unitType) || unitType == null)
+                if (dataCatalog.TryGetUnitType(unitId, out var unitType) && unitType != null)
                 {
+                    bool hasResource = HasRequiredResource(player, unitType.RequiresResource);
+                    bool hasTech = HasRequiredTech(player, unitType.RequiresTech);
+                    string status = (hasResource && hasTech) ? "OK" : "Locked";
+                    string name = string.IsNullOrWhiteSpace(unitType.DisplayName) ? unitType.Id : unitType.DisplayName;
+                    string req = string.Empty;
+                    if (!string.IsNullOrWhiteSpace(unitType.RequiresResource) || !string.IsNullOrWhiteSpace(unitType.RequiresTech))
+                    {
+                        req = $" (Res: {unitType.RequiresResource}, Tech: {unitType.RequiresTech})";
+                    }
+                    lines.Add($"{name} - {status}{req}");
                     continue;
                 }
 
-                bool hasResource = HasRequiredResource(player, unitType.RequiresResource);
-                bool hasTech = HasRequiredTech(player, unitType.RequiresTech);
-                string status = (hasResource && hasTech) ? "OK" : "Locked";
-                string name = string.IsNullOrWhiteSpace(unitType.DisplayName) ? unitType.Id : unitType.DisplayName;
-                string req = string.Empty;
-                if (!string.IsNullOrWhiteSpace(unitType.RequiresResource) || !string.IsNullOrWhiteSpace(unitType.RequiresTech))
+                if (dataCatalog.TryGetBuildingType(unitId, out var buildingType) && buildingType != null)
                 {
-                    req = $" (Res: {unitType.RequiresResource}, Tech: {unitType.RequiresTech})";
+                    bool hasTech = HasRequiredTech(player, buildingType.RequiresTech);
+                    bool built = selectedCity != null && selectedCity.Buildings != null && selectedCity.Buildings.Contains(buildingType.Id);
+                    string status = built ? "Built" : (hasTech ? "OK" : "Locked");
+                    string name = string.IsNullOrWhiteSpace(buildingType.DisplayName) ? buildingType.Id : buildingType.DisplayName;
+                    string req = string.IsNullOrWhiteSpace(buildingType.RequiresTech) ? string.Empty : $" (Tech: {buildingType.RequiresTech})";
+                    lines.Add($"{name} - {status}{req}");
                 }
-                lines.Add($"{name} - {status}{req}");
             }
 
             return string.Join("\n", lines);
@@ -3003,9 +3072,16 @@ namespace CivClone.Presentation
             foreach (var city in player.Cities)
             {
                 string targetName = city.ProductionTargetId;
-                if (dataCatalog != null && dataCatalog.TryGetUnitType(city.ProductionTargetId, out var unitType) && !string.IsNullOrWhiteSpace(unitType.DisplayName))
+                if (dataCatalog != null)
                 {
-                    targetName = unitType.DisplayName;
+                    if (dataCatalog.TryGetUnitType(city.ProductionTargetId, out var unitType) && !string.IsNullOrWhiteSpace(unitType.DisplayName))
+                    {
+                        targetName = unitType.DisplayName;
+                    }
+                    else if (dataCatalog.TryGetBuildingType(city.ProductionTargetId, out var buildingType) && !string.IsNullOrWhiteSpace(buildingType.DisplayName))
+                    {
+                        targetName = buildingType.DisplayName;
+                    }
                 }
                 lines.Add($"{city.Name}: {city.ProductionStored}/{city.ProductionCost} (+{city.ProductionPerTurn}) {targetName}");
             }
@@ -3092,11 +3168,19 @@ namespace CivClone.Presentation
             {
                 defense = Mathf.Max(1, defense - 1);
             }
+            defense += Mathf.Max(0, city.BuildingDefenseBonus);
 
             string production = city.ProductionTargetId;
-            if (dataCatalog != null && dataCatalog.TryGetUnitType(city.ProductionTargetId, out var unitType) && !string.IsNullOrWhiteSpace(unitType.DisplayName))
+            if (dataCatalog != null)
             {
-                production = unitType.DisplayName;
+                if (dataCatalog.TryGetUnitType(city.ProductionTargetId, out var unitType) && !string.IsNullOrWhiteSpace(unitType.DisplayName))
+                {
+                    production = unitType.DisplayName;
+                }
+                else if (dataCatalog.TryGetBuildingType(city.ProductionTargetId, out var buildingType) && !string.IsNullOrWhiteSpace(buildingType.DisplayName))
+                {
+                    production = buildingType.DisplayName;
+                }
             }
 
             return $"{city.Name}\nPop {city.Population}  HP {city.Health}/{city.MaxHealth}  Def {defense}\nFood {city.FoodStored}/{foodNeeded} (+{city.FoodPerTurn})\nProd {production} {city.ProductionStored}/{city.ProductionCost} (+{city.ProductionPerTurn})";

@@ -70,3 +70,4 @@
 - 2026-02-07: Added unit hover HUD line and animated city HP bars.
 - 2026-02-07: Phase 4 complete (AI + diplomacy baseline).
 - 2026-02-11: Phase 5 complete (HUD layout, top bar yields, unit/city panels, tooltips, minimap + viewport, end turn flow, alerts, UI polish).
+- 2026-02-11: Phase 6 complete (Option A content pack + scenario hooks).

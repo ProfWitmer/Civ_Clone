@@ -2,6 +2,12 @@ Id,DisplayName,MovementPoints,Attack,Defense,ProductionCost,WorkCost,Range,Requi
 scout,Scout,2,1,1,10,2,1,,
 settler,Settler,2,0,1,30,4,1,,
 worker,Worker,2,0,1,20,3,1,,
+warrior,Warrior,2,1,1,14,0,1,,
+archer,Archer,2,2,2,20,0,2,,archery
+slinger,Slinger,2,2,1,18,0,2,,hunting
+spearman,Spearman,2,2,3,22,0,1,,bronze_working
 swordsman,Swordsman,2,3,2,25,0,1,iron,iron_working
 chariot,Chariot,3,2,1,22,0,1,horses,wheel
+horseman,Horseman,3,3,1,28,0,1,horses,horseback_riding
 axeman,Axeman,2,3,2,24,0,1,copper,bronze_working
+catapult,Catapult,2,4,1,35,0,2,,construction

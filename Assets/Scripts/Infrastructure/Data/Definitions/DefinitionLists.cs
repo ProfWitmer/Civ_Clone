@@ -43,4 +43,10 @@ namespace CivClone.Infrastructure.Data.Definitions
     {
         public CivicTypeDefinition[] Items;
     }
+
+    [Serializable]
+    public class BuildingTypeDefinitionList
+    {
+        public BuildingTypeDefinition[] Items;
+    }
 }

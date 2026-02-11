@@ -8,6 +8,16 @@
     { "Id": "masonry", "DisplayName": "Masonry", "Cost": 30, "Prerequisites": "mining" },
     { "Id": "archery", "DisplayName": "Archery", "Cost": 25, "Prerequisites": "agriculture" },
     { "Id": "writing", "DisplayName": "Writing", "Cost": 35, "Prerequisites": "agriculture" },
+    { "Id": "pottery", "DisplayName": "Pottery", "Cost": 20, "Prerequisites": "agriculture" },
+    { "Id": "hunting", "DisplayName": "Hunting", "Cost": 20, "Prerequisites": "agriculture" },
+    { "Id": "mysticism", "DisplayName": "Mysticism", "Cost": 20, "Prerequisites": "agriculture" },
+    { "Id": "horseback_riding", "DisplayName": "Horseback Riding", "Cost": 40, "Prerequisites": "animal_husbandry,wheel" },
+    { "Id": "construction", "DisplayName": "Construction", "Cost": 45, "Prerequisites": "masonry" },
+    { "Id": "mathematics", "DisplayName": "Mathematics", "Cost": 40, "Prerequisites": "writing" },
+    { "Id": "alphabet", "DisplayName": "Alphabet", "Cost": 40, "Prerequisites": "writing" },
+    { "Id": "currency", "DisplayName": "Currency", "Cost": 50, "Prerequisites": "alphabet" },
+    { "Id": "sailing", "DisplayName": "Sailing", "Cost": 25, "Prerequisites": "wheel" },
+    { "Id": "engineering", "DisplayName": "Engineering", "Cost": 55, "Prerequisites": "construction,mathematics" },
     { "Id": "iron_working", "DisplayName": "Iron Working", "Cost": 45, "Prerequisites": "bronze_working" }
   ]
 }

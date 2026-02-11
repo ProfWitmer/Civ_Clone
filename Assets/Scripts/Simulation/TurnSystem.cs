@@ -83,6 +83,10 @@ namespace CivClone.Simulation
             {
                 int food = city.BaseFoodPerTurn;
                 int prod = city.BaseProductionPerTurn;
+                int buildingFood = 0;
+                int buildingProd = 0;
+                int buildingScience = 0;
+                int buildingDefense = 0;
 
                 if (HasCivic(player, "despotism"))
                 {
@@ -120,8 +124,32 @@ namespace CivClone.Simulation
                     }
                 }
 
-                city.FoodPerTurn = Math.Max(1, food);
-                city.ProductionPerTurn = Math.Max(1, prod);
+                if (city.Buildings != null && catalog != null)
+                {
+                    foreach (var buildingId in city.Buildings)
+                    {
+                        if (string.IsNullOrWhiteSpace(buildingId))
+                        {
+                            continue;
+                        }
+
+                        if (catalog.TryGetBuildingType(buildingId, out var building))
+                        {
+                            buildingFood += building.FoodBonus;
+                            buildingProd += building.ProductionBonus;
+                            buildingScience += building.ScienceBonus;
+                            buildingDefense += building.DefenseBonus;
+                        }
+                    }
+                }
+
+                city.BuildingFoodBonus = buildingFood;
+                city.BuildingProductionBonus = buildingProd;
+                city.BuildingScienceBonus = buildingScience;
+                city.BuildingDefenseBonus = buildingDefense;
+
+                city.FoodPerTurn = Math.Max(1, food + buildingFood);
+                city.ProductionPerTurn = Math.Max(1, prod + buildingProd);
             }
         }
 
@@ -239,9 +267,45 @@ namespace CivClone.Simulation
                     return;
                 }
             }
+            else if (catalog != null && catalog.TryGetBuildingType(targetId, out var buildingType))
+            {
+                city.ProductionCost = buildingType.ProductionCost;
+                if (!HasRequiredTech(player, buildingType.RequiresTech))
+                {
+                    return;
+                }
+
+                if (city.Buildings != null && city.Buildings.Contains(targetId))
+                {
+                    AdvanceProductionQueue(city);
+                    return;
+                }
+            }
+            else
+            {
+                return;
+            }
 
             if (city.ProductionStored < city.ProductionCost)
             {
+                return;
+            }
+
+            if (catalog != null && catalog.TryGetBuildingType(targetId, out var building))
+            {
+                city.ProductionStored -= city.ProductionCost;
+                if (city.Buildings == null)
+                {
+                    city.Buildings = new List<string>();
+                }
+
+                if (!city.Buildings.Contains(targetId))
+                {
+                    city.Buildings.Add(targetId);
+                }
+
+                AdvanceProductionQueue(city);
+                RecalculateCityYields(player);
                 return;
             }
 
@@ -264,18 +328,37 @@ namespace CivClone.Simulation
             newUnit.Health = newUnit.MaxHealth;
             player.Units.Add(newUnit);
 
-            if (city.ProductionQueue != null && city.ProductionQueue.Count > 0)
+            AdvanceProductionQueue(city);
+        }
+
+        private void AdvanceProductionQueue(City city)
+        {
+            if (city == null || city.ProductionQueue == null || city.ProductionQueue.Count == 0)
             {
-                city.ProductionQueue.RemoveAt(0);
+                return;
             }
 
-            if (city.ProductionQueue != null && city.ProductionQueue.Count > 0)
+            city.ProductionQueue.RemoveAt(0);
+            while (city.ProductionQueue.Count > 0)
             {
-                city.ProductionTargetId = city.ProductionQueue[0];
-                if (catalog != null && catalog.TryGetUnitType(city.ProductionTargetId, out var nextType))
+                var nextId = city.ProductionQueue[0];
+                if (catalog != null && catalog.TryGetBuildingType(nextId, out _)
+                    && city.Buildings != null && city.Buildings.Contains(nextId))
                 {
-                    city.ProductionCost = nextType.ProductionCost;
+                    city.ProductionQueue.RemoveAt(0);
+                    continue;
                 }
+
+                city.ProductionTargetId = nextId;
+                if (catalog != null && catalog.TryGetUnitType(nextId, out var unitType))
+                {
+                    city.ProductionCost = unitType.ProductionCost;
+                }
+                else if (catalog != null && catalog.TryGetBuildingType(nextId, out var buildingType))
+                {
+                    city.ProductionCost = buildingType.ProductionCost;
+                }
+                break;
             }
         }
 
