@@ -76,7 +76,7 @@ namespace CivClone.Simulation
                 return true;
             }
 
-            var parts = tech.Prerequisites.Split(,);
+            var parts = tech.Prerequisites.Split(',');
             foreach (var part in parts)
             {
                 var id = part.Trim();

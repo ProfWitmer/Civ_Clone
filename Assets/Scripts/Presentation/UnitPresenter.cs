@@ -13,6 +13,7 @@ namespace CivClone.Presentation
         private readonly Dictionary<Unit, UnitView> unitViews = new Dictionary<Unit, UnitView>();
         private Sprite unitSprite;
         private MapPresenter mapPresenter;
+        private HudController hudController;
 
         public void RenderUnits(GameState state, MapPresenter presenter)
         {
@@ -22,6 +23,11 @@ namespace CivClone.Presentation
             if (state == null || state.Players == null || mapPresenter == null)
             {
                 return;
+            }
+
+            if (hudController == null)
+            {
+                hudController = FindFirstObjectByType<HudController>();
             }
 
             if (unitSprite == null)
@@ -49,6 +55,9 @@ namespace CivClone.Presentation
                     var view = unitObject.AddComponent<UnitView>();
                     view.Bind(unit, renderer);
 
+                    var hover = unitObject.AddComponent<UnitHover>();
+                    hover.Bind(hudController, unit);
+
                     unitViews[unit] = view;
                     UpdateUnitVisual(unit);
                 }
@@ -65,10 +74,10 @@ namespace CivClone.Presentation
             if (unitViews.TryGetValue(unit, out var view))
             {
                 var renderer = view.GetComponent<SpriteRenderer>();
+                float max = Mathf.Max(1f, unit.MaxHealth);
+                float healthPct = Mathf.Clamp01(unit.Health / max);
                 if (renderer != null)
                 {
-                    float max = Mathf.Max(1f, unit.MaxHealth);
-                    float healthPct = Mathf.Clamp01(unit.Health / max);
                     renderer.color = Color.Lerp(damagedColor, unitColor, healthPct);
                 }
 

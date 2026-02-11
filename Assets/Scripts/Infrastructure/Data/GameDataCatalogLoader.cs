@@ -398,7 +398,7 @@ namespace CivClone.Infrastructure.Data
                 return Color.white;
             }
 
-            var value = hex.Trim().TrimStart(#);
+            var value = hex.Trim().TrimStart('#');
             if (value.Length != 6 && value.Length != 8)
             {
                 return Color.white;

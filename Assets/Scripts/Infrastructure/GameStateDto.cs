@@ -138,6 +138,9 @@ namespace CivClone.Infrastructure
                         X = city.Position.X,
                         Y = city.Position.Y,
                         Population = city.Population,
+                        Health = city.Health,
+                        MaxHealth = city.MaxHealth,
+                        UnderSiege = city.UnderSiege,
                         FoodStored = city.FoodStored,
                         ProductionStored = city.ProductionStored,
                         BaseFoodPerTurn = city.BaseFoodPerTurn,
@@ -251,6 +254,8 @@ namespace CivClone.Infrastructure
                 {
                     var newCity = new City(city.Name, new GridPosition(city.X, city.Y), player.Id, city.Population)
                     {
+                        Health = city.Health > 0 ? city.Health : City.GetDefaultMaxHealth(city.Population),
+                        MaxHealth = city.MaxHealth > 0 ? city.MaxHealth : City.GetDefaultMaxHealth(city.Population),
                         FoodStored = city.FoodStored,
                         ProductionStored = city.ProductionStored,
                         BaseFoodPerTurn = city.BaseFoodPerTurn,
@@ -259,7 +264,8 @@ namespace CivClone.Infrastructure
                         ProductionPerTurn = city.ProductionPerTurn,
                         ProductionTargetId = city.ProductionTargetId,
                         ProductionCost = city.ProductionCost,
-                        ProductionQueue = new List<string>(city.ProductionQueue)
+                        ProductionQueue = new List<string>(city.ProductionQueue),
+                        UnderSiege = city.UnderSiege
                     };
                     player.Cities.Add(newCity);
                 }
@@ -324,6 +330,9 @@ namespace CivClone.Infrastructure
             public int X;
             public int Y;
             public int Population;
+            public int Health;
+            public int MaxHealth;
+            public bool UnderSiege;
             public int FoodStored;
             public int ProductionStored;
             public int BaseFoodPerTurn;

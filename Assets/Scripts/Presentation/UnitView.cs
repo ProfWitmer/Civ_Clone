@@ -7,6 +7,12 @@ namespace CivClone.Presentation
     {
         public Unit Unit { get; private set; }
 
+        private SpriteRenderer spriteRenderer;
+        private Vector3 baseLocalPosition;
+        private bool isAnimating;
+        private SpriteRenderer healthBarBack;
+        private SpriteRenderer healthBarFill;
+
         public void Bind(Unit unit, SpriteRenderer renderer)
         {
             Unit = unit;

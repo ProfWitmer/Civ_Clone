@@ -1,11 +1,11 @@
-using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace CivClone.Presentation.UI
 {
     public sealed class TileInfoPanel : MonoBehaviour
     {
-        [SerializeField] private TMP_Text label;
+        [SerializeField] private Text label;
 
         public void SetCoordinates(int x, int z)
         {

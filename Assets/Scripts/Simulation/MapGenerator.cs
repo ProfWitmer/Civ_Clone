@@ -5,6 +5,15 @@ namespace CivClone.Simulation
     public class MapGenerator
     {
         private readonly MapConfig _config;
+        private const string TerrainPlains = "plains";
+        private const string TerrainHills = "hills";
+        private const string TerrainWater = "water";
+        private const string ResourceWheat = "wheat";
+        private const string ResourceHorses = "horses";
+        private const string ResourceIron = "iron";
+        private const string ResourceCopper = "copper";
+        private const string ResourceGems = "gems";
+        private const string ResourceFish = "fish";
 
         public MapGenerator(MapConfig config)
         {
@@ -24,40 +33,40 @@ namespace CivClone.Simulation
                     double roll = random.NextDouble();
                     if (roll > 0.9)
                     {
-                        terrainId = hills;
+                        terrainId = TerrainHills;
                     }
 
                     bool edgeWater = x == 0 || y == 0 || x == _config.Width - 1 || y == _config.Height - 1;
                     if (edgeWater || roll < 0.08)
                     {
-                        terrainId = water;
+                        terrainId = TerrainWater;
                     }
 
                     var tile = new Tile(new GridPosition(x, y), terrainId);
                     double resourceRoll = random.NextDouble();
-                    if (terrainId == plains && resourceRoll > 0.93)
+                    if (terrainId == TerrainPlains && resourceRoll > 0.93)
                     {
-                        tile.ResourceId = wheat;
+                        tile.ResourceId = ResourceWheat;
                     }
-                    else if (terrainId == plains && resourceRoll > 0.9)
+                    else if (terrainId == TerrainPlains && resourceRoll > 0.9)
                     {
-                        tile.ResourceId = horses;
+                        tile.ResourceId = ResourceHorses;
                     }
-                    else if (terrainId == hills && resourceRoll > 0.92)
+                    else if (terrainId == TerrainHills && resourceRoll > 0.92)
                     {
-                        tile.ResourceId = iron;
+                        tile.ResourceId = ResourceIron;
                     }
-                    else if (terrainId == hills && resourceRoll > 0.88)
+                    else if (terrainId == TerrainHills && resourceRoll > 0.88)
                     {
-                        tile.ResourceId = copper;
+                        tile.ResourceId = ResourceCopper;
                     }
-                    else if (terrainId == hills && resourceRoll > 0.85)
+                    else if (terrainId == TerrainHills && resourceRoll > 0.85)
                     {
-                        tile.ResourceId = gems;
+                        tile.ResourceId = ResourceGems;
                     }
-                    else if (terrainId == water && resourceRoll > 0.93)
+                    else if (terrainId == TerrainWater && resourceRoll > 0.93)
                     {
-                        tile.ResourceId = fish;
+                        tile.ResourceId = ResourceFish;
                     }
 
                     map.Tiles.Add(tile);

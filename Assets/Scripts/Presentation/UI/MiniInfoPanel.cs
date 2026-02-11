@@ -1,4 +1,3 @@
-using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -6,9 +5,9 @@ namespace CivClone.Presentation.UI
 {
     public sealed class MiniInfoPanel : MonoBehaviour
     {
-        [SerializeField] private TMP_Text compassLabel;
-        [SerializeField] private TMP_Text turnLabel;
-        [SerializeField] private TMP_Text yearLabel;
+        [SerializeField] private Text compassLabel;
+        [SerializeField] private Text turnLabel;
+        [SerializeField] private Text yearLabel;
 
         [SerializeField] private string compassText = "N";
         [SerializeField] private int startTurn = 1;
@@ -68,7 +67,7 @@ namespace CivClone.Presentation.UI
             }
         }
 
-        private void ApplyStyle(TMP_Text text)
+        private void ApplyStyle(Text text)
         {
             if (text == null)
             {
@@ -76,7 +75,8 @@ namespace CivClone.Presentation.UI
             }
 
             text.color = textColor;
-            text.textWrappingMode = TextWrappingModes.NoWrap;
+            text.horizontalOverflow = HorizontalWrapMode.Overflow;
+            text.verticalOverflow = VerticalWrapMode.Overflow;
 
             if (text.GetComponent<Shadow>() == null)
             {

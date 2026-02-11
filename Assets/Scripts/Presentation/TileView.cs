@@ -5,6 +5,9 @@ namespace CivClone.Presentation
 {
     public sealed class TileView : MonoBehaviour
     {
+        private const string Improvement = "Improvement";
+        private const string Resource = "Resource";
+
         public GridPosition Position { get; private set; }
 
         private SpriteRenderer spriteRenderer;

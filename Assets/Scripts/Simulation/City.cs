@@ -5,10 +5,14 @@ namespace CivClone.Simulation
     [Serializable]
     public class City
     {
+        public const int BaseHealth = 20;
         public string Name;
         public GridPosition Position;
         public int OwnerId;
         public int Population;
+        public int Health;
+        public int MaxHealth;
+        public bool UnderSiege;
         public int FoodStored;
         public int ProductionStored;
         public int BaseFoodPerTurn = 1;
@@ -25,10 +29,17 @@ namespace CivClone.Simulation
             Position = position;
             OwnerId = ownerId;
             Population = population;
+            MaxHealth = GetDefaultMaxHealth(population);
+            Health = MaxHealth;
             FoodStored = 0;
             ProductionStored = 0;
             FoodPerTurn = BaseFoodPerTurn;
             ProductionPerTurn = BaseProductionPerTurn;
+        }
+
+        public static int GetDefaultMaxHealth(int population)
+        {
+            return BaseHealth + Math.Max(0, population) * 2;
         }
     }
 }

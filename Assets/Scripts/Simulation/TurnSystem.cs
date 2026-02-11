@@ -131,6 +131,19 @@ namespace CivClone.Simulation
 
             foreach (var city in player.Cities)
             {
+                if (city.MaxHealth <= 0)
+                {
+                    city.MaxHealth = City.GetDefaultMaxHealth(city.Population);
+                }
+                if (city.Health <= 0)
+                {
+                    city.Health = city.MaxHealth;
+                }
+                else if (!city.UnderSiege)
+                {
+                    city.Health = Math.Min(city.MaxHealth, city.Health + 1);
+                }
+
                 city.FoodStored += city.FoodPerTurn;
                 city.ProductionStored += city.ProductionPerTurn;
 
