@@ -111,8 +111,12 @@ namespace CivClone.Presentation
 
             if (miniMapPresenter == null)
             {
-                miniMapPresenter = GetComponent<MiniMapPresenter>();
-                if (miniMapPresenter == null)
+                miniMapPresenter = FindFirstObjectByType<MiniMapPresenter>();
+                if (miniMapPresenter == null && hudController != null)
+                {
+                    miniMapPresenter = hudController.gameObject.AddComponent<MiniMapPresenter>();
+                }
+                else if (miniMapPresenter == null)
                 {
                     miniMapPresenter = gameObject.AddComponent<MiniMapPresenter>();
                 }

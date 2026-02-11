@@ -1,48 +1,102 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements">
     <ui:Style src="Assets/UI/Styles/Hud.uss" />
     <ui:VisualElement class="hud-root">
-        <ui:Label name="turn-label" text="Turn 1 - Player 1" class="hud-title" />
-        <ui:Label name="selection-label" text="Selection: None" class="hud-sub" />
-        <ui:Label name="event-label" text="" class="hud-sub hud-event" />
-        <ui:Label name="city-label" text="City: None" class="hud-sub" />
-        <ui:Label name="production-label" text="Production: None" class="hud-sub" />
-        <ui:Label name="promotion-label" text="Promotions: None" class="hud-sub" />
-        <ui:Label name="promotion-detail-label" text="" class="hud-sub hud-detail" />
-        <ui:Label name="research-label" text="Research: None" class="hud-sub" />
-        <ui:Label name="civic-label" text="Civics: None" class="hud-sub" />
-        <ui:Label name="resource-label" text="Resources: None" class="hud-sub" />
-        <ui:Label name="resource-unit-label" text="Resource Units: None" class="hud-sub" />
-        <ui:Label name="trade-label" text="Trade Routes: None" class="hud-sub" />
-        <ui:VisualElement class="hud-minimap">
-            <ui:Label text="Minimap" class="hud-minimap-title" />
-            <ui:Image name="minimap-image" class="hud-minimap-image" />
+        <ui:VisualElement class="hud-topbar">
+            <ui:Label name="game-title-label" text="Civ Clone" class="hud-top-title" />
+            <ui:VisualElement class="hud-resource-bar">
+                <ui:Label name="resource-gold-label" text="Gold: 0 (+0)" class="hud-resource" />
+                <ui:Label name="resource-science-label" text="Science: 0 (+0)" class="hud-resource" />
+                <ui:Label name="resource-culture-label" text="Culture: 0 (+0)" class="hud-resource" />
+                <ui:Label name="resource-food-label" text="Food: 0 (+0)" class="hud-resource" />
+                <ui:Label name="resource-production-label" text="Production: 0 (+0)" class="hud-resource" />
+            </ui:VisualElement>
+            <ui:Label name="turn-label" text="Turn 1 - Player 1" class="hud-top-turn" />
         </ui:VisualElement>
-        <ui:VisualElement name="promotion-panel" class="hud-panel" style="display: none;">
-            <ui:Label name="promotion-panel-title" text="Choose Promotion" class="hud-title" />
-            <ui:Label name="promotion-option1" text="[U] -" class="hud-sub" />
-            <ui:Label name="promotion-option2" text="[I] -" class="hud-sub" />
-            <ui:Label name="promotion-option3" text="[O] -" class="hud-sub" />
+
+        <ui:VisualElement class="hud-bottom">
+            <ui:VisualElement class="hud-left">
+                <ui:Label name="selection-label" text="Selection: None" class="hud-title" />
+                <ui:Label name="event-label" text="" class="hud-sub hud-event" />
+                <ui:Label name="alert-label" text="" class="hud-sub hud-alert" />
+                <ui:Label name="city-label" text="City: None" class="hud-sub" />
+                <ui:Label name="city-hover-label" text="" class="hud-sub hud-hover" />
+                <ui:Label name="unit-hover-label" text="" class="hud-sub hud-hover" />
+                <ui:Label name="production-label" text="Production: None" class="hud-sub" />
+                <ui:Label name="promotion-label" text="Promotions: None" class="hud-sub" />
+                <ui:Label name="promotion-detail-label" text="" class="hud-sub hud-detail" />
+                <ui:Label name="research-label" text="Research: None" class="hud-sub" />
+                <ui:Label name="civic-label" text="Civics: None" class="hud-sub" />
+                <ui:Label name="resource-label" text="Resources: None" class="hud-sub" />
+                <ui:Label name="resource-unit-label" text="Resource Units: None" class="hud-sub" />
+                <ui:Label name="trade-label" text="Trade Routes: None" class="hud-sub" />
+                <ui:Label name="diplomacy-status-label" text="Diplomacy: Peace" class="hud-sub" />
+
+                <ui:VisualElement name="unit-panel" class="hud-panel hud-unit-panel">
+                    <ui:Label name="unit-panel-title" text="Unit" class="hud-title" />
+                    <ui:Label name="unit-name-label" text="Name: None" class="hud-sub" />
+                    <ui:Label name="unit-hp-label" text="HP: -" class="hud-sub" />
+                    <ui:Label name="unit-move-label" text="Movement: -" class="hud-sub" />
+                    <ui:Label name="unit-strength-label" text="Strength: -" class="hud-sub" />
+                </ui:VisualElement>
+
+                <ui:VisualElement name="city-panel" class="hud-panel hud-city-panel">
+                    <ui:Label name="city-panel-title" text="City" class="hud-title" />
+                    <ui:Label name="city-name-label" text="Name: None" class="hud-sub" />
+                    <ui:Label name="city-pop-label" text="Population: -" class="hud-sub" />
+                    <ui:Label name="city-growth-label" text="Growth: -" class="hud-sub" />
+                    <ui:Label name="city-production-label" text="Production: -" class="hud-sub" />
+                    <ui:Label name="city-defense-label" text="Defense: -" class="hud-sub" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+
+            <ui:VisualElement class="hud-right">
+                <ui:VisualElement class="hud-minimap">
+                    <ui:Label text="Minimap" class="hud-minimap-title" />
+                    <ui:VisualElement class="hud-minimap-frame">
+                        <ui:Image name="minimap-image" class="hud-minimap-image" />
+                        <ui:VisualElement name="minimap-viewport" class="hud-minimap-viewport" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="tooltip-panel" class="hud-panel hud-tooltip">
+                    <ui:Label name="tooltip-label" text="" class="hud-sub hud-detail" />
+                </ui:VisualElement>
+                <ui:VisualElement name="combat-log" class="hud-panel hud-log">
+                    <ui:Label text="Combat Log" class="hud-title" />
+                    <ui:Label name="combat-log-label" text="" class="hud-sub" />
+                </ui:VisualElement>
+                <ui:Button name="endturn-button" text="End Turn" class="hud-button hud-endturn" />
+            </ui:VisualElement>
         </ui:VisualElement>
-        <ui:VisualElement name="tech-panel" class="hud-panel" style="display: none;">
-            <ui:Label name="tech-panel-title" text="Choose Research" class="hud-title" />
-            <ui:Label name="tech-option1" text="[J] -" class="hud-sub" />
-            <ui:Label name="tech-option2" text="[K] -" class="hud-sub" />
-            <ui:Label name="tech-option3" text="[L] -" class="hud-sub" />
+
+        <ui:VisualElement class="hud-floating">
+            <ui:VisualElement name="promotion-panel" class="hud-panel" style="display: none;">
+                <ui:Label name="promotion-panel-title" text="Choose Promotion" class="hud-title" />
+                <ui:Label name="promotion-option1" text="[U] -" class="hud-sub" />
+                <ui:Label name="promotion-option2" text="[I] -" class="hud-sub" />
+                <ui:Label name="promotion-option3" text="[O] -" class="hud-sub" />
+            </ui:VisualElement>
+            <ui:VisualElement name="tech-panel" class="hud-panel" style="display: none;">
+                <ui:Label name="tech-panel-title" text="Choose Research" class="hud-title" />
+                <ui:Label name="tech-option1" text="[J] -" class="hud-sub" />
+                <ui:Label name="tech-option2" text="[K] -" class="hud-sub" />
+                <ui:Label name="tech-option3" text="[L] -" class="hud-sub" />
+            </ui:VisualElement>
+            <ui:VisualElement name="tech-tree-panel" class="hud-panel" style="display: none;">
+                <ui:Label name="tech-tree-title" text="Tech Tree" class="hud-title" />
+                <ui:Label name="tech-tree-label" text="" class="hud-sub hud-detail" />
+            </ui:VisualElement>
+            <ui:VisualElement name="civic-panel" class="hud-panel" style="display: none;">
+                <ui:Label name="civic-panel-title" text="Choose Civic" class="hud-title" />
+                <ui:Label name="civic-option1" text="[4] -" class="hud-sub" />
+                <ui:Label name="civic-option2" text="[5] -" class="hud-sub" />
+                <ui:Label name="civic-option3" text="[6] -" class="hud-sub" />
+            </ui:VisualElement>
+            <ui:VisualElement name="diplomacy-panel" class="hud-panel" style="display: none;">
+                <ui:Label name="diplomacy-panel-title" text="Diplomacy" class="hud-title" />
+                <ui:Label name="diplomacy-option1" text="[7] -" class="hud-sub" />
+                <ui:Label name="diplomacy-option2" text="[8] -" class="hud-sub" />
+                <ui:Label name="diplomacy-option3" text="[9] -" class="hud-sub" />
+            </ui:VisualElement>
         </ui:VisualElement>
-        <ui:VisualElement name="tech-tree-panel" class="hud-panel" style="display: none;">
-            <ui:Label name="tech-tree-title" text="Tech Tree" class="hud-title" />
-            <ui:Label name="tech-tree-label" text="" class="hud-sub hud-detail" />
-        </ui:VisualElement>
-        <ui:VisualElement name="civic-panel" class="hud-panel" style="display: none;">
-            <ui:Label name="civic-panel-title" text="Choose Civic" class="hud-title" />
-            <ui:Label name="civic-option1" text="[4] -" class="hud-sub" />
-            <ui:Label name="civic-option2" text="[5] -" class="hud-sub" />
-            <ui:Label name="civic-option3" text="[6] -" class="hud-sub" />
-        </ui:VisualElement>
-        <ui:VisualElement name="combat-log" class="hud-panel">
-            <ui:Label text="Combat Log" class="hud-title" />
-            <ui:Label name="combat-log-label" text="" class="hud-sub" />
-        </ui:VisualElement>
-        <ui:Button name="endturn-button" text="End Turn" class="hud-button" />
     </ui:VisualElement>
 </ui:UXML>

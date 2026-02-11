@@ -59,3 +59,14 @@
 - 2026-02-07: Phase 2 complete (units, cities, improvements, combat, promotions, roads, tech selection).
 - 2026-02-07: Phase 3 started - tech prerequisites, civics scaffold, resources and simple trade routes.
 - 2026-02-07: Phase 4 started - basic AI production/research/worker actions and war declarations on combat.
+- 2026-02-07: Added diplomacy panel toggles (G/7-9) and AI war-target movement.
+- 2026-02-07: Added diplomacy status HUD line, basic AI peace offers, and city capture on entering enemy cities.
+- 2026-02-07: Added city health/defense combat and diplomacy panel paging.
+- 2026-02-07: Added city HP badge rendering and AI now prioritizes enemy cities when at war.
+- 2026-02-07: Added city defense badge + low-HP outline and siege-style AI behavior (move adjacent before attack).
+- 2026-02-07: Added defense shield icon and ranged bombardment vs cities.
+- 2026-02-07: Added city hover tooltip and siege debuff (HP regen paused when adjacent enemy present).
+- 2026-02-07: Added siege icon and dedicated HUD hover line for cities.
+- 2026-02-07: Added unit hover HUD line and animated city HP bars.
+- 2026-02-07: Phase 4 complete (AI + diplomacy baseline).
+- 2026-02-11: Phase 5 complete (HUD layout, top bar yields, unit/city panels, tooltips, minimap + viewport, end turn flow, alerts, UI polish).

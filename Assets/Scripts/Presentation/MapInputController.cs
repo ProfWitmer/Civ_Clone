@@ -22,7 +22,13 @@ namespace CivClone.Presentation
         [SerializeField] private KeyCode[] promotionSelectKeys = { KeyCode.U, KeyCode.I, KeyCode.O };
         [SerializeField] private KeyCode civicPanelKey = KeyCode.C;
         [SerializeField] private KeyCode[] civicSelectKeys = { KeyCode.Alpha4, KeyCode.Alpha5, KeyCode.Alpha6 };
+        [SerializeField] private KeyCode diplomacyPanelKey = KeyCode.G;
+        [SerializeField] private KeyCode[] diplomacySelectKeys = { KeyCode.Alpha7, KeyCode.Alpha8, KeyCode.Alpha9 };
+        [SerializeField] private KeyCode diplomacyPrevKey = KeyCode.LeftBracket;
+        [SerializeField] private KeyCode diplomacyNextKey = KeyCode.RightBracket;
         [SerializeField] private int humanPlayerId = 0;
+        [SerializeField] private bool autoEndTurnWhenReady = false;
+        [SerializeField] private float autoEndTurnDelay = 0.2f;
 
         private GameState state;
         private TurnSystem turnSystem;
@@ -39,11 +45,16 @@ namespace CivClone.Presentation
         private bool techSelectionOpen;
         private bool techTreeOpen;
         private bool civicSelectionOpen;
+        private bool diplomacySelectionOpen;
+        private int diplomacyPageIndex;
         private int civicCategoryIndex;
+        private float autoEndTurnTimer;
         private readonly List<string> availableTechs = new List<string>();
         private readonly List<string> availablePromotions = new List<string>();
         private readonly List<string> availableCivics = new List<string>();
         private readonly List<string> civicCategories = new List<string>();
+        private readonly List<int> diplomacyOptionIds = new List<int>();
+        private const int DiplomacyPageSize = 3;
 
         private readonly string[] productionOptions = { "scout", "worker", "settler", "swordsman", "chariot", "axeman" };
         private readonly string[] improvementOptions = { "farm", "mine", "pasture", "camp" };
@@ -77,6 +88,12 @@ namespace CivClone.Presentation
             UpdateResearchInfo();
             UpdateCivicInfo();
             UpdateResourceInfo();
+            UpdateTopBarInfo();
+            UpdateDiplomacyInfo();
+            if (state?.ActivePlayer != null)
+            {
+                EnsureDiplomacyState(state.ActivePlayer);
+            }
         }
 
         private void Update()
@@ -145,10 +162,22 @@ namespace CivClone.Presentation
 
             HandleCivicSelection();
 
+            if (Input.GetKeyDown(diplomacyPanelKey))
+            {
+                ToggleDiplomacySelection();
+            }
+
+            HandleDiplomacySelection();
+
             if (Input.GetKeyDown(endTurnKey))
             {
-                EndTurn();
+                bool force = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+                EndTurn(force);
             }
+
+            UpdateHoverTooltip();
+            UpdateAlertsAndEndTurnState();
+            HandleAutoEndTurn();
         }
 
         private void SpawnCombatText(GridPosition position, string text, Color color)
@@ -236,6 +265,32 @@ namespace CivClone.Presentation
                 return;
             }
 
+            if (inRange)
+            {
+                var rangedCity = FindCityAt(tileView.Position);
+                if (rangedCity != null && rangedCity.OwnerId != selectedUnit.OwnerId && GetUnitRange(selectedUnit) > 1)
+                {
+                    if (ResolveCityCombat(selectedUnit, rangedCity, 1, true))
+                    {
+                        ApplyFog();
+                        return;
+                    }
+                }
+            }
+
+            if (!inRange)
+            {
+                var targetCity = FindCityAt(tileView.Position);
+                if (targetCity != null && targetCity.OwnerId != selectedUnit.OwnerId)
+                {
+                    if (ResolveCityCombat(selectedUnit, targetCity, moveCost, false))
+                    {
+                        ApplyFog();
+                        return;
+                    }
+                }
+            }
+
             if (!inRange)
             {
                 selectedUnit.Position = tileView.Position;
@@ -300,6 +355,8 @@ namespace CivClone.Presentation
                 return;
             }
 
+            UpdateCitySiegeStates();
+
             int safety = 0;
             while (state.ActivePlayer != null && state.ActivePlayer.Id != humanPlayerId && safety < 10)
             {
@@ -317,20 +374,22 @@ namespace CivClone.Presentation
             }
 
             EnsureDiplomacyState(aiPlayer);
+            ConsiderSeekingPeace(aiPlayer);
             ChooseResearch(aiPlayer);
             EnsureCityProduction(aiPlayer);
 
             foreach (var unit in new List<Unit>(aiPlayer.Units))
             {
-                if (unit.UnitTypeId == "settler" && !CityExistsAt(unit.Position))
-                {
-                    var city = new City($"City {aiPlayer.Cities.Count + 1}", unit.Position, aiPlayer.Id, 1);
-                    city.ProductionTargetId = productionOptions[0];
-                    city.ProductionCost = GetProductionCost(city.ProductionTargetId);
-                    aiPlayer.Cities.Add(city);
-                    aiPlayer.Units.Remove(unit);
-                    continue;
-                }
+            if (unit.UnitTypeId == "settler" && !CityExistsAt(unit.Position))
+            {
+                var city = new City($"City {aiPlayer.Cities.Count + 1}", unit.Position, aiPlayer.Id, 1);
+                city.ProductionTargetId = productionOptions[0];
+                city.ProductionCost = GetProductionCost(city.ProductionTargetId);
+                aiPlayer.Cities.Add(city);
+                aiPlayer.Units.Remove(unit);
+                cityPresenter?.RenderCities(state, mapPresenter);
+                continue;
+            }
 
                 if (unit.UnitTypeId == "worker")
                 {
@@ -338,6 +397,11 @@ namespace CivClone.Presentation
                     {
                         continue;
                     }
+                }
+
+                if (TryMoveUnitTowardsWarTarget(aiPlayer, unit))
+                {
+                    continue;
                 }
 
                 TryMoveUnitRandomly(unit);
@@ -387,6 +451,211 @@ namespace CivClone.Presentation
             }
         }
 
+        private bool TryMoveUnitTowardsWarTarget(Player aiPlayer, Unit unit)
+        {
+            if (aiPlayer == null || unit == null)
+            {
+                return false;
+            }
+
+            var target = FindNearestWarTarget(aiPlayer, unit.Position);
+            if (!target.HasValue)
+            {
+                return false;
+            }
+
+            var targetCity = FindCityAt(target.Value);
+            if (targetCity != null)
+            {
+                if (TryRangedAttackCity(unit, targetCity))
+                {
+                    return true;
+                }
+
+                int distance = Mathf.Abs(unit.Position.X - targetCity.Position.X) + Mathf.Abs(unit.Position.Y - targetCity.Position.Y);
+                if (distance == 1 && unit.MovementRemaining < unit.MovementPoints)
+                {
+                    return true;
+                }
+            }
+
+            return TryMoveUnitTowards(unit, target.Value);
+        }
+
+        private GridPosition? FindNearestWarTarget(Player aiPlayer, GridPosition origin)
+        {
+            if (state?.Players == null)
+            {
+                return null;
+            }
+
+            int bestDistance = int.MaxValue;
+            GridPosition best = default;
+            bool found = false;
+
+            foreach (var other in state.Players)
+            {
+                if (other == null || other.Id == aiPlayer.Id)
+                {
+                    continue;
+                }
+
+                if (!IsAtWar(aiPlayer, other.Id))
+                {
+                    continue;
+                }
+
+                foreach (var city in other.Cities)
+                {
+                    int distance = Mathf.Abs(city.Position.X - origin.X) + Mathf.Abs(city.Position.Y - origin.Y);
+                    if (distance < bestDistance)
+                    {
+                        bestDistance = distance;
+                        best = city.Position;
+                        found = true;
+                    }
+                }
+
+                foreach (var unit in other.Units)
+                {
+                    int distance = Mathf.Abs(unit.Position.X - origin.X) + Mathf.Abs(unit.Position.Y - origin.Y);
+                    if (distance < bestDistance)
+                    {
+                        bestDistance = distance;
+                        best = unit.Position;
+                        found = true;
+                    }
+                }
+            }
+
+            return found ? best : (GridPosition?)null;
+        }
+
+        private bool TryMoveUnitTowards(Unit unit, GridPosition target)
+        {
+            if (unit == null || state?.Map == null)
+            {
+                return false;
+            }
+
+            var directions = new[]
+            {
+                new GridPosition(1, 0),
+                new GridPosition(-1, 0),
+                new GridPosition(0, 1),
+                new GridPosition(0, -1)
+            };
+
+            int bestDistance = int.MaxValue;
+            GridPosition best = unit.Position;
+            int bestCost = 0;
+
+            foreach (var offset in directions)
+            {
+                var candidate = new GridPosition(unit.Position.X + offset.X, unit.Position.Y + offset.Y);
+                var tile = state.Map.GetTile(candidate.X, candidate.Y);
+                if (tile == null)
+                {
+                    continue;
+                }
+
+                int moveCost = GetMoveCost(candidate);
+                if (unit.MovementRemaining < moveCost)
+                {
+                    continue;
+                }
+
+                int distance = Mathf.Abs(candidate.X - target.X) + Mathf.Abs(candidate.Y - target.Y);
+                if (distance < bestDistance)
+                {
+                    bestDistance = distance;
+                    best = candidate;
+                    bestCost = moveCost;
+                }
+            }
+
+            if (bestDistance == int.MaxValue)
+            {
+                return false;
+            }
+
+            return TryMoveUnitTo(unit, best, bestCost);
+        }
+
+        private bool TryMoveUnitTo(Unit unit, GridPosition target, int moveCost)
+        {
+            if (unit == null)
+            {
+                return false;
+            }
+
+            var city = FindCityAt(target);
+            if (city != null && city.OwnerId != unit.OwnerId)
+            {
+                return ResolveCityCombat(unit, city, moveCost, false);
+            }
+
+            var occupant = FindUnitAt(target);
+            if (occupant != null)
+            {
+                if (occupant.OwnerId == unit.OwnerId)
+                {
+                    return false;
+                }
+
+                ResolveCombat(unit, occupant, moveCost);
+                return true;
+            }
+
+            unit.Position = target;
+            unit.MovementRemaining = Mathf.Max(0, unit.MovementRemaining - moveCost);
+            return true;
+        }
+
+        private void UpdateCitySiegeStates()
+        {
+            if (state?.Players == null)
+            {
+                return;
+            }
+
+            foreach (var player in state.Players)
+            {
+                foreach (var city in player.Cities)
+                {
+                    city.UnderSiege = false;
+                }
+            }
+
+            foreach (var player in state.Players)
+            {
+                foreach (var unit in player.Units)
+                {
+                    foreach (var otherPlayer in state.Players)
+                    {
+                        if (otherPlayer == null || otherPlayer.Id == player.Id)
+                        {
+                            continue;
+                        }
+
+                        if (!IsAtWar(player, otherPlayer.Id))
+                        {
+                            continue;
+                        }
+
+                        foreach (var city in otherPlayer.Cities)
+                        {
+                            int distance = Mathf.Abs(unit.Position.X - city.Position.X) + Mathf.Abs(unit.Position.Y - city.Position.Y);
+                            if (distance <= 1)
+                            {
+                                city.UnderSiege = true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         private bool CityExistsAt(GridPosition position)
         {
             if (state?.Players == null)
@@ -406,6 +675,27 @@ namespace CivClone.Presentation
             }
 
             return false;
+        }
+
+        private City FindCityAt(GridPosition position)
+        {
+            if (state?.Players == null)
+            {
+                return null;
+            }
+
+            foreach (var player in state.Players)
+            {
+                foreach (var city in player.Cities)
+                {
+                    if (city.Position.X == position.X && city.Position.Y == position.Y)
+                    {
+                        return city;
+                    }
+                }
+            }
+
+            return null;
         }
 
         private Unit FindUnitAt(GridPosition position)
@@ -521,6 +811,150 @@ namespace CivClone.Presentation
                     return;
                 }
             }
+        }
+
+        private void ConsiderSeekingPeace(Player aiPlayer)
+        {
+            if (aiPlayer == null || state?.Players == null)
+            {
+                return;
+            }
+
+            foreach (var other in state.Players)
+            {
+                if (other == null || other.Id == aiPlayer.Id)
+                {
+                    continue;
+                }
+
+                if (!IsAtWar(aiPlayer, other.Id))
+                {
+                    continue;
+                }
+
+                bool weakerUnits = aiPlayer.Units.Count < other.Units.Count;
+                bool fewerCities = aiPlayer.Cities.Count < other.Cities.Count;
+                if (weakerUnits && fewerCities && Random.Range(0, 100) < 35)
+                {
+                    SetWarStatus(aiPlayer, other.Id, false);
+                    SetWarStatus(other, aiPlayer.Id, false);
+                }
+            }
+        }
+
+        private bool ResolveCityCombat(Unit unit, City city, int moveCost, bool isRanged)
+        {
+            if (unit == null || city == null || state == null)
+            {
+                return false;
+            }
+
+            var attackerPlayer = GetPlayerById(unit.OwnerId);
+            var defenderPlayer = GetPlayerById(city.OwnerId);
+            if (attackerPlayer == null || defenderPlayer == null)
+            {
+                return false;
+            }
+
+            if (!IsAtWar(attackerPlayer, defenderPlayer.Id))
+            {
+                SetWarStatus(attackerPlayer, defenderPlayer.Id, true);
+                SetWarStatus(defenderPlayer, attackerPlayer.Id, true);
+                hudController?.LogCombat($"War declared between {attackerPlayer.Name} and {defenderPlayer.Name}");
+                UpdateDiplomacyInfo();
+            }
+
+            int attack = GetAttack(unit);
+            int defense = GetCityDefense(city);
+            int attackRoll = attack + Random.Range(0, 6);
+            int defenseRoll = defense + Random.Range(0, 6);
+            int damage = Mathf.Clamp(attackRoll - defenseRoll + 1, 1, 6);
+            int nextHealth = Mathf.Max(0, city.Health - damage);
+            if (isRanged && nextHealth <= 0)
+            {
+                nextHealth = 1;
+            }
+            city.Health = nextHealth;
+            hudController?.SetEventMessage($"City hit for {damage}");
+            hudController?.LogCombat($"{unit.UnitTypeId} hit {city.Name} for {damage}");
+
+            unit.MovementRemaining = Mathf.Max(0, unit.MovementRemaining - moveCost);
+
+            if (city.Health > 0)
+            {
+                UpdateCityInfo();
+                return true;
+            }
+
+            CaptureCity(attackerPlayer, defenderPlayer, unit, city, moveCost);
+            return true;
+        }
+
+        private bool TryRangedAttackCity(Unit unit, City city)
+        {
+            if (unit == null || city == null)
+            {
+                return false;
+            }
+
+            int range = GetUnitRange(unit);
+            if (range <= 1)
+            {
+                return false;
+            }
+
+            int distance = Mathf.Abs(unit.Position.X - city.Position.X) + Mathf.Abs(unit.Position.Y - city.Position.Y);
+            if (distance > range || unit.MovementRemaining <= 0)
+            {
+                return false;
+            }
+
+            return ResolveCityCombat(unit, city, 1, true);
+        }
+
+        private int GetCityDefense(City city)
+        {
+            if (city == null)
+            {
+                return 1;
+            }
+
+            int defense = 2 + Mathf.Max(0, city.Population / 2);
+            if (city.Health < city.MaxHealth / 2)
+            {
+                defense = Mathf.Max(1, defense - 1);
+            }
+            return defense;
+        }
+
+        private void CaptureCity(Player attackerPlayer, Player defenderPlayer, Unit unit, City city, int moveCost)
+        {
+            if (attackerPlayer == null || defenderPlayer == null || unit == null || city == null)
+            {
+                return;
+            }
+
+            if (!defenderPlayer.Cities.Remove(city))
+            {
+                return;
+            }
+
+            city.OwnerId = attackerPlayer.Id;
+            if (city.MaxHealth <= 0)
+            {
+                city.MaxHealth = City.GetDefaultMaxHealth(city.Population);
+            }
+            city.Health = city.MaxHealth;
+            city.UnderSiege = false;
+            attackerPlayer.Cities.Add(city);
+            unit.Position = city.Position;
+            unit.MovementRemaining = Mathf.Max(0, unit.MovementRemaining - moveCost);
+
+            unitPresenter?.RenderUnits(state, mapPresenter);
+            cityPresenter?.RenderCities(state, mapPresenter);
+            UpdateHudSelection($"Captured {city.Name}");
+            UpdateCityInfo();
+            UpdateDiplomacyInfo();
         }
 
         private void ChooseResearch(Player player)
@@ -685,6 +1119,7 @@ namespace CivClone.Presentation
                 SetWarStatus(attackerPlayer, defenderPlayer.Id, true);
                 SetWarStatus(defenderPlayer, attackerPlayer.Id, true);
                 hudController?.LogCombat($"War declared between {attackerPlayer.Name} and {defenderPlayer.Name}");
+                UpdateDiplomacyInfo();
             }
 
             bool isRangedAttack = GetUnitRange(attacker) > 1 && (Mathf.Abs(attacker.Position.X - defender.Position.X) + Mathf.Abs(attacker.Position.Y - defender.Position.Y)) <= GetUnitRange(attacker);
@@ -912,11 +1347,12 @@ namespace CivClone.Presentation
             {
                 hudController.SetCityInfo("City: None");
                 hudController.SetProductionInfo("Production: None");
+                hudController.SetCityPanel("Name: None", "Population: -", "Growth: -", "Production: -", "Defense: -");
                 return;
             }
 
             int foodNeeded = 5 + selectedCity.Population * 2;
-            hudController.SetCityInfo($"City: {selectedCity.Name} (Pop {selectedCity.Population}) Food {selectedCity.FoodStored}/{foodNeeded} (+{selectedCity.FoodPerTurn})");
+            hudController.SetCityInfo($"City: {selectedCity.Name} (Pop {selectedCity.Population}) HP {selectedCity.Health}/{selectedCity.MaxHealth} Food {selectedCity.FoodStored}/{foodNeeded} (+{selectedCity.FoodPerTurn})");
 
             int remaining = Mathf.Max(0, selectedCity.ProductionCost - selectedCity.ProductionStored);
             int turns = selectedCity.ProductionPerTurn > 0 ? Mathf.CeilToInt(remaining / (float)selectedCity.ProductionPerTurn) : 0;
@@ -938,6 +1374,20 @@ namespace CivClone.Presentation
             }
             hudController.SetProductionInfo($"Production: {targetName} {selectedCity.ProductionStored}/{selectedCity.ProductionCost} (+{selectedCity.ProductionPerTurn}) {turns}t [P] Cycle {optionsHint}{queueInfo}{resourceHint}");
             hudController.SetProductionTooltip(BuildProductionTooltip(state?.ActivePlayer));
+
+            int defense = 2 + Mathf.Max(0, selectedCity.Population / 2);
+            if (selectedCity.MaxHealth > 0 && selectedCity.Health < selectedCity.MaxHealth / 2)
+            {
+                defense = Mathf.Max(1, defense - 1);
+            }
+
+            hudController.SetCityPanel(
+                $"Name: {selectedCity.Name}",
+                $"Population: {selectedCity.Population}",
+                $"Growth: {selectedCity.FoodStored}/{foodNeeded} (+{selectedCity.FoodPerTurn})",
+                $"Production: {targetName} {selectedCity.ProductionStored}/{selectedCity.ProductionCost}",
+                $"Defense: {defense}"
+            );
         }
 
         private void EnqueueProduction(string unitTypeId)
@@ -1180,7 +1630,7 @@ namespace CivClone.Presentation
                 return true;
             }
 
-            var parts = prereqList.Split(,);
+            var parts = prereqList.Split(',');
             foreach (var part in parts)
             {
                 var id = part.Trim();
@@ -1634,7 +2084,7 @@ namespace CivClone.Presentation
                 return true;
             }
 
-            var parts = requires.Split(,);
+            var parts = requires.Split(',');
             foreach (var part in parts)
             {
                 var id = part.Trim();
@@ -1926,6 +2376,144 @@ namespace CivClone.Presentation
             UpdateCivicInfo();
         }
 
+        private void ToggleDiplomacySelection()
+        {
+            if (hudController == null || state?.ActivePlayer == null || state.Players == null || state.Players.Count <= 1)
+            {
+                return;
+            }
+
+            diplomacySelectionOpen = !diplomacySelectionOpen;
+            if (!diplomacySelectionOpen)
+            {
+                hudController.HideDiplomacyPanel();
+                return;
+            }
+
+            diplomacyPageIndex = 0;
+            RefreshDiplomacyOptions();
+        }
+
+        private void RefreshDiplomacyOptions()
+        {
+            if (hudController == null || state?.ActivePlayer == null || state.Players == null)
+            {
+                return;
+            }
+
+            var player = state.ActivePlayer;
+            EnsureDiplomacyState(player);
+            diplomacyOptionIds.Clear();
+
+            var rivals = new List<Player>();
+            foreach (var other in state.Players)
+            {
+                if (other == null || other.Id == player.Id)
+                {
+                    continue;
+                }
+
+                rivals.Add(other);
+            }
+
+            int totalPages = Mathf.Max(1, Mathf.CeilToInt(rivals.Count / (float)DiplomacyPageSize));
+            diplomacyPageIndex = Mathf.Clamp(diplomacyPageIndex, 0, totalPages - 1);
+            int startIndex = diplomacyPageIndex * DiplomacyPageSize;
+
+            string option1 = "[7] -";
+            string option2 = "[8] -";
+            string option3 = "[9] -";
+
+            for (int i = 0; i < DiplomacyPageSize; i++)
+            {
+                int idx = startIndex + i;
+                if (idx >= rivals.Count)
+                {
+                    break;
+                }
+
+                var other = rivals[idx];
+                bool atWar = IsAtWar(player, other.Id);
+                string status = atWar ? "War" : "Peace";
+                string action = atWar ? "Make Peace" : "Declare War";
+                string name = string.IsNullOrWhiteSpace(other.Name) ? $"Player {other.Id}" : other.Name;
+                string optionText = $"[{7 + i}] {name} ({status}) - {action}";
+
+                if (i == 0) option1 = optionText;
+                else if (i == 1) option2 = optionText;
+                else if (i == 2) option3 = optionText;
+
+                diplomacyOptionIds.Add(other.Id);
+            }
+
+            string title = $"Diplomacy ({diplomacyPageIndex + 1}/{totalPages}) [[/]]";
+            hudController.ShowDiplomacyPanel(title, option1, option2, option3);
+        }
+
+        private void HandleDiplomacySelection()
+        {
+            if (!diplomacySelectionOpen || hudController == null)
+            {
+                return;
+            }
+
+            if (Input.GetKeyDown(diplomacyPrevKey))
+            {
+                diplomacyPageIndex = Mathf.Max(0, diplomacyPageIndex - 1);
+                RefreshDiplomacyOptions();
+                return;
+            }
+
+            if (Input.GetKeyDown(diplomacyNextKey))
+            {
+                diplomacyPageIndex += 1;
+                RefreshDiplomacyOptions();
+                return;
+            }
+
+            for (int i = 0; i < diplomacySelectKeys.Length; i++)
+            {
+                if (Input.GetKeyDown(diplomacySelectKeys[i]))
+                {
+                    SetDiplomacyByIndex(i);
+                    break;
+                }
+            }
+        }
+
+        private void SetDiplomacyByIndex(int index)
+        {
+            var player = state?.ActivePlayer;
+            if (player == null)
+            {
+                return;
+            }
+
+            if (index < 0 || index >= diplomacyOptionIds.Count)
+            {
+                return;
+            }
+
+            int otherId = diplomacyOptionIds[index];
+            var other = GetPlayerById(otherId);
+            if (other == null)
+            {
+                return;
+            }
+
+            bool atWar = IsAtWar(player, otherId);
+            bool newStatus = !atWar;
+            SetWarStatus(player, otherId, newStatus);
+            SetWarStatus(other, player.Id, newStatus);
+
+            string message = newStatus ? $"War declared with {other.Name}" : $"Peace declared with {other.Name}";
+            hudController.SetEventMessage(message);
+
+            diplomacySelectionOpen = false;
+            hudController.HideDiplomacyPanel();
+            UpdateDiplomacyInfo();
+        }
+
         private string GetCivicDisplayName(string civicId, Player player)
         {
             if (string.IsNullOrWhiteSpace(civicId))
@@ -2141,8 +2729,46 @@ namespace CivClone.Presentation
 
                     entries.Add($"{route.CityA} <-> {route.CityB}");
                 }
-
                 hudController.SetTradeInfo(entries.Count == 0 ? "Trade Routes: None" : "Trade Routes: " + string.Join(", ", entries));
+            }
+
+            UpdateTopBarInfo();
+        }
+
+        private void UpdateDiplomacyInfo()
+        {
+            if (hudController == null || state?.ActivePlayer == null)
+            {
+                return;
+            }
+
+            var player = state.ActivePlayer;
+            EnsureDiplomacyState(player);
+
+            var wars = new List<string>();
+            foreach (var status in player.Diplomacy)
+            {
+                if (status == null || !status.AtWar)
+                {
+                    continue;
+                }
+
+                var other = GetPlayerById(status.OtherPlayerId);
+                if (other == null)
+                {
+                    continue;
+                }
+
+                wars.Add(string.IsNullOrWhiteSpace(other.Name) ? $"Player {other.Id}" : other.Name);
+            }
+
+            if (wars.Count == 0)
+            {
+                hudController.SetDiplomacyStatus("Diplomacy: Peace");
+            }
+            else
+            {
+                hudController.SetDiplomacyStatus("Diplomacy: At war with " + string.Join(", ", wars));
             }
         }
 
@@ -2313,6 +2939,494 @@ namespace CivClone.Presentation
             return string.Join("\n", lines);
         }
 
+        private void UpdateTopBarInfo()
+        {
+            if (hudController == null || state?.ActivePlayer == null)
+            {
+                return;
+            }
+
+            int foodStored = 0;
+            int foodPerTurn = 0;
+            int prodStored = 0;
+            int prodPerTurn = 0;
+
+            foreach (var city in state.ActivePlayer.Cities)
+            {
+                foodStored += Mathf.Max(0, city.FoodStored);
+                foodPerTurn += Mathf.Max(0, city.FoodPerTurn);
+                prodStored += Mathf.Max(0, city.ProductionStored);
+                prodPerTurn += Mathf.Max(0, city.ProductionPerTurn);
+            }
+
+            hudController.SetTopBarYields(
+                "Gold: 0 (+0)",
+                "Science: 0 (+0)",
+                "Culture: 0 (+0)",
+                $"Food: {foodStored} (+{foodPerTurn})",
+                $"Production: {prodStored} (+{prodPerTurn})"
+            );
+
+            hudController.SetTopBarTooltips(
+                "Gold per turn is not implemented yet.",
+                "Science per turn is not implemented yet.",
+                "Culture per turn is not implemented yet.",
+                BuildFoodTooltip(state.ActivePlayer),
+                BuildProductionYieldTooltip(state.ActivePlayer)
+            );
+        }
+
+        private string BuildFoodTooltip(Player player)
+        {
+            if (player == null)
+            {
+                return string.Empty;
+            }
+
+            var lines = new List<string> { "Food per city:" };
+            foreach (var city in player.Cities)
+            {
+                int needed = 5 + city.Population * 2;
+                lines.Add($"{city.Name}: {city.FoodStored}/{needed} (+{city.FoodPerTurn})");
+            }
+            return string.Join("\n", lines);
+        }
+
+        private string BuildProductionYieldTooltip(Player player)
+        {
+            if (player == null)
+            {
+                return string.Empty;
+            }
+
+            var lines = new List<string> { "Production per city:" };
+            foreach (var city in player.Cities)
+            {
+                string targetName = city.ProductionTargetId;
+                if (dataCatalog != null && dataCatalog.TryGetUnitType(city.ProductionTargetId, out var unitType) && !string.IsNullOrWhiteSpace(unitType.DisplayName))
+                {
+                    targetName = unitType.DisplayName;
+                }
+                lines.Add($"{city.Name}: {city.ProductionStored}/{city.ProductionCost} (+{city.ProductionPerTurn}) {targetName}");
+            }
+            return string.Join("\n", lines);
+        }
+
+        private void UpdateHoverTooltip()
+        {
+            if (hudController == null || sceneCamera == null || state?.Map == null)
+            {
+                return;
+            }
+
+            Vector3 world = sceneCamera.ScreenToWorldPoint(Input.mousePosition);
+            Vector2 point = new Vector2(world.x, world.y);
+            RaycastHit2D hit = Physics2D.Raycast(point, Vector2.zero);
+
+            if (hit.collider == null)
+            {
+                hudController.SetTooltip(string.Empty);
+                return;
+            }
+
+            var unitView = hit.collider.GetComponent<UnitView>();
+            if (unitView != null && unitView.Unit != null)
+            {
+                hudController.SetTooltip(BuildUnitTooltip(unitView.Unit));
+                return;
+            }
+
+            var cityHover = hit.collider.GetComponent<CityHover>();
+            if (cityHover != null && cityHover.City != null)
+            {
+                hudController.SetTooltip(BuildCityTooltip(cityHover.City));
+                return;
+            }
+
+            var tileView = hit.collider.GetComponent<TileView>();
+            if (tileView != null)
+            {
+                hudController.SetTooltip(BuildTileTooltip(tileView.Position));
+                return;
+            }
+
+            hudController.SetTooltip(string.Empty);
+        }
+
+        private string BuildUnitTooltip(Unit unit)
+        {
+            if (unit == null)
+            {
+                return string.Empty;
+            }
+
+            string name = unit.UnitTypeId;
+            int attack = 0;
+            int defense = 0;
+            int range = 1;
+            if (dataCatalog != null && dataCatalog.TryGetUnitType(unit.UnitTypeId, out var type) && type != null)
+            {
+                if (!string.IsNullOrWhiteSpace(type.DisplayName))
+                {
+                    name = type.DisplayName;
+                }
+                attack = type.Attack;
+                defense = type.Defense;
+                range = type.Range;
+            }
+
+            string promos = unit.Promotions != null && unit.Promotions.Count > 0 ? string.Join(", ", unit.Promotions) : "None";
+            return $"{name}\nHP {unit.Health}/{unit.MaxHealth}  MP {unit.MovementRemaining}/{unit.MovementPoints}\nAtk {attack}  Def {defense}  Rng {range}\nPromos: {promos}";
+        }
+
+        private string BuildCityTooltip(City city)
+        {
+            if (city == null)
+            {
+                return string.Empty;
+            }
+
+            int foodNeeded = 5 + city.Population * 2;
+            int defense = 2 + Mathf.Max(0, city.Population / 2);
+            if (city.MaxHealth > 0 && city.Health < city.MaxHealth / 2)
+            {
+                defense = Mathf.Max(1, defense - 1);
+            }
+
+            string production = city.ProductionTargetId;
+            if (dataCatalog != null && dataCatalog.TryGetUnitType(city.ProductionTargetId, out var unitType) && !string.IsNullOrWhiteSpace(unitType.DisplayName))
+            {
+                production = unitType.DisplayName;
+            }
+
+            return $"{city.Name}\nPop {city.Population}  HP {city.Health}/{city.MaxHealth}  Def {defense}\nFood {city.FoodStored}/{foodNeeded} (+{city.FoodPerTurn})\nProd {production} {city.ProductionStored}/{city.ProductionCost} (+{city.ProductionPerTurn})";
+        }
+
+        private string BuildTileTooltip(GridPosition position)
+        {
+            if (state?.Map == null)
+            {
+                return string.Empty;
+            }
+
+            var tile = state.Map.GetTile(position.X, position.Y);
+            if (tile == null)
+            {
+                return string.Empty;
+            }
+
+            if (!tile.Explored && !tile.Visible)
+            {
+                return $"Tile ({position.X},{position.Y})\nUnexplored";
+            }
+
+            string terrainName = tile.TerrainId;
+            int moveCost = 1;
+            int defense = 0;
+            if (dataCatalog != null && dataCatalog.TryGetTerrainType(tile.TerrainId, out var terrain))
+            {
+                if (!string.IsNullOrWhiteSpace(terrain.DisplayName))
+                {
+                    terrainName = terrain.DisplayName;
+                }
+                moveCost = Mathf.Max(1, terrain.MovementCost);
+                defense = terrain.DefenseBonus;
+            }
+
+            string improvement = string.Empty;
+            if (!string.IsNullOrWhiteSpace(tile.ImprovementId))
+            {
+                improvement = tile.ImprovementId;
+                if (dataCatalog != null && dataCatalog.TryGetImprovementType(tile.ImprovementId, out var imp) && !string.IsNullOrWhiteSpace(imp.DisplayName))
+                {
+                    improvement = imp.DisplayName;
+                }
+            }
+
+            string resource = string.Empty;
+            if (!string.IsNullOrWhiteSpace(tile.ResourceId))
+            {
+                resource = tile.ResourceId;
+                if (dataCatalog != null && dataCatalog.TryGetResourceType(tile.ResourceId, out var res) && !string.IsNullOrWhiteSpace(res.DisplayName))
+                {
+                    resource = res.DisplayName;
+                }
+            }
+
+            string road = tile.HasRoad ? "Yes" : "No";
+            string visibility = tile.Visible ? "Visible" : (tile.Explored ? "Explored" : "Unexplored");
+
+            return $"Tile ({position.X},{position.Y})\n{terrainName}  Move {moveCost}  Def {defense}\nImprovement: {(string.IsNullOrWhiteSpace(improvement) ? "None" : improvement)}\nResource: {(string.IsNullOrWhiteSpace(resource) ? "None" : resource)}  Road: {road}\n{visibility}";
+        }
+
+        private void UpdateAlertsAndEndTurnState()
+        {
+            if (hudController == null || state?.ActivePlayer == null)
+            {
+                return;
+            }
+
+            var alerts = BuildAlerts();
+            if (alerts.Count == 0)
+            {
+                hudController.SetAlertInfo(string.Empty);
+            }
+            else
+            {
+                hudController.SetAlertInfo("Alerts: " + string.Join(" | ", alerts));
+            }
+
+            var blockers = GetEndTurnBlockers();
+            string tooltip = blockers.Count == 0 ? "All clear." : "Pending: " + string.Join(", ", blockers) + ". Hold Shift+Enter to force.";
+            hudController.SetEndTurnState(blockers.Count > 0, tooltip);
+        }
+
+        private List<string> BuildAlerts()
+        {
+            var alerts = new List<string>();
+
+            if (state?.ActivePlayer == null)
+            {
+                return alerts;
+            }
+
+            var player = state.ActivePlayer;
+            if (string.IsNullOrWhiteSpace(player.CurrentTechId))
+            {
+                alerts.Add("Choose research");
+            }
+            else if (IsResearchCompletingNextTurn(player))
+            {
+                alerts.Add("Research completes next turn");
+            }
+
+            int idleUnits = 0;
+            foreach (var unit in player.Units)
+            {
+                if (unit.MovementRemaining > 0)
+                {
+                    idleUnits++;
+                }
+            }
+            if (idleUnits > 0)
+            {
+                alerts.Add($"Idle units: {idleUnits}");
+            }
+
+            foreach (var city in player.Cities)
+            {
+                if (string.IsNullOrWhiteSpace(city.ProductionTargetId))
+                {
+                    alerts.Add($"Choose production ({city.Name})");
+                    break;
+                }
+            }
+
+            foreach (var city in player.Cities)
+            {
+                if (city.ProductionCost > 0 && city.ProductionStored >= city.ProductionCost)
+                {
+                    alerts.Add($"Production ready ({city.Name})");
+                    break;
+                }
+            }
+
+            foreach (var city in player.Cities)
+            {
+                int foodNeeded = 5 + city.Population * 2;
+                if (city.FoodStored + city.FoodPerTurn >= foodNeeded)
+                {
+                    alerts.Add($"City growth next turn ({city.Name})");
+                    break;
+                }
+            }
+
+            foreach (var city in player.Cities)
+            {
+                if (city.ProductionPerTurn > 0 && city.ProductionStored + city.ProductionPerTurn >= city.ProductionCost)
+                {
+                    alerts.Add($"Production completes next turn ({city.Name})");
+                    break;
+                }
+            }
+
+            var wars = GetWarOpponents(player);
+            if (wars.Count > 0)
+            {
+                alerts.Add("At war: " + string.Join(", ", wars));
+            }
+
+            return alerts;
+        }
+
+        private List<string> GetEndTurnBlockers()
+        {
+            var blockers = new List<string>();
+
+            if (state?.ActivePlayer == null)
+            {
+                return blockers;
+            }
+
+            var player = state.ActivePlayer;
+            if (string.IsNullOrWhiteSpace(player.CurrentTechId))
+            {
+                blockers.Add("Choose research");
+            }
+
+            bool hasIdleUnits = false;
+            foreach (var unit in player.Units)
+            {
+                if (unit.MovementRemaining > 0)
+                {
+                    hasIdleUnits = true;
+                    break;
+                }
+            }
+            if (hasIdleUnits)
+            {
+                blockers.Add("Idle units");
+            }
+
+            foreach (var city in player.Cities)
+            {
+                if (string.IsNullOrWhiteSpace(city.ProductionTargetId))
+                {
+                    blockers.Add($"Production ({city.Name})");
+                    break;
+                }
+            }
+
+            return blockers;
+        }
+
+        private List<string> GetWarOpponents(Player player)
+        {
+            var wars = new List<string>();
+            if (player?.Diplomacy == null)
+            {
+                return wars;
+            }
+
+            foreach (var status in player.Diplomacy)
+            {
+                if (status == null || !status.AtWar)
+                {
+                    continue;
+                }
+
+                var other = GetPlayerById(status.OtherPlayerId);
+                if (other == null)
+                {
+                    continue;
+                }
+
+                wars.Add(string.IsNullOrWhiteSpace(other.Name) ? $"Player {other.Id}" : other.Name);
+            }
+
+            return wars;
+        }
+
+        private bool IsResearchCompletingNextTurn(Player player)
+        {
+            if (player == null || string.IsNullOrWhiteSpace(player.CurrentTechId))
+            {
+                return false;
+            }
+
+            if (dataCatalog == null || !dataCatalog.TryGetTechType(player.CurrentTechId, out var tech))
+            {
+                return false;
+            }
+
+            int science = GetSciencePerTurn(player);
+            return player.ResearchProgress + science >= tech.Cost;
+        }
+
+        private int GetSciencePerTurn(Player player)
+        {
+            if (player == null)
+            {
+                return 0;
+            }
+
+            int science = 1 + player.Cities.Count;
+            science += GetCivicScienceBonus(player);
+            science += GetResourceScienceBonus(player);
+            return science;
+        }
+
+        private int GetCivicScienceBonus(Player player)
+        {
+            if (player?.Civics == null)
+            {
+                return 0;
+            }
+
+            foreach (var civic in player.Civics)
+            {
+                if (civic != null && civic.CivicId == "republic")
+                {
+                    return player.Cities.Count;
+                }
+            }
+
+            return 0;
+        }
+
+        private int GetResourceScienceBonus(Player player)
+        {
+            if (player?.AvailableResources == null || dataCatalog == null)
+            {
+                return 0;
+            }
+
+            int bonus = 0;
+            foreach (var resourceId in player.AvailableResources)
+            {
+                if (string.IsNullOrWhiteSpace(resourceId))
+                {
+                    continue;
+                }
+
+                if (dataCatalog.TryGetResourceType(resourceId, out var resource))
+                {
+                    bonus += resource.ScienceBonus;
+                }
+            }
+
+            return bonus;
+        }
+
+        private void HandleAutoEndTurn()
+        {
+            if (!autoEndTurnWhenReady || hudController == null || state?.ActivePlayer == null)
+            {
+                autoEndTurnTimer = 0f;
+                return;
+            }
+
+            if (promotionSelectionOpen || techSelectionOpen || techTreeOpen || civicSelectionOpen || diplomacySelectionOpen)
+            {
+                autoEndTurnTimer = 0f;
+                return;
+            }
+
+            var blockers = GetEndTurnBlockers();
+            if (blockers.Count > 0)
+            {
+                autoEndTurnTimer = 0f;
+                return;
+            }
+
+            autoEndTurnTimer += Time.unscaledDeltaTime;
+            if (autoEndTurnTimer >= autoEndTurnDelay)
+            {
+                autoEndTurnTimer = 0f;
+                EndTurn(false);
+            }
+        }
+
         private void UpdateHudSelection(string warning = null)
         {
             if (hudController == null)
@@ -2325,6 +3439,7 @@ namespace CivClone.Presentation
                 hudController.SetSelection("Selection: None");
                 hudController.SetPromotionInfo("Promotions: None");
                 hudController.SetPromotionDetail(string.Empty);
+                hudController.SetUnitPanel("Name: None", "HP: -", "Movement: -", "Strength: -");
                 return;
             }
 
@@ -2356,6 +3471,24 @@ namespace CivClone.Presentation
             }
 
             hudController.SetSelection($"Selection: {selectedUnit.UnitTypeId} ({selectedUnit.Position.X}, {selectedUnit.Position.Y}) {movementLabel}");
+
+            string unitName = selectedUnit.UnitTypeId;
+            string strengthText = "Strength: -";
+            if (dataCatalog != null && dataCatalog.TryGetUnitType(selectedUnit.UnitTypeId, out var unitType) && unitType != null)
+            {
+                if (!string.IsNullOrWhiteSpace(unitType.DisplayName))
+                {
+                    unitName = unitType.DisplayName;
+                }
+                strengthText = $"Strength: {unitType.Attack}/{unitType.Defense}";
+            }
+
+            hudController.SetUnitPanel(
+                $"Name: {unitName}",
+                $"HP: {selectedUnit.Health}/{selectedUnit.MaxHealth}",
+                $"Movement: {selectedUnit.MovementRemaining}/{selectedUnit.MovementPoints}",
+                strengthText
+            );
         }
 
         private void TryFoundCity()
@@ -2400,16 +3533,25 @@ namespace CivClone.Presentation
 
         public void RequestEndTurn()
         {
-            EndTurn();
+            EndTurn(false);
         }
 
-        private void EndTurn()
+        private void EndTurn(bool force)
         {
             if (turnSystem == null)
             {
                 return;
             }
 
+            var blockers = GetEndTurnBlockers();
+            if (!force && blockers.Count > 0)
+            {
+                hudController?.SetEventMessage("Pending actions: " + string.Join(", ", blockers));
+                UpdateAlertsAndEndTurnState();
+                return;
+            }
+
+            UpdateCitySiegeStates();
             turnSystem.EndTurn();
             RunAiTurns();
             selectedUnit = null;
@@ -2427,6 +3569,7 @@ namespace CivClone.Presentation
             UpdateResearchInfo();
             UpdateCivicInfo();
             UpdateResourceInfo();
+            UpdateDiplomacyInfo();
             hudController?.Refresh();
         }
 
@@ -2448,6 +3591,7 @@ namespace CivClone.Presentation
             UpdateResearchInfo();
             UpdateCivicInfo();
             UpdateResourceInfo();
+            UpdateTopBarInfo();
         }
     }
 }
