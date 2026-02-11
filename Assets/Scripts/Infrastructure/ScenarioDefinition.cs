@@ -12,6 +12,27 @@ namespace CivClone.Infrastructure
     }
 
     [Serializable]
+    public class ScenarioSelector
+    {
+        public string ScenarioId = "";
+    }
+
+    [Serializable]
+    public class ScenarioCatalog
+    {
+        public ScenarioCatalogEntry[] Items;
+    }
+
+    [Serializable]
+    public class ScenarioCatalogEntry
+    {
+        public string Id;
+        public string Name;
+        public string Path;
+        public string Description;
+    }
+
+    [Serializable]
     public class ScenarioMapDefinition
     {
         public int Width = 20;

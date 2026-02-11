@@ -1,0 +1,38 @@
+{
+  "Map": {
+    "Width": 28,
+    "Height": 18,
+    "Seed": 7788,
+    "DefaultTerrainId": "plains"
+  },
+  "ActivePlayerIndex": 0,
+  "Players": [
+    {
+      "Id": 0,
+      "Name": "Riverfolk",
+      "CurrentTechId": "writing",
+      "StartingTechs": ["agriculture", "mining", "pottery"],
+      "Units": [
+        { "UnitTypeId": "scout", "X": 4, "Y": 4 },
+        { "UnitTypeId": "settler", "X": 5, "Y": 4 },
+        { "UnitTypeId": "warrior", "X": 4, "Y": 5 }
+      ],
+      "Cities": [
+        { "Name": "Rivermark", "X": 6, "Y": 5, "Population": 2 }
+      ]
+    },
+    {
+      "Id": 1,
+      "Name": "Highlanders",
+      "CurrentTechId": "bronze_working",
+      "StartingTechs": ["agriculture", "mining"],
+      "Units": [
+        { "UnitTypeId": "spearman", "X": 20, "Y": 12 },
+        { "UnitTypeId": "scout", "X": 21, "Y": 12 }
+      ],
+      "Cities": [
+        { "Name": "Stonewatch", "X": 19, "Y": 12, "Population": 2 }
+      ]
+    }
+  ]
+}

@@ -284,6 +284,21 @@ namespace CivClone.Presentation
 
             try
             {
+                var selector = JsonUtility.FromJson<ScenarioSelector>(json);
+                if (selector != null && !string.IsNullOrWhiteSpace(selector.ScenarioId))
+                {
+                    var catalog = LoadScenarioCatalog(loader);
+                    var entry = FindScenarioEntry(catalog, selector.ScenarioId);
+                    if (entry != null && !string.IsNullOrWhiteSpace(entry.Path))
+                    {
+                        string scenarioJson = loader.LoadText(entry.Path);
+                        if (!string.IsNullOrWhiteSpace(scenarioJson))
+                        {
+                            return JsonUtility.FromJson<ScenarioDefinition>(scenarioJson);
+                        }
+                    }
+                }
+
                 return JsonUtility.FromJson<ScenarioDefinition>(json);
             }
             catch (Exception ex)
@@ -291,6 +306,47 @@ namespace CivClone.Presentation
                 Debug.LogWarning($"Failed to load scenario.json: {ex.Message}");
                 return null;
             }
+        }
+
+        private ScenarioCatalog LoadScenarioCatalog(DataLoader loader)
+        {
+            if (loader == null)
+            {
+                return null;
+            }
+
+            string json = loader.LoadText("Data/scenario_catalog.json");
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                return null;
+            }
+
+            try
+            {
+                return JsonUtility.FromJson<ScenarioCatalog>(json);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private ScenarioCatalogEntry FindScenarioEntry(ScenarioCatalog catalog, string id)
+        {
+            if (catalog?.Items == null || string.IsNullOrWhiteSpace(id))
+            {
+                return null;
+            }
+
+            foreach (var entry in catalog.Items)
+            {
+                if (entry != null && entry.Id == id)
+                {
+                    return entry;
+                }
+            }
+
+            return null;
         }
 
         private string GetDefaultProductionTarget()

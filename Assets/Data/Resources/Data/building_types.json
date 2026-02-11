@@ -2,9 +2,9 @@
   "Items": [
     { "Id": "granary", "DisplayName": "Granary", "ProductionCost": 40, "FoodBonus": 2, "ProductionBonus": 0, "ScienceBonus": 0, "DefenseBonus": 0, "RequiresTech": "pottery" },
     { "Id": "barracks", "DisplayName": "Barracks", "ProductionCost": 45, "FoodBonus": 0, "ProductionBonus": 0, "ScienceBonus": 0, "DefenseBonus": 1, "RequiresTech": "bronze_working" },
-    { "Id": "monument", "DisplayName": "Monument", "ProductionCost": 35, "FoodBonus": 0, "ProductionBonus": 0, "ScienceBonus": 1, "DefenseBonus": 0, "RequiresTech": "mysticism" },
+    { "Id": "monument", "DisplayName": "Monument", "ProductionCost": 30, "FoodBonus": 0, "ProductionBonus": 0, "ScienceBonus": 1, "DefenseBonus": 0, "RequiresTech": "mysticism" },
     { "Id": "library", "DisplayName": "Library", "ProductionCost": 55, "FoodBonus": 0, "ProductionBonus": 0, "ScienceBonus": 2, "DefenseBonus": 0, "RequiresTech": "writing" },
     { "Id": "market", "DisplayName": "Market", "ProductionCost": 60, "FoodBonus": 0, "ProductionBonus": 1, "ScienceBonus": 0, "DefenseBonus": 0, "RequiresTech": "currency" },
-    { "Id": "walls", "DisplayName": "Walls", "ProductionCost": 50, "FoodBonus": 0, "ProductionBonus": 0, "ScienceBonus": 0, "DefenseBonus": 2, "RequiresTech": "construction" }
+    { "Id": "walls", "DisplayName": "Walls", "ProductionCost": 45, "FoodBonus": 0, "ProductionBonus": 0, "ScienceBonus": 0, "DefenseBonus": 2, "RequiresTech": "construction" }
   ]
 }

@@ -1,32 +1,3 @@
 {
-  "Map": {
-    "Width": 24,
-    "Height": 16,
-    "Seed": 4321,
-    "DefaultTerrainId": "plains"
-  },
-  "ActivePlayerIndex": 0,
-  "Players": [
-    {
-      "Id": 0,
-      "Name": "Player 1",
-      "CurrentTechId": "pottery",
-      "StartingTechs": ["agriculture", "mining"],
-      "Units": [
-        { "UnitTypeId": "scout", "X": 2, "Y": 2 },
-        { "UnitTypeId": "settler", "X": 3, "Y": 2 }
-      ],
-      "Cities": []
-    },
-    {
-      "Id": 1,
-      "Name": "Rival",
-      "CurrentTechId": "hunting",
-      "StartingTechs": ["agriculture"],
-      "Units": [
-        { "UnitTypeId": "scout", "X": 8, "Y": 3 }
-      ],
-      "Cities": []
-    }
-  ]
+  "ScenarioId": "duel_ancient"
 }

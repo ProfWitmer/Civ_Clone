@@ -1,0 +1,16 @@
+{
+  "Items": [
+    {
+      "Id": "duel_ancient",
+      "Name": "Duel: Ancient Start",
+      "Path": "Data/scenarios/scenario_duel_ancient.json",
+      "Description": "Small duel map with scouts and settlers."
+    },
+    {
+      "Id": "riverlands",
+      "Name": "Riverlands",
+      "Path": "Data/scenarios/scenario_riverlands.json",
+      "Description": "Medium map with two starters near rivers and early tech."
+    }
+  ]
+}
