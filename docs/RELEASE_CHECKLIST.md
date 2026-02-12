@@ -5,7 +5,7 @@
 3. Validate scenario selection works and events fire for the chosen scenario.
 4. Build macOS app:
    ```bash
-   export UNITY_PATH="/Applications/Unity/Hub/Editor/<version>/Unity.app/Contents/MacOS/Unity"
+   export UNITY_PATH="/Applications/Unity/Hub/Editor/6000.3.6f1/Unity.app/Contents/MacOS/Unity"
    scripts/build-mac.sh
    ```
 5. Launch the built app and smoke test:
