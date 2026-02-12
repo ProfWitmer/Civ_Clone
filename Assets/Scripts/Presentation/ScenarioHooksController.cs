@@ -19,8 +19,10 @@ namespace CivClone.Presentation
         private MapPresenter mapPresenter;
 
         private int lastTurn = -1;
+        private int lastVictoryCheckTurn = -1;
         private readonly HashSet<string> firedEvents = new HashSet<string>();
         private bool victoryTriggered;
+        private readonly Dictionary<int, List<ScenarioEventDefinition>> eventsByTurn = new Dictionary<int, List<ScenarioEventDefinition>>();
 
         public void Bind(ScenarioDefinition scenarioDefinition, GameState gameState, TurnSystem turnSystemRef, GameDataCatalog catalog, HudController hud)
         {
@@ -30,7 +32,9 @@ namespace CivClone.Presentation
             dataCatalog = catalog;
             hudController = hud;
             lastTurn = state != null ? state.ScenarioLastTurn : -1;
+            lastVictoryCheckTurn = lastTurn;
             firedEvents.Clear();
+            eventsByTurn.Clear();
             if (state?.ScenarioFiredEvents != null)
             {
                 foreach (var evt in state.ScenarioFiredEvents)
@@ -42,6 +46,25 @@ namespace CivClone.Presentation
                 }
             }
             victoryTriggered = state != null && state.ScenarioComplete;
+
+            if (scenario?.Events != null)
+            {
+                foreach (var evt in scenario.Events)
+                {
+                    if (evt == null)
+                    {
+                        continue;
+                    }
+
+                    if (!eventsByTurn.TryGetValue(evt.Turn, out var list))
+                    {
+                        list = new List<ScenarioEventDefinition>();
+                        eventsByTurn[evt.Turn] = list;
+                    }
+
+                    list.Add(evt);
+                }
+            }
         }
 
         private void Update()
@@ -58,19 +81,28 @@ namespace CivClone.Presentation
                 ApplyTurnEvents(state.CurrentTurn);
             }
 
-            CheckVictoryConditions();
+            if (state.CurrentTurn != lastVictoryCheckTurn)
+            {
+                lastVictoryCheckTurn = state.CurrentTurn;
+                CheckVictoryConditions();
+            }
         }
 
         private void ApplyTurnEvents(int turn)
         {
-            if (scenario.Events == null || scenario.Events.Count == 0)
+            if (eventsByTurn.Count == 0)
             {
                 return;
             }
 
-            foreach (var evt in scenario.Events)
+            if (!eventsByTurn.TryGetValue(turn, out var eventsForTurn))
             {
-                if (evt == null || evt.Turn != turn)
+                return;
+            }
+
+            foreach (var evt in eventsForTurn)
+            {
+                if (evt == null)
                 {
                     continue;
                 }
@@ -168,6 +200,11 @@ namespace CivClone.Presentation
                 return;
             }
 
+            if (IsUnitAt(x, y))
+            {
+                return;
+            }
+
             int movement = 2;
             if (dataCatalog != null && dataCatalog.TryGetUnitType(unitTypeId, out var unitType))
             {
@@ -178,6 +215,32 @@ namespace CivClone.Presentation
             player.Units.Add(unit);
             EnsurePresenters();
             unitPresenter?.RenderUnits(state, mapPresenter);
+        }
+
+        private bool IsUnitAt(int x, int y)
+        {
+            if (state?.Players == null)
+            {
+                return false;
+            }
+
+            foreach (var player in state.Players)
+            {
+                if (player?.Units == null)
+                {
+                    continue;
+                }
+
+                foreach (var unit in player.Units)
+                {
+                    if (unit.Position.X == x && unit.Position.Y == y)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         private void GiveResource(int playerId, string resourceId)
