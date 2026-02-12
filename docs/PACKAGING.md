@@ -9,7 +9,7 @@ The build script uses Unity batchmode and an editor build method.
 
 Example:
 ```bash
-export UNITY_PATH="/Applications/Unity/Hub/Editor/2022.3.18f1/Unity.app/Contents/MacOS/Unity"
+export UNITY_PATH="/Applications/Unity/Hub/Editor/6000.3.6f1/Unity.app/Contents/MacOS/Unity"
 ```
 
 ### Build
