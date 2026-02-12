@@ -49,6 +49,8 @@ namespace CivClone.Presentation
         private int diplomacyPageIndex;
         private int civicCategoryIndex;
         private float autoEndTurnTimer;
+        private float hudRefreshTimer;
+        private Vector3 lastMousePosition;
         private readonly List<string> availableTechs = new List<string>();
         private readonly List<string> availablePromotions = new List<string>();
         private readonly List<string> availableCivics = new List<string>();
@@ -194,7 +196,12 @@ namespace CivClone.Presentation
             }
 
             UpdateHoverTooltip();
-            UpdateAlertsAndEndTurnState();
+            hudRefreshTimer += Time.unscaledDeltaTime;
+            if (hudRefreshTimer >= 0.25f)
+            {
+                hudRefreshTimer = 0f;
+                UpdateAlertsAndEndTurnState();
+            }
             HandleAutoEndTurn();
         }
 
@@ -3106,7 +3113,13 @@ namespace CivClone.Presentation
                 return;
             }
 
-            Vector3 world = sceneCamera.ScreenToWorldPoint(Input.mousePosition);
+            if (Input.mousePosition == lastMousePosition)
+            {
+                return;
+            }
+
+            lastMousePosition = Input.mousePosition;
+            Vector3 world = sceneCamera.ScreenToWorldPoint(lastMousePosition);
             Vector2 point = new Vector2(world.x, world.y);
             RaycastHit2D hit = Physics2D.Raycast(point, Vector2.zero);
 
