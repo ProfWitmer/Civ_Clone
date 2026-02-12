@@ -1458,8 +1458,10 @@ namespace CivClone.Presentation
             }
 
             string candidate = productionOptions[index];
-            bool isUnit = dataCatalog != null && dataCatalog.TryGetUnitType(candidate, out var unitType);
-            bool isBuilding = dataCatalog != null && dataCatalog.TryGetBuildingType(candidate, out var buildingType);
+            UnitType unitType = null;
+            BuildingType buildingType = null;
+            bool isUnit = dataCatalog != null && dataCatalog.TryGetUnitType(candidate, out unitType);
+            bool isBuilding = dataCatalog != null && dataCatalog.TryGetBuildingType(candidate, out buildingType);
 
             if (!isUnit && !isBuilding)
             {
@@ -1530,8 +1532,10 @@ namespace CivClone.Presentation
             {
                 int idx = (currentIndex + offset + productionOptions.Length) % productionOptions.Length;
                 string candidate = productionOptions[idx];
-                bool isUnit = dataCatalog != null && dataCatalog.TryGetUnitType(candidate, out var unitType);
-                bool isBuilding = dataCatalog != null && dataCatalog.TryGetBuildingType(candidate, out var buildingType);
+                UnitType unitType = null;
+                BuildingType buildingType = null;
+                bool isUnit = dataCatalog != null && dataCatalog.TryGetUnitType(candidate, out unitType);
+                bool isBuilding = dataCatalog != null && dataCatalog.TryGetBuildingType(candidate, out buildingType);
                 if (!isUnit && !isBuilding)
                 {
                     continue;

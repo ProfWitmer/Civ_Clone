@@ -55,7 +55,7 @@ namespace CivClone.Presentation.UI
                 var row = new VisualElement();
                 row.AddToClassList("hud-scenario-row");
 
-                var label = new Label($"{entry.Name} {(entry.Id == selectedId ? \"(Current)\" : string.Empty)}");
+                var label = new Label($"{entry.Name} {(entry.Id == selectedId ? "(Current)" : string.Empty)}");
                 label.AddToClassList("hud-sub");
                 label.AddToClassList("hud-scenario-text");
                 row.Add(label);
