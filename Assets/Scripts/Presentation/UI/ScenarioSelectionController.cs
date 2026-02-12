@@ -90,8 +90,7 @@ namespace CivClone.Presentation.UI
 
         private string LoadSelectedScenarioId()
         {
-            var loader = new DataLoader();
-            string json = loader.LoadText(ScenarioSelectorPath);
+            string json = LoadSelectorJson();
             if (string.IsNullOrWhiteSpace(json))
             {
                 return string.Empty;
@@ -117,9 +116,10 @@ namespace CivClone.Presentation.UI
 
             var selector = new ScenarioSelector { ScenarioId = id };
             string json = JsonUtility.ToJson(selector, true);
-            string path = Path.Combine(Application.streamingAssetsPath, ScenarioSelectorPath);
+            string path = Path.Combine(Application.persistentDataPath, ScenarioSelectorPath);
             try
             {
+                Directory.CreateDirectory(Path.GetDirectoryName(path));
                 File.WriteAllText(path, json);
                 Refresh();
             }
@@ -127,6 +127,18 @@ namespace CivClone.Presentation.UI
             {
                 Debug.LogWarning($"Failed to write scenario selector: {ex.Message}");
             }
+        }
+
+        private string LoadSelectorJson()
+        {
+            string persistentPath = Path.Combine(Application.persistentDataPath, ScenarioSelectorPath);
+            if (File.Exists(persistentPath))
+            {
+                return File.ReadAllText(persistentPath);
+            }
+
+            var loader = new DataLoader();
+            return loader.LoadText(ScenarioSelectorPath);
         }
     }
 }

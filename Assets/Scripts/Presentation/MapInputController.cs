@@ -114,6 +114,13 @@ namespace CivClone.Presentation
                 return;
             }
 
+            if (state.ScenarioComplete)
+            {
+                hudController?.SetAlertInfo("Scenario complete. Restart to continue.");
+                hudController?.SetEndTurnState(true, "Scenario complete.");
+                return;
+            }
+
             if (Input.GetMouseButtonDown(0))
             {
                 HandleClick();
@@ -3383,6 +3390,20 @@ namespace CivClone.Presentation
                     blockers.Add($"Production ({city.Name})");
                     break;
                 }
+
+                if (dataCatalog != null && dataCatalog.TryGetBuildingType(city.ProductionTargetId, out var buildingType))
+                {
+                    if (city.Buildings != null && city.Buildings.Contains(city.ProductionTargetId))
+                    {
+                        blockers.Add($"Production ({city.Name})");
+                        break;
+                    }
+                    if (!HasRequiredTech(player, buildingType.RequiresTech))
+                    {
+                        blockers.Add($"Production ({city.Name})");
+                        break;
+                    }
+                }
             }
 
             return blockers;
@@ -3628,6 +3649,12 @@ namespace CivClone.Presentation
         {
             if (turnSystem == null)
             {
+                return;
+            }
+
+            if (state != null && state.ScenarioComplete)
+            {
+                hudController?.SetEventMessage("Scenario complete.");
                 return;
             }
 

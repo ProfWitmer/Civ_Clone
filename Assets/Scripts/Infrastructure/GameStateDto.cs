@@ -11,6 +11,10 @@ namespace CivClone.Infrastructure
         public int ActivePlayerIndex;
         public int MapWidth;
         public int MapHeight;
+        public string ScenarioId;
+        public int ScenarioLastTurn;
+        public List<string> ScenarioFiredEvents = new List<string>();
+        public bool ScenarioComplete;
         public List<TileDto> Tiles = new List<TileDto>();
         public List<PlayerDto> Players = new List<PlayerDto>();
 
@@ -21,7 +25,11 @@ namespace CivClone.Infrastructure
                 CurrentTurn = state.CurrentTurn,
                 ActivePlayerIndex = state.ActivePlayerIndex,
                 MapWidth = state.Map.Width,
-                MapHeight = state.Map.Height
+                MapHeight = state.Map.Height,
+                ScenarioId = state.ScenarioId,
+                ScenarioLastTurn = state.ScenarioLastTurn,
+                ScenarioComplete = state.ScenarioComplete,
+                ScenarioFiredEvents = state.ScenarioFiredEvents != null ? new List<string>(state.ScenarioFiredEvents) : new List<string>()
             };
 
             foreach (var tile in state.Map.Tiles)
@@ -180,7 +188,11 @@ namespace CivClone.Infrastructure
             {
                 Map = map,
                 CurrentTurn = CurrentTurn,
-                ActivePlayerIndex = ActivePlayerIndex
+                ActivePlayerIndex = ActivePlayerIndex,
+                ScenarioId = ScenarioId ?? string.Empty,
+                ScenarioLastTurn = ScenarioLastTurn,
+                ScenarioComplete = ScenarioComplete,
+                ScenarioFiredEvents = ScenarioFiredEvents != null ? new List<string>(ScenarioFiredEvents) : new List<string>()
             };
 
             foreach (var playerDto in Players)

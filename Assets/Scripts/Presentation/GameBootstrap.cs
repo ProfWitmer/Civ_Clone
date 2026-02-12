@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using CivClone.Infrastructure;
 using CivClone.Infrastructure.Data;
 using CivClone.Presentation.Camera;
@@ -195,6 +196,7 @@ namespace CivClone.Presentation
 
             if (scenario != null && scenario.Players != null && scenario.Players.Count > 0)
             {
+                state.ScenarioId = LoadScenarioId();
                 foreach (var scenarioPlayer in scenario.Players)
                 {
                     if (scenarioPlayer == null)
@@ -311,15 +313,15 @@ namespace CivClone.Presentation
         private ScenarioDefinition LoadScenarioDefinition()
         {
             var loader = new DataLoader();
-            string json = loader.LoadText("Data/scenario.json");
-            if (string.IsNullOrWhiteSpace(json))
+            string selectorJson = LoadScenarioSelectorJson();
+            if (string.IsNullOrWhiteSpace(selectorJson))
             {
                 return null;
             }
 
             try
             {
-                var selector = JsonUtility.FromJson<ScenarioSelector>(json);
+                var selector = JsonUtility.FromJson<ScenarioSelector>(selectorJson);
                 if (selector != null && !string.IsNullOrWhiteSpace(selector.ScenarioId))
                 {
                     var catalog = LoadScenarioCatalog(loader);
@@ -334,12 +336,43 @@ namespace CivClone.Presentation
                     }
                 }
 
-                return JsonUtility.FromJson<ScenarioDefinition>(json);
+                return JsonUtility.FromJson<ScenarioDefinition>(selectorJson);
             }
             catch (Exception ex)
             {
                 Debug.LogWarning($"Failed to load scenario.json: {ex.Message}");
                 return null;
+            }
+        }
+
+        private string LoadScenarioSelectorJson()
+        {
+            string persistentPath = Path.Combine(Application.persistentDataPath, "Data/scenario.json");
+            if (File.Exists(persistentPath))
+            {
+                return File.ReadAllText(persistentPath);
+            }
+
+            var loader = new DataLoader();
+            return loader.LoadText("Data/scenario.json");
+        }
+
+        private string LoadScenarioId()
+        {
+            try
+            {
+                var selectorJson = LoadScenarioSelectorJson();
+                if (string.IsNullOrWhiteSpace(selectorJson))
+                {
+                    return string.Empty;
+                }
+
+                var selector = JsonUtility.FromJson<ScenarioSelector>(selectorJson);
+                return selector?.ScenarioId ?? string.Empty;
+            }
+            catch
+            {
+                return string.Empty;
             }
         }
 

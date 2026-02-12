@@ -278,6 +278,10 @@ namespace CivClone.Simulation
                 if (city.Buildings != null && city.Buildings.Contains(targetId))
                 {
                     AdvanceProductionQueue(city);
+                    if (string.IsNullOrWhiteSpace(city.ProductionTargetId))
+                    {
+                        city.ProductionCost = 0;
+                    }
                     return;
                 }
             }
@@ -305,6 +309,10 @@ namespace CivClone.Simulation
                 }
 
                 AdvanceProductionQueue(city);
+                if (string.IsNullOrWhiteSpace(city.ProductionTargetId))
+                {
+                    city.ProductionCost = 0;
+                }
                 RecalculateCityYields(player);
                 return;
             }

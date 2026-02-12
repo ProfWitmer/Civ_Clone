@@ -29,9 +29,19 @@ namespace CivClone.Presentation
             turnSystem = turnSystemRef;
             dataCatalog = catalog;
             hudController = hud;
-            lastTurn = -1;
+            lastTurn = state != null ? state.ScenarioLastTurn : -1;
             firedEvents.Clear();
-            victoryTriggered = false;
+            if (state?.ScenarioFiredEvents != null)
+            {
+                foreach (var evt in state.ScenarioFiredEvents)
+                {
+                    if (!string.IsNullOrWhiteSpace(evt))
+                    {
+                        firedEvents.Add(evt);
+                    }
+                }
+            }
+            victoryTriggered = state != null && state.ScenarioComplete;
         }
 
         private void Update()
@@ -44,6 +54,7 @@ namespace CivClone.Presentation
             if (state.CurrentTurn != lastTurn)
             {
                 lastTurn = state.CurrentTurn;
+                state.ScenarioLastTurn = lastTurn;
                 ApplyTurnEvents(state.CurrentTurn);
             }
 
@@ -71,6 +82,10 @@ namespace CivClone.Presentation
                 }
 
                 firedEvents.Add(eventId);
+                if (state?.ScenarioFiredEvents != null && !state.ScenarioFiredEvents.Contains(eventId))
+                {
+                    state.ScenarioFiredEvents.Add(eventId);
+                }
                 ApplyEvent(evt);
             }
         }
@@ -217,6 +232,7 @@ namespace CivClone.Presentation
             if (scenario.Victory.TurnLimit > 0 && state.CurrentTurn > scenario.Victory.TurnLimit)
             {
                 victoryTriggered = true;
+                state.ScenarioComplete = true;
                 hudController?.SetEventMessage("Scenario complete: Turn limit reached.", 6f);
                 return;
             }
@@ -247,6 +263,7 @@ namespace CivClone.Presentation
                 if (!anyOpponents)
                 {
                     victoryTriggered = true;
+                    state.ScenarioComplete = true;
                     hudController?.SetEventMessage("Scenario complete: All opponents defeated.", 6f);
                 }
             }
