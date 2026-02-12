@@ -9,6 +9,8 @@ namespace CivClone.Infrastructure
         public ScenarioMapDefinition Map;
         public List<ScenarioPlayerDefinition> Players = new List<ScenarioPlayerDefinition>();
         public int ActivePlayerIndex = 0;
+        public ScenarioVictoryDefinition Victory;
+        public List<ScenarioEventDefinition> Events = new List<ScenarioEventDefinition>();
     }
 
     [Serializable]
@@ -68,5 +70,28 @@ namespace CivClone.Infrastructure
         public int X = 0;
         public int Y = 0;
         public int Population = 1;
+    }
+
+    [Serializable]
+    public class ScenarioVictoryDefinition
+    {
+        public int TurnLimit = 0;
+        public bool EliminateAllOpponents = false;
+    }
+
+    [Serializable]
+    public class ScenarioEventDefinition
+    {
+        public string Id = "";
+        public int Turn = 1;
+        public string Type = "";
+        public int TargetPlayerId = 0;
+        public string TechId = "";
+        public string ResourceId = "";
+        public string UnitTypeId = "";
+        public int X = 0;
+        public int Y = 0;
+        public int OtherPlayerId = 0;
+        public string Message = "";
     }
 }

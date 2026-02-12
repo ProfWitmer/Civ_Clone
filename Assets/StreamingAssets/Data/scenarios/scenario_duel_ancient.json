@@ -6,6 +6,15 @@
     "DefaultTerrainId": "plains"
   },
   "ActivePlayerIndex": 0,
+  "Victory": {
+    "TurnLimit": 50,
+    "EliminateAllOpponents": true
+  },
+  "Events": [
+    { "Id": "gift_archery", "Turn": 5, "Type": "grant_tech", "TargetPlayerId": 0, "TechId": "archery", "Message": "Your elders share the art of Archery." },
+    { "Id": "rival_reinforcements", "Turn": 6, "Type": "spawn_unit", "TargetPlayerId": 1, "UnitTypeId": "warrior", "X": 9, "Y": 3, "Message": "Rival reinforcements arrive." },
+    { "Id": "declare_war", "Turn": 8, "Type": "declare_war", "TargetPlayerId": 1, "OtherPlayerId": 0, "Message": "The Rival declares war!" }
+  ],
   "Players": [
     {
       "Id": 0,

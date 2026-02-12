@@ -27,6 +27,7 @@ namespace CivClone.Presentation
         private GameState _state;
         private TurnSystem _turnSystem;
         private FogOfWarSystem _fogOfWar;
+        private ScenarioDefinition _scenario;
 
         public GameState State => _state;
 
@@ -133,6 +134,8 @@ namespace CivClone.Presentation
                 mapPresenter.UpdateFog(_state.Map);
                 mapPresenter.UpdateImprovements(_state.Map, dataCatalog);
             }
+
+            EnsureScenarioHooks();
         }
 
         private void EnsureCameraController()
@@ -169,6 +172,7 @@ namespace CivClone.Presentation
         private GameState BuildInitialState()
         {
             var scenario = LoadScenarioDefinition();
+            _scenario = scenario;
             if (scenario?.Map != null)
             {
                 mapConfig.Width = scenario.Map.Width;
@@ -271,6 +275,21 @@ namespace CivClone.Presentation
             InitializeDiplomacy(state);
 
             return state;
+        }
+
+        private void EnsureScenarioHooks()
+        {
+            if (_scenario == null)
+            {
+                return;
+            }
+
+            if (!TryGetComponent(out ScenarioHooksController hooks))
+            {
+                hooks = gameObject.AddComponent<ScenarioHooksController>();
+            }
+
+            hooks.Bind(_scenario, _state, _turnSystem, dataCatalog, hudController);
         }
 
         private ScenarioDefinition LoadScenarioDefinition()

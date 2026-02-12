@@ -6,6 +6,14 @@
     "DefaultTerrainId": "plains"
   },
   "ActivePlayerIndex": 0,
+  "Victory": {
+    "TurnLimit": 60,
+    "EliminateAllOpponents": false
+  },
+  "Events": [
+    { "Id": "grant_currency", "Turn": 10, "Type": "grant_tech", "TargetPlayerId": 0, "TechId": "currency", "Message": "Merchants unlock Currency." },
+    { "Id": "give_iron", "Turn": 12, "Type": "give_resource", "TargetPlayerId": 0, "ResourceId": "iron", "Message": "An iron vein is discovered." }
+  ],
   "Players": [
     {
       "Id": 0,
