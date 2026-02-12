@@ -343,6 +343,10 @@ namespace CivClone.Simulation
         {
             if (city == null || city.ProductionQueue == null || city.ProductionQueue.Count == 0)
             {
+                if (city != null)
+                {
+                    city.ProductionTargetId = string.Empty;
+                }
                 return;
             }
 

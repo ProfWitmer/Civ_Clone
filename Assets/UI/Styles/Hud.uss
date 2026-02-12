@@ -215,6 +215,11 @@
     margin-top: 4px;
 }
 
+.hud-scenario-note {
+    color: var(--hud-muted);
+    margin-bottom: 6px;
+}
+
 .hud-scenario-row {
     flex-direction: row;
     justify-content: space-between;

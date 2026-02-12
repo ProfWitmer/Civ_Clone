@@ -155,6 +155,19 @@ namespace CivClone.Presentation
                 return;
             }
 
+            if (state?.Map == null)
+            {
+                return;
+            }
+
+            x = Mathf.Clamp(x, 0, state.Map.Width - 1);
+            y = Mathf.Clamp(y, 0, state.Map.Height - 1);
+            var tile = state.Map.GetTile(x, y);
+            if (tile != null && tile.TerrainId == "water")
+            {
+                return;
+            }
+
             int movement = 2;
             if (dataCatalog != null && dataCatalog.TryGetUnitType(unitTypeId, out var unitType))
             {

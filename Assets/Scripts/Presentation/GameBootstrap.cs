@@ -334,6 +334,9 @@ namespace CivClone.Presentation
                             return JsonUtility.FromJson<ScenarioDefinition>(scenarioJson);
                         }
                     }
+
+                    Debug.LogWarning($"Scenario '{selector.ScenarioId}' not found in catalog.");
+                    return null;
                 }
 
                 return JsonUtility.FromJson<ScenarioDefinition>(selectorJson);

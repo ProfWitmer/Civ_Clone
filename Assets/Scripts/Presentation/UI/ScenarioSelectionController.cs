@@ -45,6 +45,13 @@ namespace CivClone.Presentation.UI
 
             panel.style.display = DisplayStyle.Flex;
             string selectedId = LoadSelectedScenarioId();
+            if (!string.IsNullOrWhiteSpace(selectedId))
+            {
+                var notice = new Label("Restart required after changing scenario.");
+                notice.AddToClassList("hud-sub");
+                notice.AddToClassList("hud-scenario-note");
+                list.Add(notice);
+            }
             foreach (var entry in catalog.Items)
             {
                 if (entry == null || string.IsNullOrWhiteSpace(entry.Id))
