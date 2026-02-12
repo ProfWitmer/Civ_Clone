@@ -136,6 +136,7 @@ namespace CivClone.Presentation
             }
 
             EnsureScenarioHooks();
+            EnsureScenarioSelectionUI();
         }
 
         private void EnsureCameraController()
@@ -290,6 +291,21 @@ namespace CivClone.Presentation
             }
 
             hooks.Bind(_scenario, _state, _turnSystem, dataCatalog, hudController);
+        }
+
+        private void EnsureScenarioSelectionUI()
+        {
+            if (hudController == null)
+            {
+                return;
+            }
+
+            if (!hudController.TryGetComponent(out UI.ScenarioSelectionController selector))
+            {
+                selector = hudController.gameObject.AddComponent<UI.ScenarioSelectionController>();
+            }
+
+            selector.Refresh();
         }
 
         private ScenarioDefinition LoadScenarioDefinition()

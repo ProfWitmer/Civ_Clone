@@ -206,6 +206,33 @@
     min-height: 52px;
 }
 
+.hud-scenario {
+    max-height: 180px;
+}
+
+.hud-scenario-list {
+    height: 140px;
+    margin-top: 4px;
+}
+
+.hud-scenario-row {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.hud-scenario-text {
+    flex-grow: 1;
+    margin-right: 6px;
+}
+
+.hud-scenario-button {
+    height: 24px;
+    padding-left: 8px;
+    padding-right: 8px;
+    font-size: 11px;
+}
 .hud-floating {
     position: absolute;
     left: 50%;

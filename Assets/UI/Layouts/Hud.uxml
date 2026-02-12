@@ -50,6 +50,10 @@
             </ui:VisualElement>
 
             <ui:VisualElement class="hud-right">
+                <ui:VisualElement name="scenario-panel" class="hud-panel hud-scenario">
+                    <ui:Label text="Scenarios" class="hud-title" />
+                    <ui:ScrollView name="scenario-list" class="hud-scenario-list" />
+                </ui:VisualElement>
                 <ui:VisualElement class="hud-minimap">
                     <ui:Label text="Minimap" class="hud-minimap-title" />
                     <ui:VisualElement class="hud-minimap-frame">
